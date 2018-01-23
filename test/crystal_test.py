@@ -6,7 +6,7 @@
 #
 # Distributed under terms of the MIT license.
 
-"""Testing the crystal class of statdyn."""
+"""Testing the crystal class of sdrun."""
 
 from pathlib import Path
 
@@ -17,9 +17,9 @@ from hypothesis import given, settings
 from hypothesis.extra.numpy import arrays
 from hypothesis.strategies import floats, integers, tuples
 
-from statdyn import crystals
-from statdyn.simulation import initialise
-from statdyn.simulation.helper import SimulationParams
+from sdrun import crystals
+from sdrun.simulation import initialise
+from sdrun.simulation.helper import SimulationParams
 
 TEST_CLASSES = [
     crystals.Crystal,

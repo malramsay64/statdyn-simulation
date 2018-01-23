@@ -10,7 +10,7 @@
 
 import pytest
 
-from statdyn.sdrun.main import create_parser
+from sdrun.main import create_parser
 
 parser = create_parser()
 
@@ -18,8 +18,6 @@ FUNCS = [
     ('prod', ['infile']),
     ('equil', ['infile', 'outfile']),
     ('create', ['outfile']),
-    ('figure', []),
-    ('comp_dynamics', ['infile']),
 ]
 
 
@@ -45,18 +43,6 @@ def test_version(func, extras):
         parser.parse_args(['--version', func])
         assert e == 0
 
-
-@pytest.mark.parametrize('extras', [
-    ['test'],
-    ['--argument'],
-    ['--argument', 'with_value'],
-    ['-a', '--argument', 'value', '123']
-])
-def test_bokeh(extras):
-    args = parser.parse_args(['figure', '--'] + extras)
-    assert args.bokeh == extras
-    args = parser.parse_args(['figure', '"{}"'.format(' '.join(extras))])
-    assert args.bokeh == ['"{}"'.format(' '.join(extras))]
 
 def test_hoomd_args():
     args = parser.parse_args(['equil', '--hoomd-args', '"-mode=cpu"', 'infile', 'outfile'])

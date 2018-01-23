@@ -17,9 +17,9 @@ import pytest
 from hypothesis import given, settings
 from hypothesis.strategies import floats, integers, tuples
 
-from statdyn import crystals, molecules
-from statdyn.simulation import initialise
-from statdyn.simulation.helper import SimulationParams
+from sdrun import crystals, molecules
+from sdrun.simulation import initialise
+from sdrun.simulation.helper import SimulationParams
 
 from .crystal_test import get_distance
 

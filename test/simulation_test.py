@@ -13,15 +13,14 @@ import os
 import subprocess
 from pathlib import Path
 
-import gsd.hoomd
 import hoomd
 import pytest
 from hypothesis import given, settings
 from hypothesis.strategies import integers, tuples
 
-from statdyn import crystals
-from statdyn.simulation import equilibrate, initialise, simrun
-from statdyn.simulation.params import SimulationParams, paramsContext
+from sdrun import crystals
+from sdrun.simulation import equilibrate, initialise, simrun
+from sdrun.simulation.params import SimulationParams, paramsContext
 
 OUTDIR = Path('test/tmp')
 OUTDIR.mkdir(exist_ok=True)
@@ -173,17 +172,3 @@ def test_interface(pressure, temperature):
     assert create.returncode == 0
     melt = subprocess.run(melt_command)
     assert melt.returncode == 0
-
-def test_dynamics_output():
-    """Ensure files are located in the correct directory when created."""
-    outdir = Path('test/output')
-    for i in outdir.glob('*'):
-        os.remove(str(i))
-    with paramsContext(PARAMETERS, outfile_path=outdir, dynamics=True, temperature=3.00):
-        snapshot = initialise.init_from_none(hoomd_args=HOOMD_ARGS)
-        simrun.run_npt(snapshot, hoomd.context.initialize(''), sim_params=PARAMETERS)
-        assert (outdir / 'trajectory-Trimer-P13.50-T3.00.gsd').is_file()
-        with gsd.hoomd.open(str(outdir / 'trajectory-Trimer-P13.50-T3.00.gsd')) as trj:
-            assert [f.configuration.step for f in trj] == list(range(101))
-    for i in outdir.glob('*'):
-        os.remove(str(i))

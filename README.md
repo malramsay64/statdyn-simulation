@@ -1,10 +1,10 @@
 MD-Molecules-Hoomd
 ==================
 
-[![Build Status](https://travis-ci.org/malramsay64/MD-Molecules-Hoomd.svg?branch=master)](https://travis-ci.org/malramsay64/MD-Molecules-Hoomd)
-[![codecov](https://codecov.io/gh/malramsay64/MD-Molecules-Hoomd/branch/master/graph/badge.svg)](https://codecov.io/gh/malramsay64/MD-Molecules-Hoomd)
-[![Anaconda-Server Badge](https://anaconda.org/malramsay/statdyn/badges/installer/conda.svg)](https://conda.anaconda.org/malramsay)
-[![Anaconda-Server Badge](https://anaconda.org/malramsay/statdyn/badges/version.svg)](https://anaconda.org/malramsay/statdyn)
+[![Build Status](https://travis-ci.org/malramsay64/statdyn-simulation.svg?branch=master)](https://travis-ci.org/malramsay64/statdyn-simulation)
+[![codecov](https://codecov.io/gh/malramsay64/statdyn-simulation/branch/master/graph/badge.svg)](https://codecov.io/gh/malramsay64/statdyn-simulation)
+[![Anaconda-Server Badge](https://anaconda.org/malramsay/sdrun/badges/installer/conda.svg)](https://conda.anaconda.org/malramsay)
+[![Anaconda-Server Badge](https://anaconda.org/malramsay/sdrun/badges/version.svg)](https://anaconda.org/malramsay/sdrun)
 
 
 This is a set of scripts that use
@@ -20,16 +20,16 @@ Installation
 
 The simplest method of installation is using `conda`. To install
 
-    conda install -c malramsay statdyn
+    conda install -c malramsay sdrun
 
 It is also possible to set the repository up as a development environment,
 in which case cloning the repository and installing is possible by running
 
-    git clone https://github.com/malramsay64/MD-Molecules-Hoomd.git
-    cd MD-Molecules-Hoomd
+    git clone https://github.com/malramsay64/statdyn-simulation
+    cd statdyn-simulation
     conda env create
-    source activate statdyn-dev
-    python setup.py develop
+    source activate sdrun-dev
+    pip install -e .
 
 Once the environment is setup the tests can be run with
 
@@ -67,19 +67,9 @@ A production run can be run with the `prod` sub-command
 
 This has a different series of options including outputting a series of
 timesteps optimised for the analysis of dynamics quantities in the file
-prefixed with `trajectory-`. This dynamics optimised file can be analysed
-with
+prefixed with `trajectory-`. 
 
-    sdrun comp-dynamics trajectory-Trimer-13.50-1.20.gsd
+For the analysis of the resulting trajectories the [sdanalysis][sdanalyis] tool
+can be used.
 
-which will generate an hdf5 file of the same name containing a single table,
-`dynamics` which has all the dynamic quantities tabulated. This also includes
-a start index, over which statistics can be computed.
-
-Finally the command
-
-    sdrun figure
-
-will open up a bokeh server which will allow for the interactive visualisation
-of all `dump-*.gsd` files in the current directory.
-
+[sdanalysis]: https://github.com/malramsay64/statdyn-analysis

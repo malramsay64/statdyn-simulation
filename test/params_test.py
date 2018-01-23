@@ -15,9 +15,9 @@ from pathlib import Path
 import pytest
 from hypothesis import example, given, settings
 from hypothesis.strategies import text
-from statdyn.crystals import TrimerP2
-from statdyn.molecules import Dimer, Disc, Molecule, Sphere, Trimer
-from statdyn.simulation.params import SimulationParams, paramsContext
+from sdrun.crystals import TrimerP2
+from sdrun.molecules import Dimer, Disc, Molecule, Sphere, Trimer
+from sdrun.simulation.params import SimulationParams, paramsContext
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

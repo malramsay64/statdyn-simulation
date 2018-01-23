@@ -13,7 +13,7 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import floats
 
-from statdyn import molecules
+from sdrun import molecules
 
 MOLECULE_LIST = [
     molecules.Molecule(),
@@ -62,78 +62,10 @@ def test_define_potential(mol):
 def test_define_dimensions(mol):
     mol.define_dimensions()
 
+
 @pytest.mark.parametrize('mol', MOLECULE_LIST)
 def test_read_only_position(mol):
     assert mol.positions.flags.writeable == False
-
-
-@pytest.mark.parametrize('mol', MOLECULE_LIST)
-def test_orientation2positions(mol):
-    position = np.array([[0, 0, 0]], dtype=np.float32)
-    orientation = np.array([[1, 0, 0, 0]], dtype=np.float32)
-    x_inv_pos = np.copy(mol.positions)
-    x_inv_pos[:, 0] = -x_inv_pos[:, 0]
-    rotated_pos = mol.orientation2positions(position, orientation)
-    assert np.allclose(
-        rotated_pos,
-        x_inv_pos,
-        atol=1e5,
-    )
-
-
-@pytest.mark.parametrize('mol', MOLECULE_LIST)
-def test_orientation2positions_invert_xy(mol):
-    position = np.array([[0, 0, 0]], dtype=np.float32)
-    orientation = np.array([[0, 0, 0, 1]], dtype=np.float32)
-    xy_inv_pos = np.copy(mol.positions)
-    xy_inv_pos[:, :2] = -xy_inv_pos[:, :2]
-    rotated_pos = mol.orientation2positions(position, orientation)
-    assert np.allclose(
-        rotated_pos,
-        xy_inv_pos,
-        atol=1e5,
-    )
-
-
-@pytest.mark.parametrize('mol', MOLECULE_LIST)
-def test_orientation2positions_moved(mol):
-    position = np.array([[1, 1, 0]], dtype=np.float32)
-    orientation = np.array([[1, 0, 0, 0]], dtype=np.float32)
-    rotated_pos = mol.orientation2positions(position, orientation)
-    moved_pos = mol.positions + np.repeat(position, mol.num_particles, axis=0)
-    assert np.allclose(
-        rotated_pos,
-        moved_pos,
-    )
-
-
-@pytest.mark.parametrize('mol', MOLECULE_LIST)
-def test_orientation2positions_moved_rot(mol):
-    position = np.array([[4, 2, 0]], dtype=np.float32)
-    orientation = np.array([[0, 0, 0, 1]], dtype=np.float32)
-    rotated_pos = mol.orientation2positions(position, orientation)
-    xy_inv_pos = np.copy(mol.positions)
-    xy_inv_pos[:, :2] = -xy_inv_pos[:, :2]
-    moved_pos = xy_inv_pos + np.tile(position, (mol.num_particles, 1))
-    assert np.allclose(
-        rotated_pos,
-        moved_pos,
-    )
-
-
-@pytest.mark.parametrize('mol', MOLECULE_LIST)
-def test_orientation2positions_moved_rot_multiple(mol):
-    position = np.array([[4, 2, 0], [0, 0, 0]], dtype=np.float32)
-    orientation = np.array([[0, 0, 0, 1], [0, 0, 0, 1]], dtype=np.float32)
-    rotated_pos = mol.orientation2positions(position, orientation)
-    xy_inv_pos = np.copy(mol.positions)
-    xy_inv_pos[:, :2] = -xy_inv_pos[:, :2]
-    moved_pos = (np.repeat(xy_inv_pos, position.shape[0], axis=0)
-                 + np.tile(position, (mol.num_particles, 1)))
-    assert np.allclose(
-        rotated_pos,
-        moved_pos,
-    )
 
 
 @pytest.mark.parametrize('mol', MOLECULE_LIST)

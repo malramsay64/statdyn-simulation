@@ -8,39 +8,34 @@
 
 """Command line tool to run simulations."""
 
-from pathlib import Path
-from sysconfig import get_path
-
-import numpy as np
-from Cython.Build import cythonize
 from setuptools import find_packages, setup
-from setuptools.extension import Extension
-
-extensions = [
-    Extension(
-        'statdyn.analysis.order',
-        ['statdyn/analysis/order.pyx'],
-        language='c++',
-        libraries=['m', 'voro++'],
-        include_dirs=[np.get_include(), str(Path(get_path('data')) / 'include')],
-    ),
-    Extension(
-        'statdyn.math_helper',
-         ['statdyn/math_helper.pyx'],
-        libraries=['m'],
-        include_dirs=[np.get_include()],
-    ),
-]
 
 setup(
-    name='statdyn',
-    use_scm_version={'version_scheme': 'post-release'},
+    name='sdrun',
+    use_scm_version={'version_scheme': 'post-release',
+                     'local_scheme': 'dirty-tag'},
     setup_requires=['setuptools_scm', ],
-    packages=find_packages(),
-    ext_modules=cythonize(extensions),
+    python_requires='>=3.6',
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
     include_package_data=True,
     entry_points="""
         [console_scripts]
-        sdrun=statdyn.sdrun.main:sdrun
+        sdrun=sdrun.main:sdrun
     """,
+    url="https://github.com/malramsay64/statdyn-simulation",
+    author="Malcolm Ramsay",
+    author_email="malramsay64@gmail.com",
+    description="",
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: POSIX :: Linux',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+    ],
 )

@@ -13,7 +13,7 @@ import sys
 
 import pytest
 
-from statdyn.sdrun.main import parse_args
+from sdrun.main import parse_args
 
 TEST_ARGS = [
     ['prod',
@@ -65,21 +65,3 @@ def test_commands_mpi(arguments):
     command = ['mpirun', '-np', '4', 'sdrun'] + arguments + COMMON_ARGS
     ret = subprocess.run(command)
     assert ret.returncode == 0
-
-
-def test_comp_dynamics():
-    command = ['sdrun',
-               'comp_dynamics',
-               '-v',
-               '-o', 'test/output',
-               '--hoomd-args', '"--mode=cpu"',
-               'test/data/trajectory-13.50-3.00.gsd',
-               ]
-    ret = subprocess.run(command)
-    assert ret.returncode == 0
-
-
-def test_sdrun_figure():
-    command = ['sdrun', 'figure']
-    with pytest.raises(subprocess.TimeoutExpired):
-        subprocess.run(command, timeout=1)

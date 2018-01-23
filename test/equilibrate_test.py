@@ -10,8 +10,8 @@
 
 from pathlib import Path
 
-from statdyn.crystals import TrimerPg
-from statdyn.simulation import equilibrate, initialise, params
+from sdrun.crystals import TrimerPg
+from sdrun.simulation import equilibrate, initialise, params
 
 SIM_PARAMS = params.SimulationParams(
     temperature=0.4,
