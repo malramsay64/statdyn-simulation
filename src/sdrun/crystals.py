@@ -14,7 +14,6 @@ import hoomd
 import numpy as np
 
 from . import molecules
-from .math_helper import z2quaternion
 
 
 class Crystal(object):
@@ -206,3 +205,12 @@ CRYSTAL_FUNCS = {
     'CubicSphere': CubicSphere,
     'SquareCircle': SquareCircle,
 }
+
+def z2quaternion(theta: np.ndarray) -> np.ndarray:
+    """Compute quaternion for a given rotation in the z direction."""
+    result = np.zeros((theta.shape[0], 4), dtype=np.float32)
+    q_angle = theta/2
+    q_angle[np.isclose(q_angle, 0, atol=2*np.finfo(np.float32).eps)] = 0
+    result[:, 0] = np.cos(q_angle)
+    result[:, 3] = np.sin(q_angle)
+    return result

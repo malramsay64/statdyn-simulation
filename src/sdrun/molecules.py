@@ -16,8 +16,6 @@ import hoomd
 import hoomd.md
 import numpy as np
 
-from .math_helper import rotate_vectors
-
 logger = logging.getLogger(__name__)
 
 
@@ -144,10 +142,6 @@ class Molecule(object):
     def get_radii(self) -> np.ndarray:
         """Radii of the particles."""
         return np.array([self._radii[p] for p in self.particles])
-
-    def orientation2positions(self, position, orientation):
-        return (np.tile(position, (self.num_particles, 1))
-                + rotate_vectors(orientation, self.positions.astype(np.float32)))
 
     def compute_size(self):
         """Compute the maximum possible size of the moleucule.

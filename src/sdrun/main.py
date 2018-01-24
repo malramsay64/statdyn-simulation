@@ -17,11 +17,10 @@ from typing import Callable, List, Tuple
 import hoomd.context
 from pkg_resources import DistributionNotFound, get_distribution
 
-from ..analysis.run_analysis import comp_dynamics
-from ..crystals import CRYSTAL_FUNCS
-from ..molecules import Dimer, Disc, Sphere, Trimer
-from ..simulation import equilibrate, initialise, simrun
-from ..simulation.params import SimulationParams
+from .crystals import CRYSTAL_FUNCS
+from .molecules import Dimer, Disc, Sphere, Trimer
+from .simulation import equilibrate, initialise, simrun
+from .simulation.params import SimulationParams
 
 logger = logging.getLogger(__name__)
 
@@ -230,22 +229,11 @@ def create_parser() -> argparse.ArgumentParser:
     parse_production.add_argument('infile', type=str)
     parse_production.set_defaults(func=prod)
 
-    parse_comp_dynamics = subparsers.add_parser('comp_dynamics', add_help=False, parents=[parser, default_parser])
-    parse_comp_dynamics.add_argument('infile', type=str)
-    parse_comp_dynamics.set_defaults(func=comp_dynamics)
-
     parse_create = subparsers.add_parser('create', add_help=False, parents=[parser, default_parser])
     parse_create.add_argument('--interface', default=False, action='store_true')
     parse_create.add_argument('outfile', type=str)
-
     parse_create.set_defaults(func=create)
-    parse_figure = subparsers.add_parser('figure', add_help=True, parents=[default_parser])
-    parse_figure.add_argument(
-        'bokeh',
-        nargs='*',
-        default=[],
-    )
-    parse_figure.set_defaults(func=figure)
+
     return simtype
 
 

@@ -1,9 +1,9 @@
 package:
-    name: statdyn
+    name: sdrun
     version: {{ GIT_DESCRIBE_TAG }}
 
 about:
-    home: https://github.com/malramsay64/MD-Molecules-Hoomd
+    home: https://github.com/malramsay64/statdyn-simulation
     license: MIT
     license_file: LICENSE
 
@@ -13,34 +13,22 @@ source:
 
 requirements:
     build:
-        - python 3.6.1
+        - python {{ python }}
         - setuptools 36.*
         - setuptools_scm 1.15*
-        - cython 0.26.*
-        - voro
-        - numpy 1.13.1
+        - numpy {{ numpy }}
 
     run:
-        - python 3.6.1
+        - {{ pin_compatible('python', max_pin='x.x') }}
+        - {{ pin_compatible('numpy', max_pin='x.x.x') }}
         - hoomd 2.2*
-        - numpy 1.13.1
-        - scipy 0.19.0
-        - scikit-learn 0.19.0
-        - pandas 0.20.3
-        - pytables 3.4*
-        - bokeh 0.12.9
         - setuptools *
-        - freud 0.6.*
-        - gsd 1.2.0*
-        - cython 0.26.*
-        - keras
-        - scikit-learn
 
 build:
     entry_points:
-        - sdrun = statdyn.sdrun.main:sdrun
+        - sdrun = sdrun.main:sdrun
     preserve_egg_dir: True
-    script: python setup.py install
+    script: pip install .
     number: {{ GIT_DESCRIBE_NUMBER }}
 
 test:
@@ -51,5 +39,5 @@ test:
     source_files:
         - test/*
     commands:
-        - python -c "import statdyn"
-        - pytest -v -c test/test_setup.cfg
+        - python -c "import sdrun"
+        - pytest -v
