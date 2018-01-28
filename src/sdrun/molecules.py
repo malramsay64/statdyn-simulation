@@ -272,3 +272,40 @@ class Dimer(Molecule):
         ])
         self.positions.flags.writeable = False
         self.moment_inertia = self.compute_moment_intertia()
+
+
+class Binary_Mixture(Molecule):
+    """Define an equimolar binary mixture.
+
+    This is done by creating a 'molecule' which has no links between the particles
+    so they are able to freely diffuse.
+
+    """
+
+    def __init__(self, radius=0.715):
+        super().__init__()
+        self.radius = radius
+        self.distance = 1+radius
+        self.particles = ['A', 'B']
+        self._radii.update(B=self.radius)
+        self.dimensions = 2
+        self.positions = np.array([
+            [0, 0, 0],
+            [0, self.distance, 0],
+        ])
+        self.positions.flags.writeable = False
+
+    # Overwrite rigid to do nothing
+    def define_rigid(self):
+        return None
+
+    def identify_bodies(self, num_molecules: int) -> np.ndarray:
+        return np.arange(num_molecules * self.num_particles)
+
+
+MOLECULE_LIST = [
+    Trimer(),
+    Dimer(),
+    Binary_Mixture(),
+    Disc(),
+]
