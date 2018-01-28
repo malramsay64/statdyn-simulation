@@ -35,11 +35,12 @@ def run_npt(snapshot: hoomd.data.SnapshotParticleData,
 
     """
     with context:
-        initialise.initialise_snapshot(
+        sys = initialise.initialise_snapshot(
             snapshot=snapshot,
             context=context,
             molecule=sim_params.molecule,
         )
+        logger.debug("Run metadata: %s", sys.get_metadata())
         set_integrator(sim_params)
         set_thermo(sim_params.filename(prefix='thermo'),
                    thermo_period=sim_params.output_interval)

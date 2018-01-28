@@ -24,26 +24,14 @@ from sdrun.simulation.helper import SimulationParams
 from .crystal_test import get_distance
 
 
-def create_snapshot():
+def create_snapshot(molecule):
     """Easily create a snapshot for later use in testing."""
-    return initialise.init_from_none(hoomd_args='', cell_dimensions=(10, 10))
-
-
-def create_file():
-    """Ease of use function for creating a file for use in testing."""
-    initialise.init_from_none(hoomd_args='')
-    with tempfile.NamedTemporaryFile(delete=False) as tmp:
-        hoomd.dump.gsd(
-            tmp.name,
-            period=None,
-            overwrite=True,
-            group=hoomd.group.all()
-        )
-        return Path(tmp.name)
+    return initialise.init_from_none(molecule, hoomd_args='', cell_dimensions=(10, 10))
 
 
 PARAMETERS = SimulationParams(
     temperature=0.4,
+    pressure=1.0,
     num_steps=100,
     crystal=crystals.TrimerPg(),
     outfile_path=Path('test/tmp'),
@@ -51,24 +39,25 @@ PARAMETERS = SimulationParams(
 )
 
 INIT_TEST_PARAMS = [
-    (initialise.init_from_none, ''),
-    (initialise.init_from_file, [create_file(), '']),
+    (initialise.init_from_none, [molecules.Trimer(), '']),
     (initialise.init_from_crystal, [PARAMETERS]),
 ]
 
 
-def test_init_from_none():
+@pytest.mark.parametrize('molecule', molecules.MOLECULE_LIST)
+def test_init_from_none(molecule):
     """Ensure init_from_none has the correct type and number of particles."""
-    snap = initialise.init_from_none(cell_dimensions=(10, 10))
-    assert snap.particles.N == 100
+    snap = initialise.init_from_none(molecule, cell_dimensions=(10, 10))
+    assert snap.particles.N == 100 * molecule.num_particles
 
 
-def test_initialise_snapshot():
+@pytest.mark.parametrize('molecule', molecules.MOLECULE_LIST)
+def test_initialise_snapshot(molecule):
     """Test initialisation from a snapshot works."""
     initialise.initialise_snapshot(
-        create_snapshot(),
+        create_snapshot(molecule),
         hoomd.context.initialize(''),
-        molecules.Trimer(),
+        molecule,
     )
     assert True
 
@@ -100,7 +89,7 @@ def test_orthorhombic_null():
     check that nothing has changed unexpectedly.
     """
     with hoomd.context.initialize():
-        snap = create_snapshot()
+        snap = create_snapshot(molecules.Trimer())
         assert np.all(
             initialise.make_orthorhombic(snap).particles.position ==
             snap.particles.position)
@@ -169,7 +158,7 @@ def test_moment_inertia(scaling_factor):
     """Ensure moment of intertia is set correctly in setup."""
     init_mol = molecules.Trimer(moment_inertia_scale=scaling_factor)
     snapshot = initialise.initialise_snapshot(
-        create_snapshot(),
+        create_snapshot(molecules.Trimer()),
         hoomd.context.initialize(''),
         init_mol,
     ).take_snapshot()

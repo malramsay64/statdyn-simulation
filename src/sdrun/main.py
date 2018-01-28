@@ -59,7 +59,9 @@ def prod(sim_params: SimulationParams) -> None:
     logger.debug('running prod')
     logger.debug('Reading %s', sim_params.infile)
 
-    snapshot = initialise.init_from_file(sim_params.infile, hoomd_args=sim_params.hoomd_args)
+    snapshot = initialise.init_from_file(sim_params.infile,
+                                         sim_params.molecule,
+                                         hoomd_args=sim_params.hoomd_args)
     logger.debug('Snapshot initialised')
 
     sim_context = hoomd.context.initialize(sim_params.hoomd_args)
@@ -80,6 +82,7 @@ def equil(sim_params: SimulationParams) -> None:
     Path(sim_params.outfile).parent.mkdir(exist_ok=True)
 
     snapshot = initialise.init_from_file(sim_params.infile,
+                                         sim_params.molecule,
                                          hoomd_args=sim_params.hoomd_args)
     EQUIL_OPTIONS.get(sim_params.equil_type)(
         snapshot,

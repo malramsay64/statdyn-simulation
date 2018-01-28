@@ -18,7 +18,7 @@ import pytest
 from hypothesis import given, settings
 from hypothesis.strategies import integers, tuples
 
-from sdrun import crystals
+from sdrun import crystals, molecules
 from sdrun.simulation import equilibrate, initialise, simrun
 from sdrun.simulation.params import SimulationParams, paramsContext
 
@@ -29,24 +29,27 @@ HOOMD_ARGS="--mode=cpu"
 PARAMETERS = SimulationParams(
     temperature=0.4,
     num_steps=100,
-    crystal=crystals.TrimerP2(),
+    crystal=crystals.TrimerPg(),
     outfile_path=OUTDIR,
     outfile=OUTDIR / 'testout',
     dynamics=False,
-    hoomd_args=HOOMD_ARGS
+    hoomd_args=HOOMD_ARGS,
+    minimize=True,
 )
 
 
 @pytest.mark.simulation
-def test_run_npt():
+@pytest.mark.parametrize('molecule', molecules.MOLECULE_LIST)
+def test_run_npt(molecule):
     """Test an npt run."""
-    snapshot = initialise.init_from_none(hoomd_args=HOOMD_ARGS)
-    simrun.run_npt(
-        snapshot=snapshot,
-        context=hoomd.context.initialize(''),
-        sim_params=PARAMETERS,
-    )
-    assert True
+    snapshot = initialise.init_from_none(molecule, hoomd_args=HOOMD_ARGS)
+    with paramsContext(PARAMETERS, molecule=molecule):
+        simrun.run_npt(
+            snapshot=snapshot,
+            context=hoomd.context.initialize(''),
+            sim_params=PARAMETERS,
+        )
+        assert True
 
 
 @given(integers(max_value=10, min_value=1))
@@ -54,11 +57,12 @@ def test_run_npt():
 @pytest.mark.hypothesis
 def test_run_multiple_concurrent(max_initial):
     """Test running multiple concurrent."""
-    snapshot = initialise.init_from_file(
-        Path('test/data/Trimer-13.50-3.00.gsd'),
-        hoomd_args=HOOMD_ARGS,
-    )
     with paramsContext(PARAMETERS, max_initial=max_initial):
+        snapshot = initialise.init_from_file(
+            Path('test/data/Trimer-13.50-3.00.gsd'),
+            PARAMETERS.molecule,
+            hoomd_args=PARAMETERS.hoomd_args,
+        )
         simrun.run_npt(snapshot,
                        context=hoomd.context.initialize(''),
                        sim_params=PARAMETERS
@@ -67,7 +71,8 @@ def test_run_multiple_concurrent(max_initial):
     gc.collect()
 
 
-def test_thermo():
+@pytest.mark.parametrize('molecule', molecules.MOLECULE_LIST)
+def test_thermo(molecule):
     """Test the _set_thermo function works.
 
     There are many thermodynamic values set in the function and ensuring that
@@ -75,13 +80,14 @@ def test_thermo():
     """
     output = Path('test/tmp')
     output.mkdir(exist_ok=True)
-    snapshot = initialise.init_from_none(hoomd_args=HOOMD_ARGS)
-    simrun.run_npt(
-        snapshot,
-        context=hoomd.context.initialize(''),
-        sim_params=PARAMETERS,
-    )
-    assert True
+    snapshot = initialise.init_from_none(molecule, hoomd_args=HOOMD_ARGS)
+    with paramsContext(PARAMETERS, molecule=molecule):
+        simrun.run_npt(
+            snapshot,
+            context=hoomd.context.initialize(''),
+            sim_params=PARAMETERS,
+        )
+        assert True
 
 
 @given(tuples(integers(max_value=30, min_value=5),
@@ -107,14 +113,16 @@ def test_orthorhombic_sims(cell_dimensions):
     gc.collect()
 
 
-def test_equil_file_placement():
+@pytest.mark.parametrize('molecule', molecules.MOLECULE_LIST)
+def test_equil_file_placement(molecule):
     outdir = Path('test/output')
     outfile = outdir / 'test_equil'
     current = list(Path.cwd().glob('*'))
     for i in outdir.glob('*'):
         os.remove(str(i))
-    with paramsContext(PARAMETERS, outfile_path=outdir, outfile=outfile, temperature=4.00):
-        snapshot = initialise.init_from_none(hoomd_args=HOOMD_ARGS)
+    with paramsContext(PARAMETERS, outfile_path=outdir, outfile=outfile,
+                       temperature=4.00, molecule=molecule):
+        snapshot = initialise.init_from_none(molecule, hoomd_args=HOOMD_ARGS)
         equilibrate.equil_liquid(snapshot, PARAMETERS)
         assert current == list(Path.cwd().glob('*'))
         assert Path(outfile).is_file()
@@ -122,20 +130,26 @@ def test_equil_file_placement():
         os.remove(str(i))
 
 
-def test_file_placement():
+@pytest.mark.parametrize('molecule', molecules.MOLECULE_LIST)
+def test_file_placement(molecule):
     """Ensure files are located in the correct directory when created."""
     outdir = Path('test/output')
     current = list(Path.cwd().glob('*'))
     for i in outdir.glob('*'):
         os.remove(str(i))
-    with paramsContext(PARAMETERS, outfile_path=outdir, dynamics=True, temperature=3.00):
-        snapshot = initialise.init_from_none(hoomd_args=HOOMD_ARGS)
+    with paramsContext(PARAMETERS, outfile_path=outdir, dynamics=True,
+                       temperature=3.00, molecule=molecule):
+        snapshot = initialise.init_from_none(molecule, hoomd_args=HOOMD_ARGS)
         simrun.run_npt(snapshot, hoomd.context.initialize(''), sim_params=PARAMETERS)
         assert current == list(Path.cwd().glob('*'))
-        assert (outdir / 'Trimer-P13.50-T3.00.gsd').is_file()
-        assert (outdir / 'dump-Trimer-P13.50-T3.00.gsd').is_file()
-        assert (outdir / 'thermo-Trimer-P13.50-T3.00.log').is_file()
-        assert (outdir / 'trajectory-Trimer-P13.50-T3.00.gsd').is_file()
+        sim_params = {'molecule': PARAMETERS.molecule,
+                      'pressure': PARAMETERS.pressure,
+                      'temperature': PARAMETERS.temperature,
+                      }
+        assert (outdir / '{molecule}-P{pressure:.2f}-T{temperature:.2f}.gsd'.format(**sim_params)).is_file()
+        assert (outdir / 'dump-{molecule}-P{pressure:.2f}-T{temperature:.2f}.gsd'.format(**sim_params)).is_file()
+        assert (outdir / 'thermo-{molecule}-P{pressure:.2f}-T{temperature:.2f}.log'.format(**sim_params)).is_file()
+        assert (outdir / 'trajectory-{molecule}-P{pressure:.2f}-T{temperature:.2f}.gsd'.format(**sim_params)).is_file()
     for i in outdir.glob('*'):
         os.remove(str(i))
 

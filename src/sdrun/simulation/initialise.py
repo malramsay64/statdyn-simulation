@@ -14,7 +14,7 @@ config.
 """
 import logging
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Union
 
 import hoomd
 import hoomd.md as md
@@ -25,8 +25,11 @@ from .helper import SimulationParams, dump_frame
 
 logger = logging.getLogger(__name__)
 
+UnitCellLengths = Union[Tuple[int, int, int], Tuple[int, int]]
+
 
 def init_from_file(fname: Path,
+                   molecule: molecules.Molecule,
                    hoomd_args: str='',
                    ) -> hoomd.data.SnapshotParticleData:
     """Initialise a hoomd simulation from an input file."""
@@ -35,61 +38,128 @@ def init_from_file(fname: Path,
     logger.debug('Hoomd Arguments: %s', hoomd_args)
     temp_context = hoomd.context.initialize(hoomd_args)
     with temp_context:
-        return hoomd.data.gsd_snapshot(str(fname), frame=0)
+        snapshot = hoomd.data.gsd_snapshot(str(fname), frame=0)
+        sys = hoomd.init.read_snapshot(snapshot)
+
+        rigid = molecule.define_rigid()
+        if rigid:
+            rigid.create_bodies()
+        return sys.take_snapshot(all=True)
 
 
-def init_from_none(hoomd_args: str='',
-                   cell_len: float=4,
-                   cell_dimensions: Tuple[int, int]=(20, 30),
+
+def init_from_none(molecule: molecules.Molecule,
+                   hoomd_args: str='',
+                   cell_dimensions: UnitCellLengths=(20, 30),
                    ) -> hoomd.data.SnapshotParticleData:
     """Initialise a system from no inputs.
 
     This creates a simulation with a large unit cell lattice such that there
     is no chance of molecules overlapping and places molecules on the lattice.
+
     """
     logger.debug('Hoomd Arguments: %s', hoomd_args)
+    try:
+        num_x, num_y, num_z = cell_dimensions
+    except ValueError:
+        num_x, num_y = cell_dimensions
+        num_z = 1
+
+
+    mol_size = molecule.compute_size()
+    num_molecules = num_x * num_y * num_z
+    len_x = mol_size * num_x
+    len_y = mol_size * num_y
+    len_z = mol_size * num_z
+    box = hoomd.data.boxdim(
+        Lx=len_x,
+        Ly=len_y,
+        Lz=len_z,
+        dimensions=molecule.dimensions,
+    )
     with hoomd.context.initialize(hoomd_args):
-        sys = hoomd.init.create_lattice(
-            unitcell=hoomd.lattice.sq(a=cell_len),
-            n=cell_dimensions
+        snapshot = hoomd.data.make_snapshot(
+            N=molecule.num_particles * num_molecules,
+            box=box,
+            particle_types=molecule.get_types(),
         )
-        return sys.take_snapshot(all=True)
+        # Generate list of positions on grid
+        xpos, ypos, zpos = np.mgrid[-len_x/2:len_x/2:mol_size,
+                                    -len_y/2:len_y/2:mol_size,
+                                    -len_z/2:len_z/2:mol_size]
+        cell_positions = np.array([xpos.flatten(), ypos.flatten(), zpos.flatten()]).T
+        positions = np.concatenate([cell_positions + mol_pos
+                                    for mol_pos in molecule.positions], axis=0)
+        positions += np.array([mol_size/2, mol_size/2, mol_size/2])
+        # Set values in snapshot
+        snapshot.particles.position[:] = positions
+        snapshot.particles.typeid[:] = molecule.identify_particles(num_molecules)
+        snapshot.particles.body[:] = molecule.identify_bodies(num_molecules)
+        snapshot.particles.moment_inertia[:] = np.array(
+            [molecule.moment_inertia]*num_molecules*molecule.num_particles)
+
+        return minimize_snapshot(snapshot, molecule)
 
 
 def initialise_snapshot(snapshot: hoomd.data.SnapshotParticleData,
                         context: hoomd.context.SimulationContext,
                         molecule: molecules.Molecule,
+                        minimize: bool=False,
                         ) -> hoomd.data.system_data:
     """Initialise the configuration from a snapshot.
 
     In this function it is checked that the data in the snapshot and the
     passed arguments are in agreement with each other, and rectified if not.
     """
+
     with context:
         try:
             num_particles = snapshot.particles.N
-            num_mols = max(snapshot.particles.bodies)
-        except AttributeError:
+            num_mols = max(snapshot.particles.body) + 1
+        except (AttributeError, ValueError):
             num_particles = len(snapshot.particles.position)
             num_mols = num_particles
         logger.debug('Number of particles: %d , Number of molecules: %d', num_particles, num_mols)
-        create_bodies = False
-        if num_particles == num_mols:
-            logger.info('Creating rigid bodies')
-            create_bodies = True
-        else:
-            assert num_particles % molecule.num_particles == 0
         snapshot = _check_properties(snapshot, molecule)
         sys = hoomd.init.read_snapshot(snapshot)
         molecule.define_potential()
         molecule.define_dimensions()
         rigid = molecule.define_rigid()
         if rigid:
-            rigid.create_bodies(create=create_bodies)
-            if create_bodies:
-                logger.info('Rigid bodies created')
+            rigid.check_initialization()
+
         return sys
 
+
+def minimize_snapshot(snapshot,
+                      molecule,
+                      hoomd_args: str='',
+                      ):
+    temp_context = hoomd.context.initialize(hoomd_args)
+    with temp_context:
+        sys = hoomd.init.read_snapshot(snapshot)
+        molecule.define_potential()
+        molecule.define_dimensions()
+        rigid = molecule.define_rigid()
+        if rigid:
+            rigid.check_initialization()
+            group = hoomd.group.rigid_center()
+        else:
+            group = hoomd.group.all()
+
+        logger.debug('Minimizing energy')
+        fire = hoomd.md.integrate.mode_minimize_fire(0.001)
+        nph = hoomd.md.integrate.nph(group=group, P=1.0, tauP=5)
+        num_steps = 0
+        while not fire.has_converged():
+            hoomd.run(100)
+            num_steps += 100
+            if num_steps > 10_000:
+                break
+
+        nph.disable()
+        logger.debug('Energy Minimized in %s steps', num_steps)
+        return sys.take_snapshot()
 
 def init_from_crystal(sim_params: SimulationParams,
                       ) -> hoomd.data.SnapshotParticleData:
@@ -112,7 +182,14 @@ def init_from_crystal(sim_params: SimulationParams,
             unitcell=sim_params.crystal.get_unitcell(),
             n=sim_params.cell_dimensions
         )
+        for p_type in sim_params.molecule.get_types()[1:]:
+            sys.particles.pdata.addType(p_type)
+        logger.debug("Particle Types: %s", sys.particles.types)
+        rigid = sim_params.molecule.define_rigid()
+        if rigid:
+            rigid.create_bodies()
         snap = sys.take_snapshot(all=True)
+        logger.debug("Particle Types: %s", snap.particles.types)
     temp_context = hoomd.context.initialize(sim_params.hoomd_args)
     with temp_context:
         sys = initialise_snapshot(snap, temp_context, sim_params.molecule)
@@ -167,7 +244,7 @@ def _check_properties(snapshot: hoomd.data.SnapshotParticleData,
                       molecule: molecules.Molecule
                       ) -> hoomd.data.SnapshotParticleData:
     try:
-        nbodies = len(snapshot.particles.body)
+        nbodies = min(len(snapshot.particles.body), max(snapshot.particles.body)+1)
         logger.debug('number of rigid bodies: %d', nbodies)
         snapshot.particles.types = molecule.get_types()
         snapshot.particles.moment_inertia[:nbodies] = np.array(
