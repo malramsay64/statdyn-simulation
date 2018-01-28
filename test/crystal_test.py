@@ -38,7 +38,7 @@ PARAMETERS = SimulationParams(
     temperature=0.4,
     num_steps=100,
     outfile_path=output_dir,
-    crystal=crystals.TrimerP2(),
+    crystal=crystals.TrimerPg(),
     cell_dimensions=(32, 40),
 )
 

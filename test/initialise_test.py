@@ -8,15 +8,14 @@
 
 """Module for testing the initialisation."""
 
-import tempfile
 from pathlib import Path
+
+import pytest
 
 import hoomd
 import numpy as np
-import pytest
 from hypothesis import given, settings
 from hypothesis.strategies import floats, integers, tuples
-
 from sdrun import crystals, molecules
 from sdrun.simulation import initialise
 from sdrun.simulation.helper import SimulationParams
