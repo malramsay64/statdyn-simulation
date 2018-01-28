@@ -11,6 +11,7 @@
 import logging
 from itertools import combinations_with_replacement
 from typing import Any, Dict, List, Tuple
+from collections import OrderedDict
 
 import hoomd
 import hoomd.md
@@ -38,7 +39,7 @@ class Molecule(object):
         self.potential = hoomd.md.pair.lj
         self.potential_args = dict()  # type: Dict[Any, Any]
         self.particles = ['A']
-        self._radii = {'A': 1.}
+        self._radii = OrderedDict(A=1.)
         self.dimensions = 3
         self.positions = np.array([[0, 0, 0]])
         self.positions.flags.writeable = False
@@ -117,11 +118,17 @@ class Molecule(object):
         params.setdefault('positions', [tuple(pos) for i, pos in enumerate(self.positions) if i > 0])
         rigid = hoomd.md.constrain.rigid()
         rigid.set_param(**params)
+        logger.debug('Rigid: %s', rigid)
         return rigid
 
-    def identify_bodies(self, indexes: np.ndarray) -> np.ndarray:
+    def identify_bodies(self, num_molecules: int) -> np.ndarray:
         """Convert an index of molecules into an index of particles."""
-        return np.append(indexes, [indexes]*(self.num_particles-1))
+        return np.concatenate([np.arange(num_molecules)]*self.num_particles)
+
+    def identify_particles(self, num_molecules: int) -> np.ndarray:
+        """Get the particle index for all the particles."""
+        return np.concatenate([np.ones(num_molecules)*list(self._radii.keys()).index(particle)
+                               for particle in self.particles])
 
     def __str__(self) -> str:
         return type(self).__name__
