@@ -21,15 +21,9 @@ from .crystals import CRYSTAL_FUNCS
 from .molecules import Dimer, Disc, Sphere, Trimer
 from .simulation import equilibrate, initialise, simrun
 from .simulation.params import SimulationParams
+from .version import __version__
 
 logger = logging.getLogger(__name__)
-
-
-try:
-    __version__ = get_distribution('statdyn').version
-except DistributionNotFound:
-    # package is not installed
-    __version__ = "dev"
 
 
 MOLECULE_OPTIONS = {

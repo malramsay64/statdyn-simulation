@@ -1,16 +1,16 @@
 name: sdrun-dev
 channels:
     - defaults
-    - glotzer
 dependencies:
     - python=3.6.1
     - numpy
-    - hoomd
+    - glotzer::hoomd
     - pytest
     - pylint
     - setuptools
     - hypothesis
     - coverage
+    - conda-forge::bumpversion
     - pip:
         - mypy
         - pytest-mypy

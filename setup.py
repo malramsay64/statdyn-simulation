@@ -10,11 +10,16 @@
 
 from setuptools import find_packages, setup
 
+# Get the version from src/sdrun/version.py without importing the package
+def get_version():
+    g = {}
+    exec(open("src/sdrun/version.py").read(), g)
+    return g["__version__"]
+
+
 setup(
     name='sdrun',
-    use_scm_version={'version_scheme': 'post-release',
-                     'local_scheme': 'dirty-tag'},
-    setup_requires=['setuptools_scm', ],
+    version=get_version(),
     python_requires='>=3.6',
     packages=find_packages('src'),
     package_dir={'': 'src'},
