@@ -48,9 +48,7 @@ def init_from_file(fname: Path,
 
 
 
-def init_from_none(molecule: molecules.Molecule,
-                   hoomd_args: str='',
-                   cell_dimensions: UnitCellLengths=(20, 30),
+def init_from_none(sim_params: SimulationParams
                    ) -> hoomd.data.SnapshotParticleData:
     """Initialise a system from no inputs.
 
@@ -58,13 +56,14 @@ def init_from_none(molecule: molecules.Molecule,
     is no chance of molecules overlapping and places molecules on the lattice.
 
     """
-    logger.debug('Hoomd Arguments: %s', hoomd_args)
+    logger.debug('Hoomd Arguments: %s', sim_params.hoomd_args)
     try:
-        num_x, num_y, num_z = cell_dimensions
+        num_x, num_y, num_z = sim_params.cell_dimensions
     except ValueError:
-        num_x, num_y = cell_dimensions
+        num_x, num_y = sim_params.cell_dimensions
         num_z = 1
 
+    molecule = sim_params.molecule
 
     mol_size = molecule.compute_size()
     num_molecules = num_x * num_y * num_z
@@ -77,7 +76,7 @@ def init_from_none(molecule: molecules.Molecule,
         Lz=len_z,
         dimensions=molecule.dimensions,
     )
-    with hoomd.context.initialize(hoomd_args):
+    with hoomd.context.initialize(sim_params.hoomd_args):
         snapshot = hoomd.data.make_snapshot(
             N=molecule.num_particles * num_molecules,
             box=box,

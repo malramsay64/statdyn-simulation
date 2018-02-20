@@ -42,8 +42,8 @@ PARAMETERS = SimulationParams(
 @pytest.mark.parametrize('molecule', molecules.MOLECULE_LIST)
 def test_run_npt(molecule):
     """Test an npt run."""
-    snapshot = initialise.init_from_none(molecule, hoomd_args=HOOMD_ARGS)
     with paramsContext(PARAMETERS, molecule=molecule):
+        snapshot = initialise.init_from_none(PARAMETERS)
         simrun.run_npt(
             snapshot=snapshot,
             context=hoomd.context.initialize(''),
@@ -80,8 +80,8 @@ def test_thermo(molecule):
     """
     output = Path('test/tmp')
     output.mkdir(exist_ok=True)
-    snapshot = initialise.init_from_none(molecule, hoomd_args=HOOMD_ARGS)
     with paramsContext(PARAMETERS, molecule=molecule):
+        snapshot = initialise.init_from_none(PARAMETERS)
         simrun.run_npt(
             snapshot,
             context=hoomd.context.initialize(''),
@@ -123,7 +123,7 @@ def test_equil_file_placement(molecule):
         os.remove(str(i))
     with paramsContext(PARAMETERS, outfile_path=outdir, outfile=outfile,
                        temperature=4.00, molecule=molecule):
-        snapshot = initialise.init_from_none(molecule, hoomd_args=HOOMD_ARGS)
+        snapshot = initialise.init_from_none(PARAMETERS)
         equilibrate.equil_liquid(snapshot, PARAMETERS)
         assert current == list(Path.cwd().glob('*'))
         assert Path(outfile).is_file()
@@ -141,7 +141,7 @@ def test_file_placement(molecule):
         os.remove(str(i))
     with paramsContext(PARAMETERS, outfile_path=outdir, dynamics=True,
                        temperature=3.00, molecule=molecule):
-        snapshot = initialise.init_from_none(molecule, hoomd_args=HOOMD_ARGS)
+        snapshot = initialise.init_from_none(PARAMETERS)
         simrun.run_npt(snapshot, hoomd.context.initialize(''), sim_params=PARAMETERS)
         assert current == list(Path.cwd().glob('*'))
         sim_params = {'molecule': PARAMETERS.molecule,

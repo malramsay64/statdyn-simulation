@@ -10,22 +10,16 @@
 
 from pathlib import Path
 
-import pytest
-
 import hoomd
 import numpy as np
+import pytest
 from hypothesis import given, settings
 from hypothesis.strategies import floats, integers, tuples
 from sdrun import crystals, molecules
 from sdrun.simulation import initialise
-from sdrun.simulation.helper import SimulationParams
+from sdrun.simulation.params import SimulationParams, paramsContext
 
 from .crystal_test import get_distance
-
-
-def create_snapshot(molecule):
-    """Easily create a snapshot for later use in testing."""
-    return initialise.init_from_none(molecule, hoomd_args='', cell_dimensions=(10, 10))
 
 
 PARAMETERS = SimulationParams(
@@ -37,8 +31,13 @@ PARAMETERS = SimulationParams(
     cell_dimensions=(10, 10),
 )
 
+def create_snapshot(molecule):
+    """Easily create a snapshot for later use in testing."""
+    with paramsContext(PARAMETERS, molecule=molecule) as sim_params:
+        return initialise.init_from_none(sim_params)
+
 INIT_TEST_PARAMS = [
-    (initialise.init_from_none, [molecules.Trimer(), '']),
+    (initialise.init_from_none, [PARAMETERS]),
     (initialise.init_from_crystal, [PARAMETERS]),
 ]
 
@@ -46,7 +45,7 @@ INIT_TEST_PARAMS = [
 @pytest.mark.parametrize('molecule', molecules.MOLECULE_LIST)
 def test_init_from_none(molecule):
     """Ensure init_from_none has the correct type and number of particles."""
-    snap = initialise.init_from_none(molecule, cell_dimensions=(10, 10))
+    snap = create_snapshot(molecule)
     assert snap.particles.N == 100 * molecule.num_particles
 
 
