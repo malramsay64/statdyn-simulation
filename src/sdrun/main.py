@@ -86,11 +86,13 @@ def equil(sim_params: SimulationParams) -> None:
 def create(sim_params: SimulationParams) -> None:
     """Create things."""
     logger.debug('Running create.')
-    logger.debug('Interface flag: %s', sim_params.interface)
     # Ensure parent directory exists
     Path(sim_params.outfile).parent.mkdir(exist_ok=True)
 
-    snapshot = initialise.init_from_crystal(sim_params=sim_params)
+    if sim_params.parameters.get('crystal'):
+        snapshot = initialise.init_from_crystal(sim_params=sim_params)
+    else:
+        snapshot = initialise.init_from_none(sim_params=sim_params)
 
     equilibrate.equil_crystal(
         snapshot=snapshot,
@@ -279,7 +281,10 @@ def parse_args(input_args: List[str]=None
 
     # Parse space groups
     if func == create:
-        args.crystal = CRYSTAL_FUNCS[args.space_group]()
+        try:
+            args.crystal = CRYSTAL_FUNCS[args.space_group]()
+        except KeyError:
+            args.crystal = None
 
     set_args = {key: val for key, val in vars(args).items() if val is not None}
     return func, SimulationParams(**set_args)
