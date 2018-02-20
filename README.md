@@ -1,4 +1,4 @@
-MD-Molecules-Hoomd
+statdyn-simulation
 ==================
 
 [![Build Status](https://travis-ci.org/malramsay64/statdyn-simulation.svg?branch=master)](https://travis-ci.org/malramsay64/statdyn-simulation)
