@@ -15,7 +15,6 @@ from subprocess import run
 from typing import Callable, List, Tuple
 
 import hoomd.context
-from pkg_resources import DistributionNotFound, get_distribution
 
 from .crystals import CRYSTAL_FUNCS
 from .molecules import Dimer, Disc, Sphere, Trimer
