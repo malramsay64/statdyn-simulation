@@ -90,12 +90,15 @@ def init_from_none(sim_params: SimulationParams
         positions = np.concatenate([cell_positions + mol_pos
                                     for mol_pos in molecule.positions], axis=0)
         positions += np.array([mol_size/2, mol_size/2, mol_size/2])
-        # Set values in snapshot
-        snapshot.particles.position[:] = positions
-        snapshot.particles.typeid[:] = molecule.identify_particles(num_molecules)
-        snapshot.particles.body[:] = molecule.identify_bodies(num_molecules)
-        snapshot.particles.moment_inertia[:] = np.array(
-            [molecule.moment_inertia]*num_molecules*molecule.num_particles)
+
+        # Check we are using the master process to update snapshot
+        if hoomd.comm.get_rank() == 0:
+            # Set values in snapshot
+            snapshot.particles.position[:] = positions
+            snapshot.particles.typeid[:] = molecule.identify_particles(num_molecules)
+            snapshot.particles.body[:] = molecule.identify_bodies(num_molecules)
+            snapshot.particles.moment_inertia[:] = np.array(
+                [molecule.moment_inertia]*num_molecules*molecule.num_particles)
 
         return minimize_snapshot(snapshot, molecule)
 
