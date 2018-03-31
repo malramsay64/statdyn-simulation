@@ -38,7 +38,7 @@ def test_paramContext(key, value):
 
     """
     test_values = deepcopy(SIM_PARAMS.parameters)
-    with paramsContext(SIM_PARAMS, ** {key: value}) as sim_params:
+    with paramsContext(SIM_PARAMS, **{key: value}) as sim_params:
         assert sim_params.parameters.get(key) == value
     assert test_values == sim_params.parameters
 
@@ -67,10 +67,10 @@ def test_outfile(outfile):
 
 
 @pytest.mark.parametrize('outfile_path', ['test/output', Path('test/output')])
-def test_outdir(outfile_path):
-    with paramsContext(SIM_PARAMS, outfile_path=outfile_path):
-        assert SIM_PARAMS.parameters.get('outfile_path') == outfile_path
-        assert Path(outfile_path) == SIM_PARAMS.outfile_path
+def test_outdir(output):
+    with paramsContext(SIM_PARAMS, output=output):
+        assert SIM_PARAMS.parameters.get('output') == output
+        assert Path(output) == SIM_PARAMS.output
 
 
 def func(sim_params, value):

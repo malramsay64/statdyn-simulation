@@ -16,11 +16,11 @@ from typing import Callable, List, Tuple
 import hoomd.context
 
 from .crystals import CRYSTAL_FUNCS
-from .simrun import run_npt
 from .equilibrate import equil_crystal, equil_interface, equil_liquid
 from .initialise import init_from_crystal, init_from_file, init_from_none
 from .molecules import Dimer, Disc, Sphere, Trimer
 from .params import SimulationParams
+from .simrun import run_npt
 from .version import __version__
 
 logger = logging.getLogger(__name__)
@@ -53,8 +53,6 @@ def equil(sim_params: SimulationParams) -> None:
     """Command group for the equilibration of configurations."""
     logger.debug('Running %s equil', sim_params.equil_type)
     logger.debug('Equil hoomd args: %s', sim_params.hoomd_args)
-    # Ensure parent directory exists
-    Path(sim_params.outfile).parent.mkdir(exist_ok=True)
     snapshot = init_from_file(
         sim_params.infile, sim_params.molecule, hoomd_args=sim_params.hoomd_args
     )
@@ -64,8 +62,6 @@ def equil(sim_params: SimulationParams) -> None:
 def create(sim_params: SimulationParams) -> None:
     """Create things."""
     logger.debug('Running create.')
-    # Ensure parent directory exists
-    Path(sim_params.outfile).parent.mkdir(exist_ok=True)
     if sim_params.parameters.get('crystal'):
         snapshot = init_from_crystal(sim_params=sim_params)
     else:
@@ -107,11 +103,7 @@ def create_parser() -> argparse.ArgumentParser:
         '-t', '--temperature', type=float, help='Temperature for simulation'
     )
     parser.add_argument(
-        '-o',
-        '--output',
-        dest='outfile_path',
-        type=str,
-        help='Directory to output files to',
+        '-o', '--output', dest='output', type=str, help='Directory to output files to'
     )
     parse_molecule = parser.add_argument_group('molecule')
     parse_molecule.add_argument('--molecule', choices=MOLECULE_OPTIONS.keys())
@@ -224,4 +216,14 @@ def parse_args(
         except KeyError:
             args.crystal = None
     set_args = {key: val for key, val in vars(args).items() if val is not None}
-    return func, SimulationParams(**set_args)
+    sim_params = SimulationParams(**set_args)
+    # Ensure directories exist
+    try:
+        print(f'Making outfile directory {Path(sim_params.outfile).parent}')
+        logger.debug('Making outfile directory %s', Path(sim_params.outfile).parent)
+        Path(sim_params.outfile).parent.mkdir(exist_ok=True)
+    except AttributeError:
+        pass
+    logger.debug('Making output directory %s', sim_params.output)
+    Path(sim_params.output).mkdir(exist_ok=True)
+    return func, sim_params

@@ -16,30 +16,28 @@ import pytest
 from sdrun.main import parse_args
 
 TEST_ARGS = [
-    ['prod',
-     'test/data/Trimer-13.50-3.00.gsd',
-     '-t', '3.00',
-     '--no-dynamics',
-     ],
-    ['create',
-     '-t', '2.50',
-     '--space-group', 'pg',
-     '--lattice-lengths', '20', '24',
-     'test/output/test_create.gsd',
-     ],
-    ['equil',
-     '-t', '2.50',
-     'test/data/Trimer-13.50-3.00.gsd',
-     'test/output/test_equil.gsd',
-     ]
+    ['prod', 'test/data/Trimer-13.50-3.00.gsd', '-t', '3.00', '--no-dynamics'],
+    [
+        'create',
+        '-t',
+        '2.50',
+        '--space-group',
+        'pg',
+        '--lattice-lengths',
+        '20',
+        '24',
+        'test/output/test_create.gsd',
+    ],
+    [
+        'equil',
+        '-t',
+        '2.50',
+        'test/data/Trimer-13.50-3.00.gsd',
+        'test/output/test_equil.gsd',
+    ],
 ]
 
-COMMON_ARGS = [
-     '--hoomd-args', '"--mode=cpu"',
-     '-o', 'test/output',
-     '-s', '100',
-     '-v',
-]
+COMMON_ARGS = ['--hoomd-args', '"--mode=cpu"', '-o', 'test/output', '-s', '100', '-v']
 
 
 @pytest.mark.parametrize('arguments', TEST_ARGS)

@@ -29,7 +29,7 @@ class SimulationParams(object):
         'pressure': 13.5,
         'tauP': 1.0,
         'cell_dimensions': (30, 42),
-        'outfile_path': Path.cwd(),
+        'output': Path.cwd(),
         'max_gen': 500,
         'gen_steps': 20000,
         'output_interval': 10000,
@@ -40,10 +40,10 @@ class SimulationParams(object):
         self.parameters: Dict[str, Any] = deepcopy(self.defaults)
         self.parameters.update(kwargs)
 
-
     # I am using getattr over getattribute becuase of the lower search priority
     # of getattr. This makes it a fallback, rather than the primary location
     # for looking up attributes.
+
     def __getattr__(self, key):
         try:
             return self.parameters.__getitem__(key)
@@ -125,10 +125,10 @@ class SimulationParams(object):
         return hoomd.group.rigid_center()
 
     @property
-    def outfile_path(self) -> Path:
+    def output(self) -> Path:
         """Ensure the output directory is a path."""
-        if self.parameters.get('outfile_path'):
-            return Path(self.parameters.get('outfile_path'))
+        if self.parameters.get('output'):
+            return Path(self.parameters.get('output'))
 
         return Path.cwd()
 
@@ -157,7 +157,7 @@ class SimulationParams(object):
             mom_inertia=self.parameters.get('moment_inertia_scale'),
             space_group=self.parameters.get('space_group'),
         )
-        return str(self.outfile_path / fname)
+        return str(self.output / fname)
 
 
 class paramsContext(object):
