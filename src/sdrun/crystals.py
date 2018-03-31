@@ -5,7 +5,6 @@
 # Copyright © 2017 Malcolm Ramsay <malramsay64@gmail.com>
 #
 # Distributed under terms of the MIT license.
-
 """Crystals module for generating unit cells for use in hoomd."""
 
 import math
@@ -13,7 +12,7 @@ import math
 import hoomd
 import numpy as np
 
-from . import molecules
+from .molecules import Disc, Molecule, Trimer, Sphere
 
 
 class Crystal(object):
@@ -28,7 +27,7 @@ class Crystal(object):
         self.dimensions = 2
         self._orientations = np.zeros(1)
         self.positions = [[0, 0, 0]]
-        self.molecule = molecules.Molecule()
+        self.molecule = Molecule()
 
     def get_cell_len(self):
         """Return the unit cell parameters.
@@ -63,7 +62,7 @@ class Crystal(object):
             orientation=self.get_orientations(),
             type_name=['A'] * self.get_num_molecules(),
             mass=[1.0] * self.get_num_molecules(),
-            moment_inertia=([self.molecule.moment_inertia] * self.get_num_molecules())
+            moment_inertia=([self.molecule.moment_inertia] * self.get_num_molecules()),
         )
 
     def compute_volume(self):
@@ -77,13 +76,15 @@ class Crystal(object):
 
         """
         if self.dimensions == 3:
-            return np.linalg.norm(np.dot(
-                np.array(self.a1),
-                np.cross(np.array(self.a2), np.array(self.a3))
-            ))
+            return np.linalg.norm(
+                np.dot(
+                    np.array(self.a1), np.cross(np.array(self.a2), np.array(self.a3))
+                )
+            )
+
         elif self.dimensions == 2:
-            return np.linalg.norm(np.cross(
-                np.array(self.a1), np.array(self.a2)))
+            return np.linalg.norm(np.cross(np.array(self.a1), np.array(self.a2)))
+
         else:
             raise ValueError("Dimensions needs to be either 2 or 3")
 
@@ -121,7 +122,7 @@ class CrysTrimer(Crystal):
     def __init__(self):
         super().__init__()
         self.dimensions = 2
-        self.molecule = molecules.Trimer()
+        self.molecule = Trimer()
 
 
 class TrimerP2(CrysTrimer):
@@ -149,10 +150,7 @@ class TrimerP2gg(CrysTrimer):
         self.a2 = [0, 7.38, 0]
         self.a3 = [0, 0, 1]
         self.positions = [
-            [0.061, 0.853, 0],
-            [0.561, 0.647, 0],
-            [0.439, 0.353, 0],
-            [0.939, 0.147, 0],
+            [0.061, 0.853, 0], [0.561, 0.647, 0], [0.439, 0.353, 0], [0.939, 0.147, 0]
         ]
         self._orientations = np.array([24, 156, -24, 204])
 
@@ -165,10 +163,7 @@ class TrimerPg(CrysTrimer):
         self.a1 = [2.71, 0, 0]
         self.a2 = [0, 3.63, 0]
         self.a3 = [0, 0, 1]
-        self.positions = [
-            [0.35, 0.45, 0],
-            [0.65, 0.95, 0],
-        ]
+        self.positions = [[0.35, 0.45, 0], [0.65, 0.95, 0]]
         self._orientations = np.array([-21, 21])
 
 
@@ -179,7 +174,7 @@ class CubicSphere(Crystal):
         super().__init__()
         self.a = 2.
         self.cell_dimensions = 3
-        self.molecule = molecules.Sphere()
+        self.molecule = Sphere()
 
     def get_unitcell(self):
         return hoomd.lattice.sc(self.a)
@@ -192,7 +187,7 @@ class SquareCircle(Crystal):
         super().__init__()
         self.a = 2.
         self.cell_dimensions = 2
-        self.molecule = molecules.Disc()
+        self.molecule = Disc()
 
     def get_unitcell(self):
         return hoomd.lattice.sq(self.a)
@@ -206,11 +201,12 @@ CRYSTAL_FUNCS = {
     'SquareCircle': SquareCircle,
 }
 
+
 def z2quaternion(theta: np.ndarray) -> np.ndarray:
     """Compute quaternion for a given rotation in the z direction."""
     result = np.zeros((theta.shape[0], 4), dtype=np.float32)
-    q_angle = theta/2
-    q_angle[np.isclose(q_angle, 0, atol=2*np.finfo(np.float32).eps)] = 0
+    q_angle = theta / 2
+    q_angle[np.isclose(q_angle, 0, atol=2 * np.finfo(np.float32).eps)] = 0
     result[:, 0] = np.cos(q_angle)
     result[:, 3] = np.sin(q_angle)
     return result

@@ -5,7 +5,6 @@
 # Copyright © 2017 Malcolm Ramsay <malramsay64@gmail.com>
 #
 # Distributed under terms of the MIT license.
-
 """Module for testing the initialisation."""
 
 from pathlib import Path
@@ -15,12 +14,10 @@ import numpy as np
 import pytest
 from hypothesis import given, settings
 from hypothesis.strategies import floats, integers, tuples
-from sdrun import crystals, molecules
-from sdrun.simulation import initialise
-from sdrun.simulation.params import SimulationParams, paramsContext
+from sdrun import crystals, molecules, initialise
+from sdrun.params import SimulationParams, paramsContext
 
 from .crystal_test import get_distance
-
 
 PARAMETERS = SimulationParams(
     temperature=0.4,
@@ -31,10 +28,12 @@ PARAMETERS = SimulationParams(
     cell_dimensions=(10, 10),
 )
 
+
 def create_snapshot(molecule):
     """Easily create a snapshot for later use in testing."""
     with paramsContext(PARAMETERS, molecule=molecule) as sim_params:
         return initialise.init_from_none(sim_params)
+
 
 INIT_TEST_PARAMS = [
     (initialise.init_from_none, [PARAMETERS]),
@@ -53,9 +52,7 @@ def test_init_from_none(molecule):
 def test_initialise_snapshot(molecule):
     """Test initialisation from a snapshot works."""
     initialise.initialise_snapshot(
-        create_snapshot(molecule),
-        hoomd.context.initialize(''),
-        molecule,
+        create_snapshot(molecule), hoomd.context.initialize(''), molecule
     )
     assert True
 
@@ -90,14 +87,14 @@ def test_orthorhombic_null():
         snap = create_snapshot(molecules.Trimer())
         assert np.all(
             initialise.make_orthorhombic(snap).particles.position ==
-            snap.particles.position)
+            snap.particles.position
+        )
         assert snap.box.xy == 0
         assert snap.box.xz == 0
         assert snap.box.yz == 0
 
 
-@given(tuples(integers(max_value=30, min_value=5),
-              integers(max_value=30, min_value=5)))
+@given(tuples(integers(max_value=30, min_value=5), integers(max_value=30, min_value=5)))
 @settings(max_examples=10, deadline=None)
 def test_make_orthorhombic(cell_dimensions):
     """Ensure that a conversion to an orthorhombic cell goes smoothly.
@@ -109,40 +106,30 @@ def test_make_orthorhombic(cell_dimensions):
     """
     with hoomd.context.initialize():
         snap_crys = hoomd.init.create_lattice(
-            unitcell=crystals.TrimerP2().get_unitcell(),
-            n=cell_dimensions
-        ).take_snapshot()
+            unitcell=crystals.TrimerP2().get_unitcell(), n=cell_dimensions
+        ).take_snapshot(
+        )
         snap_ortho = initialise.make_orthorhombic(snap_crys)
-        assert np.all(
-            snap_ortho.particles.position[:, 0] < snap_ortho.box.Lx / 2.)
-        assert np.all(
-            snap_ortho.particles.position[:, 0] > -snap_ortho.box.Lx / 2.)
-        assert np.all(
-            snap_ortho.particles.position[:, 1] < snap_ortho.box.Ly / 2.)
-        assert np.all(
-            snap_ortho.particles.position[:, 1] > -snap_ortho.box.Ly / 2.)
+        assert np.all(snap_ortho.particles.position[:, 0] < snap_ortho.box.Lx / 2.)
+        assert np.all(snap_ortho.particles.position[:, 0] > - snap_ortho.box.Lx / 2.)
+        assert np.all(snap_ortho.particles.position[:, 1] < snap_ortho.box.Ly / 2.)
+        assert np.all(snap_ortho.particles.position[:, 1] > - snap_ortho.box.Ly / 2.)
         assert snap_ortho.box.xy == 0
         assert snap_ortho.box.xz == 0
         assert snap_ortho.box.yz == 0
 
 
-@given(tuples(integers(max_value=30, min_value=5),
-              integers(max_value=30, min_value=5)))
+@given(tuples(integers(max_value=30, min_value=5), integers(max_value=30, min_value=5)))
 @settings(max_examples=10, deadline=None)
 def test_orthorhombic_init(cell_dimensions):
     """Ensure orthorhombic cell initialises correctly."""
     snap = initialise.init_from_crystal(PARAMETERS)
     snap_ortho = initialise.make_orthorhombic(snap)
-    assert np.all(snap_ortho.particles.position ==
-                  snap.particles.position)
-    assert np.all(
-        snap_ortho.particles.position[:, 0] < snap_ortho.box.Lx / 2.)
-    assert np.all(
-        snap_ortho.particles.position[:, 0] > -snap_ortho.box.Lx / 2.)
-    assert np.all(
-        snap_ortho.particles.position[:, 1] < snap_ortho.box.Ly / 2.)
-    assert np.all(
-        snap_ortho.particles.position[:, 1] > -snap_ortho.box.Ly / 2.)
+    assert np.all(snap_ortho.particles.position == snap.particles.position)
+    assert np.all(snap_ortho.particles.position[:, 0] < snap_ortho.box.Lx / 2.)
+    assert np.all(snap_ortho.particles.position[:, 0] > - snap_ortho.box.Lx / 2.)
+    assert np.all(snap_ortho.particles.position[:, 1] < snap_ortho.box.Ly / 2.)
+    assert np.all(snap_ortho.particles.position[:, 1] > - snap_ortho.box.Ly / 2.)
     assert snap_ortho.box.xy == 0
     assert snap_ortho.box.xz == 0
     assert snap_ortho.box.yz == 0
@@ -156,10 +143,11 @@ def test_moment_inertia(scaling_factor):
     """Ensure moment of intertia is set correctly in setup."""
     init_mol = molecules.Trimer(moment_inertia_scale=scaling_factor)
     snapshot = initialise.initialise_snapshot(
-        create_snapshot(molecules.Trimer()),
-        hoomd.context.initialize(''),
-        init_mol,
-    ).take_snapshot()
+        create_snapshot(molecules.Trimer()), hoomd.context.initialize(''), init_mol
+    ).take_snapshot(
+    )
     nmols = max(snapshot.particles.body) + 1
-    assert np.allclose(snapshot.particles.moment_inertia[:nmols],
-                       np.array(init_mol.moment_inertia).astype(np.float32))
+    assert np.allclose(
+        snapshot.particles.moment_inertia[:nmols],
+        np.array(init_mol.moment_inertia).astype(np.float32),
+    )

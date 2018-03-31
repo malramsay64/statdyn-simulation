@@ -5,7 +5,6 @@
 # Copyright © 2017 Malcolm Ramsay <malramsay64@gmail.com>
 #
 # Distributed under terms of the MIT license.
-
 """Testing the crystal class of sdrun."""
 
 from pathlib import Path
@@ -17,9 +16,8 @@ from hypothesis import given, settings
 from hypothesis.extra.numpy import arrays
 from hypothesis.strategies import floats, integers, tuples
 
-from sdrun import crystals
-from sdrun.simulation import initialise
-from sdrun.simulation.helper import SimulationParams
+from sdrun import crystals, initialise
+from sdrun.helper import SimulationParams
 
 TEST_CLASSES = [
     crystals.Crystal,
@@ -30,10 +28,8 @@ TEST_CLASSES = [
     crystals.SquareCircle,
     crystals.CubicSphere,
 ]
-
 output_dir = Path('test/output')
 output_dir.mkdir(exist_ok=True)
-
 PARAMETERS = SimulationParams(
     temperature=0.4,
     num_steps=100,
@@ -97,18 +93,19 @@ class mybox(object):
         self.Lz = 1.
 
 
-@given(arrays(np.float, 3, elements=floats(min_value=-1, max_value=1)),
-       arrays(np.float, 3, elements=floats(min_value=-1, max_value=1)))
+@given(
+    arrays(np.float, 3, elements=floats(min_value=-1, max_value=1)),
+    arrays(np.float, 3, elements=floats(min_value=-1, max_value=1)),
+)
 def test_get_distance(pos_a, pos_b):
     """Test the periodic distance function."""
     box = mybox()
     diff = get_distance(np.array([pos_a]), np.array([pos_b]), box)
-    print(diff, diff-np.sqrt(2))
+    print(diff, diff - np.sqrt(2))
     assert get_distance(np.array([pos_a]), np.array([pos_b]), box) <= np.sqrt(3)
 
 
-@given(tuples(integers(max_value=30, min_value=1),
-              integers(max_value=30, min_value=1)))
+@given(tuples(integers(max_value=30, min_value=1), integers(max_value=30, min_value=1)))
 @settings(max_examples=3, deadline=None)
 def test_cell_dimensions(cell_dimensions):
     """Test cell paramters work properly."""

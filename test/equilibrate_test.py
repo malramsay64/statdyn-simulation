@@ -5,13 +5,12 @@
 # Copyright © 2017 Malcolm Ramsay <malramsay64@gmail.com>
 #
 # Distributed under terms of the MIT license.
-
 """Test the equilibrate module."""
 
 from pathlib import Path
 
 from sdrun.crystals import TrimerPg
-from sdrun.simulation import equilibrate, initialise, params
+from sdrun import equilibrate, initialise, params
 
 SIM_PARAMS = params.SimulationParams(
     temperature=0.4,

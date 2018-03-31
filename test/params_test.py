@@ -5,7 +5,6 @@
 # Copyright © 2017 Malcolm Ramsay <malramsay64@gmail.com>
 #
 # Distributed under terms of the MIT license.
-
 """Test the SimulationParams class."""
 
 import logging
@@ -17,14 +16,12 @@ from hypothesis import example, given, settings
 from hypothesis.strategies import text
 from sdrun.crystals import TrimerP2
 from sdrun.molecules import Dimer, Disc, Molecule, Sphere, Trimer
-from sdrun.simulation.params import SimulationParams, paramsContext
+from sdrun.params import SimulationParams, paramsContext
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logging.basicConfig(level=logging.DEBUG)
-
 SIM_PARAMS = SimulationParams(num_steps=1000, temperature=1.0, space_group='p2')
-
 MOLECULE_LIST = [Molecule, Sphere, Trimer, Dimer, Disc, None]
 
 
@@ -41,7 +38,7 @@ def test_paramContext(key, value):
 
     """
     test_values = deepcopy(SIM_PARAMS.parameters)
-    with paramsContext(SIM_PARAMS, **{key: value}) as sim_params:
+    with paramsContext(SIM_PARAMS, ** {key: value}) as sim_params:
         assert sim_params.parameters.get(key) == value
     assert test_values == sim_params.parameters
 
@@ -62,20 +59,14 @@ def test_mol_crys():
         assert SIM_PARAMS.molecule == crys.molecule
 
 
-@pytest.mark.parametrize('outfile', [
-    'test/data',
-    Path('test/data')
-])
+@pytest.mark.parametrize('outfile', ['test/data', Path('test/data')])
 def test_outfile(outfile):
     with paramsContext(SIM_PARAMS, outfile=outfile):
         assert SIM_PARAMS.parameters.get('outfile') == outfile
         assert str(outfile) == SIM_PARAMS.outfile
 
 
-@pytest.mark.parametrize('outfile_path', [
-    'test/output',
-    Path('test/output')
-])
+@pytest.mark.parametrize('outfile_path', ['test/output', Path('test/output')])
 def test_outdir(outfile_path):
     with paramsContext(SIM_PARAMS, outfile_path=outfile_path):
         assert SIM_PARAMS.parameters.get('outfile_path') == outfile_path
@@ -94,4 +85,3 @@ def test_function_passing(sim_params):
         assert sim_params.num_steps == 2000
     assert func(sim_params, 'num_steps') == 1000
     assert sim_params.num_steps == 1000
-
