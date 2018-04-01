@@ -27,7 +27,7 @@ MOLECULE_LIST = [Molecule, Sphere, Trimer, Dimer, Disc, None]
 
 @given(key=text(), value=text())
 @example(key='outfile', value='test')
-@example(key='outfile_path', value='testing')
+@example(key='output', value='testing')
 @settings(deadline=None)
 def test_paramContext(key, value):
     """Ensure paramsContext sets value correctly and returns to previous state.
@@ -66,7 +66,7 @@ def test_outfile(outfile):
         assert str(outfile) == SIM_PARAMS.outfile
 
 
-@pytest.mark.parametrize('outfile_path', ['test/output', Path('test/output')])
+@pytest.mark.parametrize('output', ['test/output', Path('test/output')])
 def test_outdir(output):
     with paramsContext(SIM_PARAMS, output=output):
         assert SIM_PARAMS.parameters.get('output') == output
