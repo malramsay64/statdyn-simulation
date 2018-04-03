@@ -8,34 +8,39 @@
 """Test the equilibrate module."""
 
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
-from sdrun.crystals import TrimerPg
 from sdrun import equilibrate, initialise, params
-
-SIM_PARAMS = params.SimulationParams(
-    temperature=0.4,
-    num_steps=100,
-    crystal=TrimerPg(),
-    outfile_path=Path('test/tmp'),
-    cell_dimensions=(10, 10),
-    outfile=Path('test/tmp/out.gsd'),
-)
+from sdrun.crystals import TrimerPg
 
 
-def init_frame():
-    return initialise.init_from_crystal(SIM_PARAMS)
+@pytest.fixture
+def sim_params():
+    with TemporaryDirectory() as tmp_dir:
+        return params.SimulationParams(
+            temperature=0.4,
+            num_steps=100,
+            crystal=TrimerPg(),
+            outfile_path=tmp_dir,
+            cell_dimensions=(10, 10),
+            outfile=Path(tmp_dir) / 'out.gsd',
+        )
 
 
-def test_equil_crystal():
-    equilibrate.equil_crystal(init_frame(), SIM_PARAMS)
+def init_frame(sim_params):
+    return initialise.init_from_crystal(sim_params)
+
+
+def test_equil_crystal(sim_params):
+    equilibrate.equil_crystal(init_frame(), sim_params)
     assert True
 
 
-def test_equil_interface():
-    equilibrate.equil_interface(init_frame(), SIM_PARAMS)
+def test_equil_interface(sim_params):
+    equilibrate.equil_interface(init_frame(), sim_params)
     assert True
 
 
-def test_equil_liquid():
-    equilibrate.equil_liquid(init_frame(), SIM_PARAMS)
+def test_equil_liquid(sim_params):
+    equilibrate.equil_liquid(init_frame(), sim_params)
     assert True
