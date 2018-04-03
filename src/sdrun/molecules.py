@@ -80,16 +80,14 @@ class Molecule(object):
 
         """
         self.potential_args.setdefault('r_cut', 2.5)
-        potential = self.potential(
-            **self.potential_args,
-            nlist=hoomd.md.nlist.cell()
-        )
+        potential = self.potential(**self.potential_args, nlist=hoomd.md.nlist.cell())
         for i, j in combinations_with_replacement(self._radii.keys(), 2):
-            potential.pair_coeff.set(i, j, epsilon=1, sigma=self._radii[i] + self._radii[j])
+            potential.pair_coeff.set(
+                i, j, epsilon=1, sigma=self._radii[i] + self._radii[j]
+            )
         return potential
 
-    def define_rigid(self, params: Dict[Any, Any]=None
-                     ) -> hoomd.md.constrain.rigid:
+    def define_rigid(self, params: Dict[Any, Any] = None) -> hoomd.md.constrain.rigid:
         """Define the rigid constraints of the molecule.
 
         This is a helper function to define the rigid body constraints of the
@@ -111,11 +109,14 @@ class Molecule(object):
         if len(self.particles) <= 1:
             logger.info("Not enough particles for a rigid body")
             return
+
         if not params:
             params = dict()
         params['type_name'] = self.particles[0]
         params['types'] = self.particles[1:]
-        params.setdefault('positions', [tuple(pos) for i, pos in enumerate(self.positions) if i > 0])
+        params.setdefault(
+            'positions', [tuple(pos) for i, pos in enumerate(self.positions) if i > 0]
+        )
         rigid = hoomd.md.constrain.rigid()
         rigid.set_param(**params)
         logger.debug('Rigid: %s', rigid)
@@ -123,12 +124,16 @@ class Molecule(object):
 
     def identify_bodies(self, num_molecules: int) -> np.ndarray:
         """Convert an index of molecules into an index of particles."""
-        return np.concatenate([np.arange(num_molecules)]*self.num_particles)
+        return np.concatenate([np.arange(num_molecules)] * self.num_particles)
 
     def identify_particles(self, num_molecules: int) -> np.ndarray:
         """Get the particle index for all the particles."""
-        return np.concatenate([np.ones(num_molecules)*list(self._radii.keys()).index(particle)
-                               for particle in self.particles])
+        return np.concatenate(
+            [
+                np.ones(num_molecules) * list(self._radii.keys()).index(particle)
+                for particle in self.particles
+            ]
+        )
 
     def __str__(self) -> str:
         return type(self).__name__
@@ -136,12 +141,16 @@ class Molecule(object):
     def scale_moment_inertia(self, scale_factor: float) -> None:
         """Scale the moment of inertia by a constant factor."""
         i_x, i_y, i_z = self.moment_inertia
-        self.moment_inertia = (i_x * scale_factor, i_y * scale_factor, i_z * scale_factor)
+        self.moment_inertia = (
+            i_x * scale_factor, i_y * scale_factor, i_z * scale_factor
+        )
 
-    def compute_moment_intertia(self, scale_factor: float=1) -> Tuple[float, float, float]:
+    def compute_moment_intertia(
+        self, scale_factor: float = 1
+    ) -> Tuple[float, float, float]:
         """Compute the moment of inertia from the particle paramters."""
         positions = self.positions
-        COM = np.sum(positions, axis=0)/positions.shape[0]
+        COM = np.sum(positions, axis=0) / positions.shape[0]
         moment_inertia = np.sum(np.square(positions - COM))
         moment_inertia *= scale_factor
         return (0, 0, moment_inertia)
@@ -157,9 +166,8 @@ class Molecule(object):
         of a lattice that contains no overlaps.
 
         """
-        length = np.max(np.max(self.positions, axis=1) -
-                        np.min(self.positions, axis=1))
-        return length + 2*self.get_radii().max()
+        length = np.max(np.max(self.positions, axis=1) - np.min(self.positions, axis=1))
+        return length + 2 * self.get_radii().max()
 
 
 class Disc(Molecule):
@@ -194,11 +202,13 @@ class Trimer(Molecule):
         Compute the moment of inertia
     """
 
-    def __init__(self,
-                 radius: float=0.637556,
-                 distance: float=1.0,
-                 angle: float=120,
-                 moment_inertia_scale: float=1.) -> None:
+    def __init__(
+        self,
+        radius: float = 0.637556,
+        distance: float = 1.0,
+        angle: float = 120,
+        moment_inertia_scale: float = 1.,
+    ) -> None:
         """Initialise trimer molecule.
 
         Args:
@@ -218,11 +228,21 @@ class Trimer(Molecule):
         self.particles = ['A', 'B', 'B']
         self._radii.update(B=self.radius)
         self.dimensions = 2
-        self.positions = np.array([
-            [0, 0, 0],
-            [-self.distance * np.sin(self.rad_angle/2), self.distance * np.cos(self.rad_angle/2), 0],
-            [self.distance * np.sin(self.rad_angle/2), self.distance * np.cos(self.rad_angle/2), 0],
-        ])
+        self.positions = np.array(
+            [
+                [0, 0, 0],
+                [
+                    -self.distance * np.sin(self.rad_angle / 2),
+                    self.distance * np.cos(self.rad_angle / 2),
+                    0
+                ],
+                [
+                    self.distance * np.sin(self.rad_angle / 2),
+                    self.distance * np.cos(self.rad_angle / 2),
+                    0
+                ],
+            ]
+        )
         self.positions.flags.writeable = False
         self.moment_inertia = self.compute_moment_intertia(moment_inertia_scale)
 
@@ -232,10 +252,14 @@ class Trimer(Molecule):
 
     def __eq__(self, other) -> bool:
         if super().__eq__(other):
-            return (self.radius == other.radius and
-                    self.distance == other.distance and
-                    self.moment_inertia == other.moment_inertia)
+            return (
+                self.radius == other.radius
+                and self.distance == other.distance
+                and self.moment_inertia == other.moment_inertia
+            )
+
         return False
+
 
 class Dimer(Molecule):
     """Defines a Dimer molecule for initialisation within a hoomd context.
@@ -249,7 +273,7 @@ class Dimer(Molecule):
 
     """
 
-    def __init__(self, radius: float=0.637556, distance: float=1.0) -> None:
+    def __init__(self, radius: float = 0.637556, distance: float = 1.0) -> None:
         """Intialise Dimer molecule.
 
         Args:
@@ -266,10 +290,7 @@ class Dimer(Molecule):
         self.particles = ['A', 'B']
         self._radii.update(B=self.radius)
         self.dimensions = 2
-        self.positions = np.array([
-            [0, 0, 0],
-            [0, self.distance, 0],
-        ])
+        self.positions = np.array([[0, 0, 0], [0, self.distance, 0]])
         self.positions.flags.writeable = False
         self.moment_inertia = self.compute_moment_intertia()
 
@@ -285,17 +306,15 @@ class Binary_Mixture(Molecule):
     def __init__(self, radius=0.715):
         super().__init__()
         self.radius = radius
-        self.distance = 1+radius
+        self.distance = 1 + radius
         self.particles = ['A', 'B']
         self._radii.update(B=self.radius)
         self.dimensions = 2
-        self.positions = np.array([
-            [0, 0, 0],
-            [0, self.distance, 0],
-        ])
+        self.positions = np.array([[0, 0, 0], [0, self.distance, 0]])
         self.positions.flags.writeable = False
 
     # Overwrite rigid to do nothing
+
     def define_rigid(self):
         return None
 

@@ -13,9 +13,7 @@ import hoomd
 import numpy as np
 
 from .initialise import initialise_snapshot
-from .helper import (
-    SimulationParams, dump_frame, set_dump, set_integrator, set_thermo
-)
+from .helper import (SimulationParams, dump_frame, set_dump, set_integrator, set_thermo)
 from .StepSize import GenerateStepSeries
 
 logger = logging.getLogger(__name__)
