@@ -303,9 +303,8 @@ class Binary_Mixture(Molecule):
         return np.arange(num_molecules * self.num_particles)
 
 
-MOLECULE_LIST = [
-    Trimer(),
-    Dimer(),
-    Binary_Mixture(),
-    Disc(),
-]
+MOLECULE_DICT = {
+    'trimer': Trimer, 'dimer': Dimer, 'binary_mixture': Binary_Mixture, 'disc': Disc
+}
+
+MOLECULE_LIST = [Trimer(), Dimer(), Binary_Mixture(), Disc()]
