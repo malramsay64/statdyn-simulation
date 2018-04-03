@@ -6,6 +6,7 @@ test/output
 test/tmp
 .hypothesis
 .coverage*
+.pytest_cache
 
 # Ignore conda build directories
 dist
@@ -16,3 +17,5 @@ statdyn/**/*.c
 statdyn/**/*.cpp
 statdyn/**/*.html
 statdyn/**/*.so
+
+
