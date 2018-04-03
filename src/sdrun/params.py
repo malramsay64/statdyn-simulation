@@ -107,8 +107,18 @@ class SimulationParams(object):
     @property
     def cell_dimensions(self) -> Tuple[int, int]:
         try:
-            self.crystal
-            return self.parameters.get('cell_dimensions')
+            cell_dims = self.parameters.get('cell_dimensions')
+            if self.molecule.dimensions == len(cell_dims):
+                return cell_dims
+
+            elif len(cell_dims) == 1:
+                return tuple(list(cell_dims) * self.molecule.dimensions)
+
+            elif len(cell_dims) < self.molecule.dimensions:
+                return tuple(list(cell_dims) + [1])
+
+            else:
+                return tuple(list(cell_dims)[:self.molecule.dimensions])
 
         except AttributeError:
             raise AttributeError

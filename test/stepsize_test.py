@@ -9,7 +9,7 @@
 
 import numpy as np
 import pytest
-from hypothesis import given, settings
+from hypothesis import given
 from hypothesis.strategies import integers
 from sdrun.StepSize import GenerateStepSeries, generate_steps
 
@@ -51,7 +51,6 @@ def steps(request):
 
 
 @given(integers(min_value=0))
-@settings(deadline=None)
 def test_initial_start(initial):
     """Ensure the first value produced is the initial value."""
     gen = generate_steps(total_steps=initial + 10, start=initial)
@@ -59,7 +58,6 @@ def test_initial_start(initial):
 
 
 @given(integers(min_value=0))
-@settings(deadline=None)
 def test_initial_start_series(initial):
     """Ensure the first value produced is the initial value."""
     gen = GenerateStepSeries(total_steps=initial + 10)
@@ -80,7 +78,7 @@ def test_final_total_series(final):
     assert genlist[-1] == final
 
 
-def test_generate_steps(steps):  # pylint: disable=redefined-outer-name
+def test_generate_steps(steps):
     """Test generation of steps."""
     assert steps['gen'][-1] == steps['max']
     assert steps['gen'] == steps['def']
@@ -102,11 +100,11 @@ def test_generate_step_series(total_steps, num_linear):
     assert single == series
 
 
-@given(integers(min_value=1, max_value=300))
+@pytest.mark.parametrize('num_linear', [100, 200, 1000, 10, 1])
 def test_num_linear(num_linear):
     """Test a range of values of num_linear will work."""
     gen_list = list(generate_steps(total_steps=1e7, num_linear=num_linear))
-    assert gen_list[: num_linear + 1] == list(range(num_linear + 1))
+    assert gen_list[:num_linear + 1] == list(range(num_linear + 1))
 
 
 def test_get_index():

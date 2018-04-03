@@ -173,7 +173,7 @@ class CubicSphere(Crystal):
     def __init__(self):
         super().__init__()
         self.a = 2.
-        self.cell_dimensions = 3
+        self.dimensions = 3
         self.molecule = Sphere()
 
     def get_unitcell(self):
@@ -186,7 +186,7 @@ class SquareCircle(Crystal):
     def __init__(self):
         super().__init__()
         self.a = 2.
-        self.cell_dimensions = 2
+        self.dimensions = 2
         self.molecule = Disc()
 
     def get_unitcell(self):

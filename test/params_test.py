@@ -14,7 +14,7 @@ from pathlib import Path
 import pytest
 from hypothesis import example, given, settings
 from hypothesis.strategies import text
-from sdrun.crystals import TrimerP2
+from sdrun.crystals import CubicSphere, TrimerP2
 from sdrun.molecules import Dimer, Disc, Molecule, Sphere, Trimer
 from sdrun.params import SimulationParams, paramsContext
 
@@ -85,3 +85,16 @@ def test_function_passing(sim_params):
         assert sim_params.num_steps == 2000
     assert func(sim_params, 'num_steps') == 1000
     assert sim_params.num_steps == 1000
+
+
+@pytest.mark.parametrize('sim_params', [SIM_PARAMS])
+def test_cell_dimensions(sim_params):
+    with paramsContext(sim_params, crystal=TrimerP2(), cell_dimensions=[10]):
+        assert len(sim_params.cell_dimensions) == sim_params.crystal.dimensions
+        assert sim_params.cell_dimensions == (10, 10)
+    with paramsContext(sim_params, crystal=CubicSphere(), cell_dimensions=[10]):
+        assert len(sim_params.cell_dimensions) == sim_params.crystal.dimensions
+        assert sim_params.cell_dimensions == (10, 10, 10)
+    with paramsContext(sim_params, crystal=CubicSphere(), cell_dimensions=[10, 10]):
+        assert len(sim_params.cell_dimensions) == sim_params.crystal.dimensions
+        assert sim_params.cell_dimensions == (10, 10, 1)
