@@ -60,7 +60,7 @@ class Crystal(object):
             position=self.get_abs_positions(),
             dimensions=self.dimensions,
             orientation=self.get_orientations(),
-            type_name=['A'] * self.get_num_molecules(),
+            type_name=["A"] * self.get_num_molecules(),
             mass=[1.0] * self.get_num_molecules(),
             moment_inertia=([self.molecule.moment_inertia] * self.get_num_molecules())
         )
@@ -194,11 +194,11 @@ class SquareCircle(Crystal):
 
 
 CRYSTAL_FUNCS = {
-    'p2': TrimerP2,
-    'p2gg': TrimerP2gg,
-    'pg': TrimerPg,
-    'CubicSphere': CubicSphere,
-    'SquareCircle': SquareCircle,
+    "p2": TrimerP2,
+    "p2gg": TrimerP2gg,
+    "pg": TrimerPg,
+    "CubicSphere": CubicSphere,
+    "SquareCircle": SquareCircle,
 }
 
 

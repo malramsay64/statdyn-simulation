@@ -60,15 +60,15 @@ def test_init_from_none(sim_params):
 def test_initialise_snapshot(sim_params):
     """Test initialisation from a snapshot works."""
     snap = init_from_none(sim_params)
-    sys = initialise_snapshot(snap, hoomd.context.initialize(''), sim_params.molecule)
+    sys = initialise_snapshot(snap, hoomd.context.initialize(""), sim_params.molecule)
     assert isinstance(sys, hoomd.data.system_data)
     snap_init = sys.take_snapshot()
     # Ensure bodies are initialised
     assert np.any(snap.particles.body != 2 ** 32 - 1)
     # Ensure all particles in molecules are created
     num_particles = (
-        np.prod(np.array(sim_params.cell_dimensions)) *
-        sim_params.molecule.num_particles
+        np.prod(np.array(sim_params.cell_dimensions))
+        * sim_params.molecule.num_particles
     )
     assert snap_init.particles.N == num_particles
 
@@ -119,7 +119,7 @@ def test_make_orthorhombic(cell_dimensions):
         assert snap_ortho.box.yz == 0
 
 
-@pytest.mark.parametrize('cell_dimensions', [[5, 10, 15, 20]])
+@pytest.mark.parametrize("cell_dimensions", [[5, 10, 15, 20]])
 def test_orthorhombic_init(sim_params_crystal, cell_dimensions):
     """Ensure orthorhombic cell initialises correctly."""
     snap = init_from_crystal(sim_params_crystal)
@@ -139,17 +139,17 @@ def test_orthorhombic_init(sim_params_crystal, cell_dimensions):
 
 
 @pytest.mark.xfail
-@pytest.mark.parametrize('scaling_factor', [0.1, 1, 10, 100])
+@pytest.mark.parametrize("scaling_factor", [0.1, 1, 10, 100])
 def test_moment_inertia(sim_params, scaling_factor):
     """Ensure moment of intertia is set correctly in setup."""
     init_mol = np.array(sim_params.molecule.moment_inertia)
-    print(f'Before Scaling: {init_mol}')
+    print(f"Before Scaling: {init_mol}")
     init_mol *= scaling_factor
-    print(f'After Scaling: {init_mol}')
+    print(f"After Scaling: {init_mol}")
     with paramsContext(sim_params, moment_inertia_scale=scaling_factor):
         snap = init_from_none(sim_params)
         snapshot = initialise_snapshot(
-            snap, hoomd.context.initialize(''), sim_params.molecule
+            snap, hoomd.context.initialize(""), sim_params.molecule
         ).take_snapshot()
         nmols = max(snapshot.particles.body) + 1
         diff = (snapshot.particles.moment_inertia[:nmols] - init_mol)

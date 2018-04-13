@@ -25,7 +25,7 @@ def equil_crystal(
     snapshot: hoomd.data.SnapshotParticleData, sim_params: SimulationParams
 ) -> hoomd.data.SnapshotParticleData:
     """Equilbrate crystal."""
-    logger.debug('Simulation steps: %d', sim_params.num_steps)
+    logger.debug("Simulation steps: %d", sim_params.num_steps)
     temp_context = hoomd.context.initialize(sim_params.hoomd_args)
     sys = initialise_snapshot(
         snapshot=snapshot, context=temp_context, molecule=sim_params.molecule
@@ -35,22 +35,22 @@ def equil_crystal(
         set_integrator(sim_params=sim_params, prime_interval=307, crystal=True)
 
         set_dump(
-            sim_params.filename(prefix='dump'),
+            sim_params.filename(prefix="dump"),
             dump_period=sim_params.output_interval,
             group=sim_params.group,
         )
 
         set_thermo(
-            sim_params.filename(prefix='equil'),
+            sim_params.filename(prefix="equil"),
             thermo_period=int(np.ceil(sim_params.output_interval / 10)),
             rigid=False,
         )
 
         logger.debug(
-            'Running crystal equilibration for %d steps.', sim_params.num_steps
+            "Running crystal equilibration for %d steps.", sim_params.num_steps
         )
         hoomd.run(sim_params.num_steps)
-        logger.debug('Crystal equilibration completed')
+        logger.debug("Crystal equilibration completed")
 
         dump_frame(sim_params.outfile, group=sim_params.group, extension=False)
 
@@ -66,18 +66,18 @@ def equil_interface(
     the liquid phase is equilibrated.
     """
 
-    if getattr(sim_params, 'init_temp', None) is None:
+    if getattr(sim_params, "init_temp", None) is None:
         with paramsContext(sim_params, num_steps=2000, tauP=8, tau=8):
-            logger.debug('sim_params Steps: %d', sim_params.num_steps)
+            logger.debug("sim_params Steps: %d", sim_params.num_steps)
             snapshot = make_orthorhombic(equil_crystal(snapshot, sim_params))
 
-    logger.debug('Hoomd Arguments: %s', sim_params.hoomd_args)
+    logger.debug("Hoomd Arguments: %s", sim_params.hoomd_args)
     temp_context = hoomd.context.initialize(sim_params.hoomd_args)
     sys = initialise_snapshot(
         snapshot=snapshot, context=temp_context, molecule=sim_params.molecule
     )
     with temp_context:
-        logger.debug('Entering temporary context')
+        logger.debug("Entering temporary context")
 
         interface = _interface_group(sys)
         # Set mobile group for integrator
@@ -85,12 +85,12 @@ def equil_interface(
             set_integrator(sim_params=sim_params, crystal=True)
 
         set_dump(
-            sim_params.filename(prefix='dump'),
+            sim_params.filename(prefix="dump"),
             dump_period=sim_params.output_interval,
             group=sim_params.group,
         )
         set_thermo(
-            sim_params.filename(prefix='equil'),
+            sim_params.filename(prefix="equil"),
             thermo_period=int(np.ceil(sim_params.output_interval / 10)),
             rigid=False,
         )
@@ -111,16 +111,16 @@ def equil_liquid(
     )
     with temp_context:
         set_integrator(sim_params=sim_params)
-        set_thermo(sim_params.filename('log'), thermo_period=sim_params.output_interval)
+        set_thermo(sim_params.filename("log"), thermo_period=sim_params.output_interval)
         hoomd.run(sim_params.num_steps)
-        logger.debug('Outfile: %s', sim_params.outfile)
+        logger.debug("Outfile: %s", sim_params.outfile)
         dump_frame(sim_params.outfile, group=sim_params.group, extension=False)
         return sys.take_snapshot(all=True)
 
 
 def _interface_group(sys: hoomd.data.system_data, stationary: bool = False):
     stationary_group = hoomd.group.cuboid(
-        name='stationary',
+        name="stationary",
         xmin=-sys.box.Lx / 3,
         xmax=sys.box.Lx / 3,
         ymin=-sys.box.Ly / 3,
@@ -128,11 +128,11 @@ def _interface_group(sys: hoomd.data.system_data, stationary: bool = False):
     )
     if stationary:
         return hoomd.group.intersection(
-            'rigid_stationary', stationary_group, hoomd.group.rigid_center()
+            "rigid_stationary", stationary_group, hoomd.group.rigid_center()
         )
 
     return hoomd.group.intersection(
-        'rigid_mobile',
-        hoomd.group.difference('mobile', hoomd.group.all(), stationary_group),
+        "rigid_mobile",
+        hoomd.group.difference("mobile", hoomd.group.all(), stationary_group),
         hoomd.group.rigid_center(),
     )

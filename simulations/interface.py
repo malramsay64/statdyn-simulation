@@ -169,9 +169,9 @@ subprocess.call(run_comand + ['prod'] + common_opts + prod_opts)
 temperatures = [0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.8, 1.0, 1.5]
 pressures = [1.]
 mom_inertia = [1., 10., 100., 1000.]
-crystals = ['p2', 'pg', 'p2gg']
+crystals = ["p2", "pg", "p2gg"]
 
-outdir = Path.home() / 'tmp1m/2017-10-18-interface'
+outdir = Path.home() / "tmp1m/2017-10-18-interface"
 
 if __name__ == "__main__":
     # ensure outdir exists
@@ -180,13 +180,16 @@ if __name__ == "__main__":
     all_values = list(itertools.product(temperatures, pressures, mom_inertia, crystals))
 
     create_temp = 1.80
-    create_values = list(itertools.product([create_temp], pressures, mom_inertia, crystals))
+    create_values = list(
+        itertools.product([create_temp], pressures, mom_inertia, crystals)
+    )
 
     def get_array_flag(num_values: int) -> str:
         if num_values == 1:
-            return ''
+            return ""
+
         else:
-            return f'#PBS -J 0-{num_values-1}'
+            return f"#PBS -J 0-{num_values-1}"
 
     create_pbs = create_file.format(
         values=create_values,
@@ -207,22 +210,17 @@ if __name__ == "__main__":
         ncpus=8,
     )
 
-    create_process = subprocess.run(
-        ['qsub'],
-        input=create_pbs,
-        stdout=subprocess.PIPE,
-    )
+    create_process = subprocess.run(["qsub"], input=create_pbs, stdout=subprocess.PIPE)
 
     job_id = create_process.stdout
     print(job_id)
 
-    subprocess.run(['qsub', '-W', 'depend=afterok:'+job_id],
-                   input=prod_pbs,
-                   env=os.environ,
-                   )
+    subprocess.run(
+        ["qsub", "-W", "depend=afterok:" + job_id], input=prod_pbs, env=os.environ
+    )
 
-    with open(outdir / 'create_pbs.py', 'w') as tf:
+    with open(outdir / "create_pbs.py", "w") as tf:
         tf.write(create_pbs)
 
-    with open(outdir / 'prod_pbs.py', 'w') as tf:
+    with open(outdir / "prod_pbs.py", "w") as tf:
         tf.write(prod_pbs)

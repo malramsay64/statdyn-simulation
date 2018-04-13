@@ -18,7 +18,7 @@ from sdrun.molecules import MOLECULE_DICT, Trimer
 
 @pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
 def mol(request):
-    with hoomd.context.initialize(''):
+    with hoomd.context.initialize(""):
         yield request.param()
 
 
@@ -62,7 +62,7 @@ def test_moment_inertia_trimer():
 def test_moment_inertia_scaling(scaling_factor):
     """Test that the scaling factor is working properly."""
     reference = Trimer()
-    with np.errstate(over='ignore'):
+    with np.errstate(over="ignore"):
         scaled = Trimer(moment_inertia_scale=scaling_factor)
         assert len(reference.moment_inertia) == len(scaled.moment_inertia)
         assert np.allclose(

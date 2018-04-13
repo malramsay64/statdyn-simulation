@@ -28,25 +28,25 @@ def output_directory():
 
 
 TEST_ARGS = [
-    ['prod', 'test/data/Trimer-13.50-3.00.gsd', '-t', '3.00', '--no-dynamics'],
+    ["prod", "test/data/Trimer-13.50-3.00.gsd", "-t", "3.00", "--no-dynamics"],
     [
-        'create',
-        '-t',
-        '2.50',
-        '--space-group',
-        'pg',
-        '--lattice-lengths',
-        '20',
-        '24',
-        'test_create.gsd',
+        "create",
+        "-t",
+        "2.50",
+        "--space-group",
+        "pg",
+        "--lattice-lengths",
+        "20",
+        "24",
+        "test_create.gsd",
     ],
-    ['equil', '-t', '2.50', 'test/data/Trimer-13.50-3.00.gsd', 'test_equil.gsd'],
+    ["equil", "-t", "2.50", "test/data/Trimer-13.50-3.00.gsd", "test_equil.gsd"],
 ]
 
-COMMON_ARGS = ['--hoomd-args', '"--mode=cpu"', '-s', '100', '-v']
+COMMON_ARGS = ["--hoomd-args", '"--mode=cpu"', "-s", "100", "-v"]
 
 
-@pytest.mark.parametrize('arguments', TEST_ARGS)
+@pytest.mark.parametrize("arguments", TEST_ARGS)
 def test_manually(arguments, output_directory):
     """Testing the functionality of the argument parsing.
 
@@ -54,15 +54,15 @@ def test_manually(arguments, output_directory):
     the parseing of the arguments works appropriately.
 
     """
-    logging.debug('output_directory: %s', output_directory)
+    logging.debug("output_directory: %s", output_directory)
     # Use temporary directory for output files
-    if arguments[0] in ['create', 'equil']:
+    if arguments[0] in ["create", "equil"]:
         arguments[-1] = str(Path(output_directory) / arguments[-1])
-    func, sim_params = parse_args(arguments + COMMON_ARGS + ['-o', output_directory])
+    func, sim_params = parse_args(arguments + COMMON_ARGS + ["-o", output_directory])
     func(sim_params)
 
 
-@pytest.mark.parametrize('arguments', TEST_ARGS)
+@pytest.mark.parametrize("arguments", TEST_ARGS)
 def test_commands(arguments, output_directory):
     """Ensure sdrun command line interface works.
 
@@ -70,17 +70,17 @@ def test_commands(arguments, output_directory):
     the main arguments.
 
     """
-    logging.debug('output_directory: %s', output_directory)
+    logging.debug("output_directory: %s", output_directory)
     # Use temporary directory for output files
-    if arguments[0] in ['create', 'equil']:
+    if arguments[0] in ["create", "equil"]:
         arguments[-1] = str(Path(output_directory) / arguments[-1])
-    command = ['sdrun'] + arguments + COMMON_ARGS + ['-o', output_directory]
+    command = ["sdrun"] + arguments + COMMON_ARGS + ["-o", output_directory]
     ret = subprocess.run(command)
     assert ret.returncode == 0
 
 
-@pytest.mark.skipif(sys.platform == 'darwin', reason='No MPI support on macOS')
-@pytest.mark.parametrize('arguments', TEST_ARGS)
+@pytest.mark.skipif(sys.platform == "darwin", reason="No MPI support on macOS")
+@pytest.mark.parametrize("arguments", TEST_ARGS)
 def test_commands_mpi(arguments, output_directory):
     """Ensure sdrun command line interface works with mpi.
 
@@ -89,12 +89,12 @@ def test_commands_mpi(arguments, output_directory):
     exactly the same as the test_commands tests, apart from running with mpi.
 
     """
-    logging.debug('output_directory: %s', output_directory)
+    logging.debug("output_directory: %s", output_directory)
     # Use temporary directory for output files
-    if arguments[0] in ['create', 'equil']:
+    if arguments[0] in ["create", "equil"]:
         arguments[-1] = str(Path(output_directory) / arguments[-1])
-    command = ['mpirun', '-np', '4', 'sdrun'] + arguments + COMMON_ARGS + [
-        '-o', output_directory
+    command = ["mpirun", "-np", "4", "sdrun"] + arguments + COMMON_ARGS + [
+        "-o", output_directory
     ]
     ret = subprocess.run(command)
     assert ret.returncode == 0

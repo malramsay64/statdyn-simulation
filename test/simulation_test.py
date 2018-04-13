@@ -31,7 +31,7 @@ def sim_params(request):
             num_steps=100,
             molecule=request.param(),
             output=tmp_dir,
-            outfile=Path(tmp_dir) / 'testout',
+            outfile=Path(tmp_dir) / "testout",
             dynamics=False,
             hoomd_args=HOOMD_ARGS,
             minimize=True,
@@ -46,7 +46,7 @@ def sim_params_crystal(request):
             num_steps=100,
             crystal=request.param(),
             output=tmp_dir,
-            outfile=Path(tmp_dir) / 'testout',
+            outfile=Path(tmp_dir) / "testout",
             dynamics=False,
             hoomd_args=HOOMD_ARGS,
             minimize=True,
@@ -64,7 +64,7 @@ def test_run_npt(sim_params):
 
 
 @pytest.mark.simulation
-@pytest.mark.parametrize('cell_dimensions', range(1, 5))
+@pytest.mark.parametrize("cell_dimensions", range(1, 5))
 def test_orthorhombic_sims(cell_dimensions, sim_params_crystal):
     """Test the initialisation from a crystal unit cell.
 
@@ -89,83 +89,85 @@ def test_file_placement(sim_params):
             sim_params=sim_params,
         )
     params = {
-        'molecule': sim_params.molecule,
-        'pressure': sim_params.pressure,
-        'temperature': sim_params.temperature,
+        "molecule": sim_params.molecule,
+        "pressure": sim_params.pressure,
+        "temperature": sim_params.temperature,
     }
     outdir = Path(sim_params.output)
-    print(list(outdir.glob('*')))
+    print(list(outdir.glob("*")))
     assert (
-        outdir / '{molecule}-P{pressure:.2f}-T{temperature:.2f}.gsd'.format(**params)
+        outdir / "{molecule}-P{pressure:.2f}-T{temperature:.2f}.gsd".format(**params)
     ).is_file()
     assert (
-        outdir /
-        'dump-{molecule}-P{pressure:.2f}-T{temperature:.2f}.gsd'.format(**params)
+        outdir
+        / "dump-{molecule}-P{pressure:.2f}-T{temperature:.2f}.gsd".format(**params)
     ).is_file()
     assert (
-        outdir /
-        'thermo-{molecule}-P{pressure:.2f}-T{temperature:.2f}.log'.format(**params)
+        outdir
+        / "thermo-{molecule}-P{pressure:.2f}-T{temperature:.2f}.log".format(**params)
     ).is_file()
     assert (
-        outdir /
-        'trajectory-{molecule}-P{pressure:.2f}-T{temperature:.2f}.gsd'.format(**params)
+        outdir
+        / "trajectory-{molecule}-P{pressure:.2f}-T{temperature:.2f}.gsd".format(
+            **params
+        )
     ).is_file()
 
 
 @pytest.mark.simulation
-@pytest.mark.parametrize('pressure, temperature', [(1.0, 1.8), (13.5, 3.00)])
+@pytest.mark.parametrize("pressure, temperature", [(1.0, 1.8), (13.5, 3.00)])
 def test_interface(sim_params, pressure, temperature):
     init_temp = 0.4
     outdir = str(sim_params.output)
     create_command = [
-        'sdrun',
-        'create',
-        '--pressure',
-        '{}'.format(pressure),
-        '--space-group',
-        'p2',
-        '--lattice-lengths',
-        '48',
-        '42',
-        '--temperature',
-        '{}'.format(init_temp),
-        '--steps',
-        '1000',
-        '--output',
+        "sdrun",
+        "create",
+        "--pressure",
+        "{}".format(pressure),
+        "--space-group",
+        "p2",
+        "--lattice-lengths",
+        "48",
+        "42",
+        "--temperature",
+        "{}".format(init_temp),
+        "--steps",
+        "1000",
+        "--output",
         outdir,
-        '-vvv',
-        '--hoomd-args',
+        "-vvv",
+        "--hoomd-args",
         '"--mode=cpu"',
         str(
-            Path(outdir) /
-            'create_interface-P{:.2f}-T{:.2f}.gsd'.format(pressure, init_temp)
+            Path(outdir)
+            / "create_interface-P{:.2f}-T{:.2f}.gsd".format(pressure, init_temp)
         ),
     ]
     melt_command = [
-        'sdrun',
-        'equil',
-        '--equil-type',
-        'interface',
-        '--pressure',
-        '{}'.format(pressure),
-        '--space-group',
-        'p2',
-        '--temperature',
-        '{}'.format(temperature),
-        '--output',
+        "sdrun",
+        "equil",
+        "--equil-type",
+        "interface",
+        "--pressure",
+        "{}".format(pressure),
+        "--space-group",
+        "p2",
+        "--temperature",
+        "{}".format(temperature),
+        "--output",
         outdir,
-        '--steps',
-        '1000',
-        '-vvv',
-        '--hoomd-args',
+        "--steps",
+        "1000",
+        "-vvv",
+        "--hoomd-args",
         '"--mode=cpu"',
         str(
-            Path(outdir) /
-            'create_interface-P{:.2f}-T{:.2f}.gsd'.format(pressure, init_temp)
+            Path(outdir)
+            / "create_interface-P{:.2f}-T{:.2f}.gsd".format(pressure, init_temp)
         ),
         str(
-            Path(outdir) /
-            'melt_interface-P{:.2f}-T{:.2f}.gsd'.format(pressure, temperature)
+            Path(outdir)
+            / "melt_interface-P{:.2f}-T{:.2f}.gsd".format(pressure, temperature)
         ),
     ]
     create = subprocess.run(create_command)

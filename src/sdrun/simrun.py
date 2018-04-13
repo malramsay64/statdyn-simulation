@@ -13,7 +13,7 @@ import hoomd
 import numpy as np
 
 from .initialise import initialise_snapshot
-from .helper import (SimulationParams, dump_frame, set_dump, set_integrator, set_thermo)
+from .helper import SimulationParams, dump_frame, set_dump, set_integrator, set_thermo
 from .StepSize import GenerateStepSeries
 
 logger = logging.getLogger(__name__)
@@ -40,11 +40,11 @@ def run_npt(
         logger.debug("Run metadata: %s", sys.get_metadata())
         set_integrator(sim_params)
         set_thermo(
-            sim_params.filename(prefix='thermo'),
+            sim_params.filename(prefix="thermo"),
             thermo_period=sim_params.output_interval,
         )
         set_dump(
-            sim_params.filename(prefix='dump'),
+            sim_params.filename(prefix="dump"),
             dump_period=sim_params.output_interval,
             group=sim_params.group,
         )
@@ -59,7 +59,7 @@ def run_npt(
             curr_step = iterator.next()
             assert curr_step == 0
             dumpfile = dump_frame(
-                sim_params.filename(prefix='trajectory'), group=sim_params.group
+                sim_params.filename(prefix="trajectory"), group=sim_params.group
             )
             for curr_step in iterator:
                 hoomd.run_upto(curr_step, quiet=True)

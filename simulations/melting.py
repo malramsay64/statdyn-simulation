@@ -98,9 +98,9 @@ subprocess.call(run_comand + ['prod'] + common_opts + prod_opts)
 temperatures = np.arange(0.2, 0.4, 0.2)
 pressures = np.arange(1.5, 4.5, 1.5)
 mom_inertia = np.power(10., np.arange(0, 1))
-crystals = ['p2']
+crystals = ["p2"]
 
-outdir = Path.home() / 'tmp1m/2017-10-17-test2'
+outdir = Path.home() / "tmp1m/2017-10-17-test2"
 
 if __name__ == "__main__":
     # ensure outdir exists
@@ -110,9 +110,10 @@ if __name__ == "__main__":
 
     def get_array_flag(num_values: int) -> str:
         if num_values == 1:
-            return ''
+            return ""
+
         else:
-            return f'#PBS -J 0-{num_values-1}'
+            return f"#PBS -J 0-{num_values-1}"
 
     sub_file = pbs_file.format(
         values=all_values,
@@ -121,15 +122,12 @@ if __name__ == "__main__":
         create_steps=1000,
         equil_steps=100_000,
         prod_steps=10_000_000,
-        ncpus=8
+        ncpus=8,
     )
 
-    subprocess.run(['qsub'],
-                   input=sub_file,
-                   stdout=sys.stdout,
-                   stderr=sys.stderr,
-                   env=os.environ,
-                   )
+    subprocess.run(
+        ["qsub"], input=sub_file, stdout=sys.stdout, stderr=sys.stderr, env=os.environ
+    )
 
-    with open(outdir / 'sub_file.py', 'w') as tf:
+    with open(outdir / "sub_file.py", "w") as tf:
         tf.write(sub_file)

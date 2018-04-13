@@ -137,28 +137,31 @@ assert return_code == 0
 """
 
 
-
 def get_array_flag(num_values: int) -> str:
     if num_values == 1:
-        return ''
+        return ""
+
     else:
-        return f'#PBS -J 0-{num_values-1}'
+        return f"#PBS -J 0-{num_values-1}"
+
 
 temperatures = [0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.8, 1.0, 1.5, 1.8]
 pressures = [1.]
 mom_inertia = [1.]
 crystals: List[str] = [None]
 
-outdir = Path.home() / 'tmp1m/2017-10-27-dynamics'
+outdir = Path.home() / "tmp1m/2017-10-27-dynamics"
 
 if __name__ == "__main__":
     # ensure outdir exists
     outdir.mkdir(exist_ok=True)
 
     create_temp = 1.80
-    create_values = list(itertools.product([create_temp], pressures, mom_inertia, crystals))
+    create_values = list(
+        itertools.product([create_temp], pressures, mom_inertia, crystals)
+    )
     create_pbs = create_liquid.format(
-        name='dynamics-create',
+        name="dynamics-create",
         values=create_values,
         array_flag=get_array_flag(len(create_values)),
         outdir=outdir,
@@ -166,20 +169,17 @@ if __name__ == "__main__":
         ncpus=8,
     )
     create_process = subprocess.run(
-        ['qsub'],
-        input=create_pbs,
-        stdout=subprocess.PIPE,
-        env=os.environ,
+        ["qsub"], input=create_pbs, stdout=subprocess.PIPE, env=os.environ
     )
-    with open(outdir / 'create_pbs.py', 'w') as tf:
+    with open(outdir / "create_pbs.py", "w") as tf:
         tf.write(create_pbs)
 
     assert create_process.returncode == 0
 
     all_values = list(itertools.product(temperatures, pressures, mom_inertia, crystals))
     equil_pbs = equilibrate.format(
-        name='dynamics-equil',
-        equil_type='liquid',
+        name="dynamics-equil",
+        equil_type="liquid",
         create_temp=create_temp,
         values=all_values,
         array_flag=get_array_flag(len(all_values)),
@@ -188,19 +188,19 @@ if __name__ == "__main__":
         ncpus=8,
     )
     equil_process = subprocess.run(
-        ['qsub', '-W', 'depend=afterok:'+create_process.stdout],
+        ["qsub", "-W", "depend=afterok:" + create_process.stdout],
         input=equil_pbs,
         stdout=subprocess.PIPE,
         env=os.environ,
     )
-    with open(outdir / 'equil_pbs.py', 'w') as tf:
+    with open(outdir / "equil_pbs.py", "w") as tf:
         tf.write(equil_pbs)
 
     assert equil_process.returncode == 0
 
     prod_pbs = production.format(
-        name='dynamics-prod',
-        dynamics='--dynamics',
+        name="dynamics-prod",
+        dynamics="--dynamics",
         values=all_values,
         array_flag=get_array_flag(len(all_values)),
         outdir=outdir,
@@ -208,12 +208,12 @@ if __name__ == "__main__":
         ncpus=8,
     )
     prod_process = subprocess.run(
-        ['qsub', '-W', 'depend=afterok:'+create_process.stdout],
+        ["qsub", "-W", "depend=afterok:" + create_process.stdout],
         input=prod_pbs,
         stdout=subprocess.PIPE,
         env=os.environ,
     )
-    with open(outdir / 'prod_pbs.py', 'w') as tf:
+    with open(outdir / "prod_pbs.py", "w") as tf:
         tf.write(prod_pbs)
 
     assert prod_process.returncode == 0

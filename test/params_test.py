@@ -21,13 +21,13 @@ from sdrun.params import SimulationParams, paramsContext
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logging.basicConfig(level=logging.DEBUG)
-SIM_PARAMS = SimulationParams(num_steps=1000, temperature=1.0, space_group='p2')
+SIM_PARAMS = SimulationParams(num_steps=1000, temperature=1.0, space_group="p2")
 MOLECULE_LIST = [Molecule, Sphere, Trimer, Dimer, Disc, None]
 
 
 @given(key=text(), value=text())
-@example(key='outfile', value='test')
-@example(key='output', value='testing')
+@example(key="outfile", value="test")
+@example(key="output", value="testing")
 @settings(deadline=None)
 def test_paramContext(key, value):
     """Ensure paramsContext sets value correctly and returns to previous state.
@@ -43,7 +43,7 @@ def test_paramContext(key, value):
     assert test_values == sim_params.parameters
 
 
-@pytest.mark.parametrize('mol', MOLECULE_LIST)
+@pytest.mark.parametrize("mol", MOLECULE_LIST)
 def test_molecule(mol):
     with paramsContext(SIM_PARAMS, molecle=mol):
         assert SIM_PARAMS.molecle == mol
@@ -59,17 +59,17 @@ def test_mol_crys():
         assert SIM_PARAMS.molecule == crys.molecule
 
 
-@pytest.mark.parametrize('outfile', ['test/data', Path('test/data')])
+@pytest.mark.parametrize("outfile", ["test/data", Path("test/data")])
 def test_outfile(outfile):
     with paramsContext(SIM_PARAMS, outfile=outfile):
-        assert SIM_PARAMS.parameters.get('outfile') == outfile
+        assert SIM_PARAMS.parameters.get("outfile") == outfile
         assert str(outfile) == SIM_PARAMS.outfile
 
 
-@pytest.mark.parametrize('output', ['test/output', Path('test/output')])
+@pytest.mark.parametrize("output", ["test/output", Path("test/output")])
 def test_outdir(output):
     with paramsContext(SIM_PARAMS, output=output):
-        assert SIM_PARAMS.parameters.get('output') == output
+        assert SIM_PARAMS.parameters.get("output") == output
         assert Path(output) == SIM_PARAMS.output
 
 
@@ -77,17 +77,17 @@ def func(sim_params, value):
     return getattr(sim_params, value)
 
 
-@pytest.mark.parametrize('sim_params', [SIM_PARAMS])
+@pytest.mark.parametrize("sim_params", [SIM_PARAMS])
 def test_function_passing(sim_params):
     assert sim_params.num_steps == 1000
     with paramsContext(sim_params, num_steps=2000):
-        assert func(sim_params, 'num_steps') == 2000
+        assert func(sim_params, "num_steps") == 2000
         assert sim_params.num_steps == 2000
-    assert func(sim_params, 'num_steps') == 1000
+    assert func(sim_params, "num_steps") == 1000
     assert sim_params.num_steps == 1000
 
 
-@pytest.mark.parametrize('sim_params', [SIM_PARAMS])
+@pytest.mark.parametrize("sim_params", [SIM_PARAMS])
 def test_cell_dimensions(sim_params):
     with paramsContext(sim_params, crystal=TrimerP2(), cell_dimensions=[10]):
         assert len(sim_params.cell_dimensions) == sim_params.crystal.dimensions

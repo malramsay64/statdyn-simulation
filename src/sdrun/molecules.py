@@ -38,7 +38,7 @@ class Molecule(object):
         self.moment_inertia = (0., 0., 0.)  # type: Tuple[float, float, float]
         self.potential = hoomd.md.pair.lj
         self.potential_args = dict()  # type: Dict[Any, Any]
-        self.particles = ['A']
+        self.particles = ["A"]
         self._radii = OrderedDict(A=1.)
         self.dimensions = 3
         self.positions = np.array([[0, 0, 0]])
@@ -79,7 +79,7 @@ class Molecule(object):
             class:`hoomd.md.pair`: The interaction potential object class.
 
         """
-        self.potential_args.setdefault('r_cut', 2.5)
+        self.potential_args.setdefault("r_cut", 2.5)
         potential = self.potential(**self.potential_args, nlist=hoomd.md.nlist.cell())
         for i, j in combinations_with_replacement(self._radii.keys(), 2):
             potential.pair_coeff.set(
@@ -112,14 +112,14 @@ class Molecule(object):
 
         if not params:
             params = dict()
-        params['type_name'] = self.particles[0]
-        params['types'] = self.particles[1:]
+        params["type_name"] = self.particles[0]
+        params["types"] = self.particles[1:]
         params.setdefault(
-            'positions', [tuple(pos) for i, pos in enumerate(self.positions) if i > 0]
+            "positions", [tuple(pos) for i, pos in enumerate(self.positions) if i > 0]
         )
         rigid = hoomd.md.constrain.rigid()
         rigid.set_param(**params)
-        logger.debug('Rigid: %s', rigid)
+        logger.debug("Rigid: %s", rigid)
         return rigid
 
     def identify_bodies(self, num_molecules: int) -> np.ndarray:
@@ -225,7 +225,7 @@ class Trimer(Molecule):
         self.radius = radius
         self.distance = distance
         self.angle = angle
-        self.particles = ['A', 'B', 'B']
+        self.particles = ["A", "B", "B"]
         self._radii.update(B=self.radius)
         self.dimensions = 2
         self.positions = np.array(
@@ -287,7 +287,7 @@ class Dimer(Molecule):
         super(Dimer, self).__init__()
         self.radius = radius
         self.distance = distance
-        self.particles = ['A', 'B']
+        self.particles = ["A", "B"]
         self._radii.update(B=self.radius)
         self.dimensions = 2
         self.positions = np.array([[0, 0, 0], [0, self.distance, 0]])
@@ -307,7 +307,7 @@ class Binary_Mixture(Molecule):
         super().__init__()
         self.radius = radius
         self.distance = 1 + radius
-        self.particles = ['A', 'B']
+        self.particles = ["A", "B"]
         self._radii.update(B=self.radius)
         self.dimensions = 2
         self.positions = np.array([[0, 0, 0], [0, self.distance, 0]])
@@ -323,7 +323,7 @@ class Binary_Mixture(Molecule):
 
 
 MOLECULE_DICT = {
-    'trimer': Trimer, 'dimer': Dimer, 'binary_mixture': Binary_Mixture, 'disc': Disc
+    "trimer": Trimer, "dimer": Dimer, "binary_mixture": Binary_Mixture, "disc": Disc
 }
 
 MOLECULE_LIST = [Trimer(), Dimer(), Binary_Mixture(), Disc()]
