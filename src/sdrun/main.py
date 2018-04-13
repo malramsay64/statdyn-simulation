@@ -10,7 +10,6 @@
 import argparse
 import logging
 from pathlib import Path
-from subprocess import run
 from typing import Callable, List, Tuple
 
 import hoomd.context
@@ -67,15 +66,6 @@ def create(sim_params: SimulationParams) -> None:
     else:
         snapshot = init_from_none(sim_params=sim_params)
     equil_crystal(snapshot=snapshot, sim_params=sim_params)
-
-
-def figure(args) -> None:
-    """Start bokeh server with the file passed."""
-    fig_file = Path(__file__).parents[1] / "figures/interactive_config.py"
-    try:
-        run(["bokeh", "serve", "--show", str(fig_file)] + args.bokeh)
-    except ProcessLookupError:
-        logger.info("Bokeh server terminated.")
 
 
 def create_parser() -> argparse.ArgumentParser:
