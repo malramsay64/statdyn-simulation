@@ -14,7 +14,7 @@ from tempfile import TemporaryDirectory
 import hoomd
 import pytest
 from sdrun.crystals import CRYSTAL_FUNCS
-from sdrun.equilibrate import equil_crystal
+from sdrun.equilibrate import equil_crystal, make_orthorhombic
 from sdrun.initialise import init_from_crystal, init_from_none
 from sdrun.molecules import MOLECULE_DICT
 from sdrun.params import SimulationParams, paramsContext
@@ -75,7 +75,7 @@ def test_orthorhombic_sims(cell_dimensions, sim_params_crystal):
     cell_dimensions = cell_dimensions * 6, cell_dimensions * 6
     with paramsContext(sim_params, cell_dimensions=cell_dimensions):
         snap = init_from_crystal(sim_params)
-    snap = equil_crystal(snap, sim_params=sim_params)
+    snap = make_orthorhombic(equil_crystal(snap, sim_params=sim_params))
     run_npt(snap, context=hoomd.context.initialize(HOOMD_ARGS), sim_params=sim_params)
 
 

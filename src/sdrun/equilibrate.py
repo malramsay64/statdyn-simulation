@@ -54,7 +54,7 @@ def equil_crystal(
 
         dump_frame(sim_params.outfile, group=sim_params.group, extension=False)
 
-        return make_orthorhombic(sys.take_snapshot())
+        return sys.take_snapshot()
 
 
 def equil_interface(
@@ -69,7 +69,7 @@ def equil_interface(
     if getattr(sim_params, 'init_temp', None) is None:
         with paramsContext(sim_params, num_steps=2000, tauP=8, tau=8):
             logger.debug('sim_params Steps: %d', sim_params.num_steps)
-            snapshot = equil_crystal(snapshot, sim_params)
+            snapshot = make_orthorhombic(equil_crystal(snapshot, sim_params))
 
     logger.debug('Hoomd Arguments: %s', sim_params.hoomd_args)
     temp_context = hoomd.context.initialize(sim_params.hoomd_args)
