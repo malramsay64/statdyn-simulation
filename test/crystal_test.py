@@ -35,12 +35,12 @@ def crys_class(request):
 @pytest.fixture(params=TEST_CLASSES)
 def sim_params(request):
     with TemporaryDirectory() as tmp_dir:
-        output_dir = Path(tmp_dir) / 'output'
+        output_dir = Path(tmp_dir) / "output"
         output_dir.mkdir(exist_ok=True)
         yield SimulationParams(
             temperature=0.4,
             num_steps=100,
-            outfile_path=output_dir,
+            output=output_dir,
             crystal=request.param(),
             cell_dimensions=(32, 40),
         )
