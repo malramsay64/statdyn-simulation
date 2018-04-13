@@ -5,7 +5,7 @@ dependencies:
     - python=3.6
     - numpy
     - glotzer::hoomd
-    - malramsay::hoomd-harmonic-force=0.1.0
+    - malramsay::hoomd-harmonic-force=0.1.2
     - pytest
     - pylint
     - setuptools
