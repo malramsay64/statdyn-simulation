@@ -21,7 +21,7 @@ Installation
 
 The simplest method of installation is using `conda`. To install
 
-    conda install -c malramsay sdrun
+    conda install malramsay::sdrun
 
 It is also possible to set the repository up as a development environment,
 in which case cloning the repository and installing is possible by running
