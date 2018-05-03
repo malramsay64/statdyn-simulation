@@ -49,7 +49,6 @@ def test_nvt_minimize_box(sim_params):
     assert snap_init.box.yz == snap_final.box.yz
 
 
-@pytest.mark.skip(reason="Currently issue with the harmonnic force plugin")
 def test_run_harmonic(sim_params):
     snap_init = minimize_crystal(sim_params)
     snap_min = nvt_minimize(snap_init, sim_params)
