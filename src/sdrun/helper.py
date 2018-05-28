@@ -74,7 +74,19 @@ def set_dump(
     )
 
 
-dump_frame = partial(set_dump, dump_period=None)
+def dump_frame(
+    outfile: str,
+    timestep: int = 0,
+    group: hoomd.group.group = None,
+    extension: bool = True,
+) -> hoomd.dump.gsd:
+    return set_dump(
+        outfile=outfile,
+        dump_period=None,
+        group=group,
+        extension=extension,
+        timestep=timestep,
+    )
 
 
 def set_thermo(outfile: str, thermo_period: int = 10000, rigid=True) -> None:
