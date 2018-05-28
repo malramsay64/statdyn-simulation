@@ -125,21 +125,6 @@ def equil_harmonic(
     return equil_snapshot
 
 
-def minimise_configuration(
-    snapshot: hoomd.data.SnapshotParticleData, sim_params: SimulationParams
-) -> hoomd.data.SnapshotParticleData:
-    temp_context = hoomd.context.initialize(sim_params.hoomd_args)
-    sys = initialise_snapshot(
-        snapshot=snapshot, context=temp_context, molecule=sim_params.molecule
-    )
-    with temp_context:
-        minimiser = hoomd.md.integrate.mode_minimize_fire(0.005, group=sim_params.group)
-        while not minimiser.has_converged():
-            hoomd.run(1000)
-        equil_snapshot = sys.take_snapshot(all=True)
-    return equil_snapshot
-
-
 def equil_liquid(
     snapshot: hoomd.data.SnapshotParticleData, sim_params: SimulationParams
 ) -> hoomd.data.SnapshotParticleData:

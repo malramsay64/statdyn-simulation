@@ -127,13 +127,18 @@ def initialise_snapshot(
         return sys
 
 
-def minimize_snapshot(snapshot, molecule, hoomd_args: str = ""):
-    temp_context = hoomd.context.initialize(hoomd_args)
+def minimize_snapshot(
+    snapshot: hoomd.data.SnapshotParticleData,
+    sim_params: SimulationParams,
+    ensemble: str = "NVE",
+) -> hoomd.data.SnapshotParticleData:
+    assert ensemble in ["NVE", "NPH"]
+    temp_context = hoomd.context.initialize(sim_params.hoomd_args)
     with temp_context:
         sys = hoomd.init.read_snapshot(snapshot)
-        molecule.define_potential()
-        molecule.define_dimensions()
-        rigid = molecule.define_rigid()
+        sim_params.molecule.define_potential()
+        sim_params.molecule.define_dimensions()
+        rigid = sim_params.molecule.define_rigid()
         if rigid:
             rigid.check_initialization()
             group = hoomd.group.rigid_center()
@@ -141,7 +146,14 @@ def minimize_snapshot(snapshot, molecule, hoomd_args: str = ""):
             group = hoomd.group.all()
         logger.debug("Minimizing energy")
         fire = hoomd.md.integrate.mode_minimize_fire(0.001)
-        nph = hoomd.md.integrate.nph(group=group, P=1.0, tauP=5)
+
+        if ensemble == "NVE":
+            ensemble_integrator = hoomd.md.integrate.nve(group=group)
+        elif ensemble == "NPH":
+            ensemble_integrator = hoomd.md.integrate.nph(
+                group=group, P=sim_params.pressure, tauP=sim_params.tauP
+            )
+
         num_steps = 0
         while not fire.has_converged():
             hoomd.run(100)
@@ -149,7 +161,7 @@ def minimize_snapshot(snapshot, molecule, hoomd_args: str = ""):
             if num_steps > 10_000:
                 break
 
-        nph.disable()
+        ensemble_integrator.disable()
         logger.debug("Energy Minimized in %s steps", num_steps)
         equil_snapshot = sys.take_snapshot(all=True)
     return equil_snapshot
@@ -184,6 +196,7 @@ def init_from_crystal(sim_params: SimulationParams,) -> hoomd.data.SnapshotParti
             rigid.create_bodies()
         snap = sys.take_snapshot(all=True)
         logger.debug("Particle Types: %s", snap.particles.types)
+    minimize_snapshot(snap, sim_params, ensemble="NPH")
     temp_context = hoomd.context.initialize(sim_params.hoomd_args)
     with temp_context:
         sys = initialise_snapshot(snap, temp_context, sim_params)

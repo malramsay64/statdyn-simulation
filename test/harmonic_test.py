@@ -15,8 +15,8 @@ import hoomd
 import pytest
 
 from sdrun.crystals import CRYSTAL_FUNCS
-from sdrun.equilibrate import equil_harmonic, minimise_configuration
-from sdrun.initialise import init_from_crystal
+from sdrun.equilibrate import equil_harmonic
+from sdrun.initialise import init_from_crystal, minimize_snapshot
 from sdrun.params import SimulationParams
 from sdrun.simrun import run_harmonic
 
@@ -37,14 +37,10 @@ def sim_params(request):
         )
 
 
-def test_minimize_crystal(sim_params):
-    minimize_crystal(sim_params)
-
-
-def test_nvt_minimize_box(sim_params):
+def test_minimize_box(sim_params):
     """Ensure the box doesn't change size"""
-    snap_init = minimize_crystal(sim_params)
-    snap_final = nvt_minimize(snap_init, sim_params)
+    snap_init = init_from_crystal(sim_params)
+    snap_final = minimize_snapshot(snap_init, sim_params, ensemble="NVE")
     assert snap_init.box.Lx == snap_final.box.Lx
     assert snap_init.box.Ly == snap_final.box.Ly
     assert snap_init.box.Lz == snap_final.box.Lz
@@ -54,7 +50,7 @@ def test_nvt_minimize_box(sim_params):
 
 
 def test_run_harmonic(sim_params):
-    snap_init = minimize_crystal(sim_params)
-    snap_min = nvt_minimize(snap_init, sim_params)
+    snap_init = init_from_crystal(sim_params)
+    snap_equil = equil_harmonic(snap_init, sim_params)
     context = hoomd.context.initialize(sim_params.hoomd_args)
-    run_harmonic(snap_min, context, sim_params)
+    run_harmonic(snap_equil, context, sim_params)
