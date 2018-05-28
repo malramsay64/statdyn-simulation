@@ -45,13 +45,13 @@ def set_integrator(
             P=sim_params.pressure,
             tauP=sim_params.tauP,
         )
+        if crystal:
+            integrator.set_params(rescale_all=True)
+            integrator.couple = "none"
     elif integration_method == "NVT":
         integrator = md.integrate.nvt(
             group=sim_params.group, kT=sim_params.temperature, tau=sim_params.tau
         )
-
-    if crystal:
-        integrator.couple = "none"
 
     return integrator
 
