@@ -41,7 +41,8 @@ def init_from_file(
         rigid = molecule.define_rigid()
         if rigid:
             rigid.create_bodies()
-        return sys.take_snapshot(all=True)
+        init_snapshot = sys.take_snapshot(all=True)
+    return init_snapshot
 
 
 def init_from_none(sim_params: SimulationParams) -> hoomd.data.SnapshotParticleData:
@@ -92,7 +93,7 @@ def init_from_none(sim_params: SimulationParams) -> hoomd.data.SnapshotParticleD
             snapshot.particles.moment_inertia[:] = np.array(
                 [molecule.moment_inertia] * num_molecules * molecule.num_particles
             )
-        return minimize_snapshot(snapshot, molecule)
+    return minimize_snapshot(snapshot, sim_params, ensemble="NPH")
 
 
 def initialise_snapshot(
@@ -150,7 +151,8 @@ def minimize_snapshot(snapshot, molecule, hoomd_args: str = ""):
 
         nph.disable()
         logger.debug("Energy Minimized in %s steps", num_steps)
-        return sys.take_snapshot()
+        equil_snapshot = sys.take_snapshot(all=True)
+    return equil_snapshot
 
 
 def init_from_crystal(sim_params: SimulationParams,) -> hoomd.data.SnapshotParticleData:

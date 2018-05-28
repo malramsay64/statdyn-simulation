@@ -14,7 +14,8 @@ import hoomd
 import hoomd.md
 import numpy as np
 
-from .helper import dump_frame, set_dump, set_harmonic_force, set_integrator, set_thermo
+from .helper import (dump_frame, set_dump, set_harmonic_force, set_integrator,
+                     set_thermo)
 from .initialise import initialise_snapshot, make_orthorhombic
 from .params import SimulationParams, paramsContext
 
@@ -52,7 +53,8 @@ def equil_crystal(
 
         dump_frame(sim_params.outfile, group=sim_params.group, extension=False)
 
-        return sys.take_snapshot()
+        equil_snapshot = sys.take_snapshot(all=True)
+    return equil_snapshot
 
 
 def equil_interface(
@@ -95,7 +97,8 @@ def equil_interface(
         hoomd.run(sim_params.num_steps)
 
         dump_frame(sim_params.outfile, group=sim_params.group, extension=False)
-        return sys.take_snapshot(all=True)
+        equil_snapshot = sys.take_snapshot(all=True)
+    return equil_snapshot
 
 
 def equil_harmonic(
@@ -118,7 +121,8 @@ def equil_harmonic(
         set_harmonic_force(min_snapshot, sim_params.harmonic_force)
         hoomd.run(sim_params.num_steps)
         dump_frame(sim_params.filename(), group=sim_params.group)
-    return sys.take_snapshot(all=True)
+        equil_snapshot = sys.take_snapshot(all=True)
+    return equil_snapshot
 
 
 def minimise_configuration(
@@ -132,7 +136,8 @@ def minimise_configuration(
         minimiser = hoomd.md.integrate.mode_minimize_fire(0.005, group=sim_params.group)
         while not minimiser.has_converged():
             hoomd.run(1000)
-    return sys.take_snapshot()
+        equil_snapshot = sys.take_snapshot(all=True)
+    return equil_snapshot
 
 
 def equil_liquid(
@@ -147,7 +152,8 @@ def equil_liquid(
         hoomd.run(sim_params.num_steps)
         logger.debug("Outfile: %s", sim_params.outfile)
         dump_frame(sim_params.outfile, group=sim_params.group, extension=False)
-        return sys.take_snapshot(all=True)
+        equil_snapshot = sys.take_snapshot(all=True)
+    return equil_snapshot
 
 
 def _interface_group(sys: hoomd.data.system_data, stationary: bool = False):
