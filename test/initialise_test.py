@@ -15,9 +15,13 @@ import numpy as np
 import pytest
 from hypothesis import given, settings
 from hypothesis.strategies import integers, tuples
+
 from sdrun.crystals import CRYSTAL_FUNCS, TrimerP2
 from sdrun.initialise import (
-    init_from_crystal, init_from_none, initialise_snapshot, make_orthorhombic
+    init_from_crystal,
+    init_from_none,
+    initialise_snapshot,
+    make_orthorhombic,
 )
 from sdrun.molecules import MOLECULE_DICT
 from sdrun.params import SimulationParams, paramsContext

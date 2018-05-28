@@ -118,7 +118,7 @@ class SimulationParams(object):
                 return tuple(list(cell_dims) + [1])
 
             else:
-                return tuple(list(cell_dims)[:self.molecule.dimensions])
+                return tuple(list(cell_dims)[: self.molecule.dimensions])
 
         except AttributeError:
             raise AttributeError

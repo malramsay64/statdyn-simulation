@@ -13,6 +13,7 @@ from tempfile import TemporaryDirectory
 
 import hoomd
 import pytest
+
 from sdrun.crystals import CRYSTAL_FUNCS
 from sdrun.equilibrate import equil_crystal, make_orthorhombic
 from sdrun.initialise import init_from_crystal, init_from_none

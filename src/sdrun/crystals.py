@@ -12,7 +12,7 @@ import math
 import hoomd
 import numpy as np
 
-from .molecules import Disc, Molecule, Trimer, Sphere
+from .molecules import Disc, Molecule, Sphere, Trimer
 
 
 class Crystal(object):
