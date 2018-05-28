@@ -33,6 +33,7 @@ def sim_params(request):
             outfile=output_dir / "test.gsd",
             crystal=request.param(),
             cell_dimensions=[5],
+            harmonic_force=1,
         )
 
 

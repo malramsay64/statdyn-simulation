@@ -94,7 +94,7 @@ def run_harmonic(
             dump_period=sim_params.output_interval,
             group=sim_params.group,
         )
-        set_harmonic_force(snapshot, sim_params.harmonic_force)
+        set_harmonic_force(snapshot, sim_params)
         hoomd.run(sim_params.num_steps)
         dump_frame(sim_params.filename(), group=sim_params.group)
 

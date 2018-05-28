@@ -48,7 +48,7 @@ def prod(sim_params: SimulationParams) -> None:
     )
     logger.debug("Snapshot initialised")
     sim_context = hoomd.context.initialize(sim_params.hoomd_args)
-    if sim_params.harmonic_force is not None:
+    if sim_params.parameters.get("harmonic_force") is not None:
         run_harmonic(snapshot, sim_context, sim_params)
     else:
         run_npt(snapshot, sim_context, sim_params)

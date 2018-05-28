@@ -117,7 +117,7 @@ def set_thermo(outfile: str, thermo_period: int = 10000, rigid=True) -> None:
 def set_harmonic_force(
     snapshot: hoomd.data.SnapshotParticleData, sim_params: SimulationParams
 ) -> None:
-    assert sim_params.harmonic_force is not None
+    assert sim_params.parameters.get("harmonic_force") is not None
     if sim_params.harmonic_force == 0:
         return
     HarmonicForceCompute(

@@ -104,8 +104,7 @@ def equil_interface(
 def equil_harmonic(
     snapshot: hoomd.data.SnapshotParticleData, sim_params: SimulationParams
 ) -> hoomd.data.SnapshotParticleData:
-    assert sim_params.harmonic_force is not None
-    min_snapshot = minimise_configuration(snapshot, sim_params)
+    assert sim_params.parameters.get("harmonic_force") is not None
     temp_context = hoomd.context.initialize(sim_params.hoomd_args)
     sys = initialise_snapshot(
         snapshot=snapshot, context=temp_context, molecule=sim_params.molecule
