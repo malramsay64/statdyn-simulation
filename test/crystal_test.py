@@ -14,7 +14,7 @@ import hoomd
 import numpy as np
 import pytest
 from sdrun import crystals
-from sdrun.helper import SimulationParams
+from sdrun.params import SimulationParams
 
 TEST_CLASSES = [
     crystals.Crystal,

@@ -13,9 +13,12 @@ from tempfile import TemporaryDirectory
 
 import hoomd
 import pytest
+
 from sdrun.crystals import CRYSTAL_FUNCS
-from sdrun.harmonic import minimize_crystal, nvt_minimize, run_harmonic
+from sdrun.equilibrate import equil_harmonic, minimise_configuration
+from sdrun.initialise import init_from_crystal
 from sdrun.params import SimulationParams
+from sdrun.simrun import run_harmonic
 
 
 @pytest.fixture(params=CRYSTAL_FUNCS.values(), ids=CRYSTAL_FUNCS.keys())

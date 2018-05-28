@@ -20,7 +20,8 @@ import hoomd.md as md
 import numpy as np
 
 from .molecules import Molecule
-from .helper import SimulationParams, dump_frame
+from .helper import dump_frame
+from .params import SimulationParams
 
 logger = logging.getLogger(__name__)
 UnitCellLengths = Union[Tuple[int, int, int], Tuple[int, int]]

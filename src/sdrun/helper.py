@@ -16,7 +16,6 @@ import hoomd
 import hoomd.md as md
 from hoomd.harmonic_force import HarmonicForceCompute
 
-from .initialise import initialise_snapshot
 from .params import SimulationParams
 
 logger = logging.getLogger(__name__)
