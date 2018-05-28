@@ -19,7 +19,7 @@ import hoomd
 import hoomd.md as md
 import numpy as np
 
-from .helper import dump_frame
+from .helper import dump_frame, get_num_mols, get_num_particles
 from .molecules import Molecule
 from .params import SimulationParams
 
@@ -107,17 +107,19 @@ def initialise_snapshot(
     In this function it is checked that the data in the snapshot and the
     passed arguments are in agreement with each other, and rectified if not.
     """
+    num_molecules = get_num_mols(snapshot)
+    num_particles = get_num_particles(snapshot)
+    logger.debug(
+        "Number of particles: %d , Number of molecules: %d",
+        num_particles,
+        num_molecules,
+    )
+    snapshot = _check_properties(snapshot, sim_params.molecule)
+
+    if minimize:
+        snapshot = minimize_snapshot(snapshot, sim_params, ensemble="NVE")
+
     with context:
-        try:
-            num_particles = snapshot.particles.N
-            num_mols = max(snapshot.particles.body) + 1
-        except (AttributeError, ValueError):
-            num_particles = len(snapshot.particles.position)
-            num_mols = num_particles
-        logger.debug(
-            "Number of particles: %d , Number of molecules: %d", num_particles, num_mols
-        )
-        snapshot = _check_properties(snapshot, molecule)
         sys = hoomd.init.read_snapshot(snapshot)
         sim_params.molecule.define_potential()
         sim_params.molecule.define_dimensions()
@@ -249,19 +251,20 @@ def make_orthorhombic(
 def _check_properties(
     snapshot: hoomd.data.SnapshotParticleData, molecule: Molecule
 ) -> hoomd.data.SnapshotParticleData:
-    try:
-        nbodies = min(len(snapshot.particles.body), max(snapshot.particles.body) + 1)
-        logger.debug("number of rigid bodies: %d", nbodies)
+    num_molecules = get_num_mols(snapshot)
+    num_particles = get_num_particles(snapshot)
+
+    if num_molecules < num_particles:
+        logger.debug("number of rigid bodies: %d", num_molecules)
         snapshot.particles.types = molecule.get_types()
-        snapshot.particles.moment_inertia[:nbodies] = np.array(
-            [molecule.moment_inertia] * nbodies
+        snapshot.particles.moment_inertia[:num_molecules] = np.array(
+            [molecule.moment_inertia] * num_molecules
         )
-    except (AttributeError, ValueError):
-        num_atoms = len(snapshot.particles.position)
-        logger.debug("num_atoms: %d", num_atoms)
-        if num_atoms > 0:
-            snapshot.particles.types = molecule.get_types()
-            snapshot.particles.moment_inertia[:] = np.array(
-                [molecule.moment_inertia] * num_atoms
-            )
+    else:
+        logger.debug("num_atoms: %d", num_particles)
+        assert num_particles > 0
+        snapshot.particles.types = molecule.get_types()
+        snapshot.particles.moment_inertia[:] = np.array(
+            [molecule.moment_inertia] * num_particles
+        )
     return snapshot

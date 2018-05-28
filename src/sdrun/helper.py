@@ -9,8 +9,7 @@
 """Series of helper functions for the initialisation of parameters."""
 
 import logging
-from functools import partial
-from typing import List
+from typing import List, NamedTuple
 
 import hoomd
 import hoomd.md as md
@@ -126,8 +125,37 @@ def set_thermo(outfile: str, thermo_period: int = 10000, rigid=True) -> None:
     )
 
 
+class NumBodies(NamedTuple):
+    particles: int
+    molecules: int
+
+
+def _get_num_bodies(snapshot: hoomd.data.SnapshotParticleData):
+    try:
+        num_particles = snapshot.particles.N
+        num_mols = max(snapshot.particles.body) + 1
+    except (AttributeError, ValueError):
+        num_particles = len(snapshot.particles.N)
+        num_mols = num_particles
+    if num_mols > num_particles:
+        num_mols = num_particles
+
+    assert (
+        num_mols <= num_particles
+    ), f"Num molecule: {num_mols}, Num particles {num_particles}"
+    assert num_particles == len(snapshot.particles.position)
+
+    return NumBodies(num_particles, num_mols)
+
+
 def get_num_mols(snapshot: hoomd.data.SnapshotParticleData) -> int:
-    return min(max(snapshot.particles.body) + 1, len(snapshot.particles.body))
+    num_bodies = _get_num_bodies(snapshot)
+    return num_bodies.molecules
+
+
+def get_num_particles(snapshot: hoomd.data.SnapshotParticleData) -> int:
+    num_bodies = _get_num_bodies(snapshot)
+    return num_bodies.particles
 
 
 def set_harmonic_force(
