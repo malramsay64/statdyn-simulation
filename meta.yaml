@@ -23,21 +23,21 @@ requirements:
         - {{ pin_compatible('numpy', max_pin='x.x.x') }}
         - cudatoolkit 8.*
         - hoomd 2.3*
-        - hoomd-harmonic-force 0.1.7
+        - hoomd-harmonic-force >=0.1.7
         - setuptools *
 
 build:
     entry_points:
         - sdrun = sdrun.main:sdrun
     preserve_egg_dir: True
-    script: pip install .
+    script: python setup.py bdist_wheel sdist && pip install dist/sdrun-{{version}}.tar.gz
     number: {{ GIT_DESCRIBE_NUMBER }}
 
 test:
     requires:
         - pytest
         - hypothesis
-        - quaternion 2018.02
+        - quaternion 2018.02.*
     source_files:
         - test/*
     commands:
