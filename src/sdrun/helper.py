@@ -53,7 +53,6 @@ def set_integrator(
 
     if crystal:
         integrator.couple = "none"
-        integrator.set_params(rescale_all=True)
 
     return integrator
 
