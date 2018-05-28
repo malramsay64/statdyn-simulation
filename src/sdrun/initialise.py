@@ -19,8 +19,8 @@ import hoomd
 import hoomd.md as md
 import numpy as np
 
-from .molecules import Molecule
 from .helper import dump_frame
+from .molecules import Molecule
 from .params import SimulationParams
 
 logger = logging.getLogger(__name__)
@@ -70,13 +70,13 @@ def init_from_none(sim_params: SimulationParams) -> hoomd.data.SnapshotParticleD
         snapshot = hoomd.data.make_snapshot(
             N=molecule.num_particles * num_molecules,
             box=box,
-            particle_types=molecule.get_types()
+            particle_types=molecule.get_types(),
         )
         # Generate list of positions on grid
         xpos, ypos, zpos = np.mgrid[
-            -len_x / 2:len_x / 2:mol_size,
-            -len_y / 2:len_y / 2:mol_size,
-            -len_z / 2:len_z / 2:mol_size,
+            -len_x / 2 : len_x / 2 : mol_size,
+            -len_y / 2 : len_y / 2 : mol_size,
+            -len_z / 2 : len_z / 2 : mol_size,
         ]
         cell_positions = np.array([xpos.flatten(), ypos.flatten(), zpos.flatten()]).T
         positions = np.concatenate(
