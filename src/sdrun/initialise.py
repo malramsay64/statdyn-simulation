@@ -98,7 +98,7 @@ def init_from_none(sim_params: SimulationParams) -> hoomd.data.SnapshotParticleD
 def initialise_snapshot(
     snapshot: hoomd.data.SnapshotParticleData,
     context: hoomd.context.SimulationContext,
-    molecule: Molecule,
+    sim_params: SimulationParams,
     minimize: bool = False,
 ) -> hoomd.data.system_data:
     """Initialise the configuration from a snapshot.
@@ -118,9 +118,9 @@ def initialise_snapshot(
         )
         snapshot = _check_properties(snapshot, molecule)
         sys = hoomd.init.read_snapshot(snapshot)
-        molecule.define_potential()
-        molecule.define_dimensions()
-        rigid = molecule.define_rigid()
+        sim_params.molecule.define_potential()
+        sim_params.molecule.define_dimensions()
+        rigid = sim_params.molecule.define_rigid()
         if rigid:
             rigid.check_initialization()
         return sys
@@ -184,7 +184,7 @@ def init_from_crystal(sim_params: SimulationParams,) -> hoomd.data.SnapshotParti
         logger.debug("Particle Types: %s", snap.particles.types)
     temp_context = hoomd.context.initialize(sim_params.hoomd_args)
     with temp_context:
-        sys = initialise_snapshot(snap, temp_context, sim_params.molecule)
+        sys = initialise_snapshot(snap, temp_context, sim_params)
         md.integrate.mode_standard(dt=sim_params.step_size)
         md.integrate.npt(
             group=sim_params.group,

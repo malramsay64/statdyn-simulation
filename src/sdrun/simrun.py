@@ -41,9 +41,7 @@ def run_npt(
 
     """
     with context:
-        sys = initialise_snapshot(
-            snapshot=snapshot, context=context, molecule=sim_params.molecule
-        )
+        sys = initialise_snapshot(snapshot, context, sim_params)
         logger.debug("Run metadata: %s", sys.get_metadata())
         set_integrator(sim_params)
         set_thermo(
@@ -83,7 +81,7 @@ def run_harmonic(
 ) -> None:
     """Initialise and run a simulation with a harmonic pinning potential."""
     with context:
-        initialise_snapshot(snapshot, context, sim_params.molecule)
+        initialise_snapshot(snapshot, context, sim_params)
         set_integrator(sim_params, crystal=True, integration_method="NVT")
         set_thermo(
             sim_params.filename(prefix="thermo"),

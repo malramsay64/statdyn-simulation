@@ -64,7 +64,8 @@ def test_init_from_none(sim_params):
 def test_initialise_snapshot(sim_params):
     """Test initialisation from a snapshot works."""
     snap = init_from_none(sim_params)
-    sys = initialise_snapshot(snap, hoomd.context.initialize(""), sim_params.molecule)
+    context = hoomd.context.initialize(sim_params.hoomd_args)
+    sys = initialise_snapshot(snap, context, sim_params)
     assert isinstance(sys, hoomd.data.system_data)
     snap_init = sys.take_snapshot()
     # Ensure bodies are initialised
@@ -152,9 +153,8 @@ def test_moment_inertia(sim_params, scaling_factor):
     print(f"After Scaling: {init_mol}")
     with paramsContext(sim_params, moment_inertia_scale=scaling_factor):
         snap = init_from_none(sim_params)
-        snapshot = initialise_snapshot(
-            snap, hoomd.context.initialize(""), sim_params.molecule
-        ).take_snapshot()
-        nmols = max(snapshot.particles.body) + 1
-        diff = (snapshot.particles.moment_inertia[:nmols] - init_mol)
+        context = hoomd.context.initialize(sim_params.hoomd_args)
+        snapshot = initialise_snapshot(snap, context, sim_params).take_snapshot()
+        num_mols = get_num_mols(snapshot)
+        diff = snapshot.particles.moment_inertia[:num_mols] - init_mol
         assert np.allclose(diff, 0, atol=1e-1)

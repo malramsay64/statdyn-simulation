@@ -27,9 +27,7 @@ def equil_crystal(
     """Equilbrate crystal."""
     logger.debug("Simulation steps: %d", sim_params.num_steps)
     temp_context = hoomd.context.initialize(sim_params.hoomd_args)
-    sys = initialise_snapshot(
-        snapshot=snapshot, context=temp_context, molecule=sim_params.molecule
-    )
+    sys = initialise_snapshot(snapshot, temp_context, sim_params)
 
     with temp_context:
         set_integrator(sim_params=sim_params, prime_interval=307, crystal=True)
@@ -73,9 +71,8 @@ def equil_interface(
 
     logger.debug("Hoomd Arguments: %s", sim_params.hoomd_args)
     temp_context = hoomd.context.initialize(sim_params.hoomd_args)
-    sys = initialise_snapshot(
-        snapshot=snapshot, context=temp_context, molecule=sim_params.molecule
-    )
+    sys = initialise_snapshot(snapshot, temp_context, sim_params)
+    logger.info("Simulation Box: %f %f %f", sys.box.Lx, sys.box.Ly, sys.box.Lz)
     with temp_context:
         logger.debug("Entering temporary context")
 
@@ -106,9 +103,7 @@ def equil_harmonic(
 ) -> hoomd.data.SnapshotParticleData:
     assert sim_params.parameters.get("harmonic_force") is not None
     temp_context = hoomd.context.initialize(sim_params.hoomd_args)
-    sys = initialise_snapshot(
-        snapshot=snapshot, context=temp_context, molecule=sim_params.molecule
-    )
+    sys = initialise_snapshot(snapshot, temp_context, sim_params, minimize=True)
     with temp_context:
         set_integrator(sim_params, crystal=True, integration_method="NVT")
         set_thermo(
@@ -145,9 +140,7 @@ def equil_liquid(
 ) -> hoomd.data.SnapshotParticleData:
     """Equilibrate a liquid configuration."""
     temp_context = hoomd.context.initialize(sim_params.hoomd_args)
-    sys = initialise_snapshot(
-        snapshot=snapshot, context=temp_context, molecule=sim_params.molecule
-    )
+    sys = initialise_snapshot(snapshot, temp_context, sim_params)
     with temp_context:
         set_integrator(sim_params=sim_params)
         set_thermo(sim_params.filename("log"), thermo_period=sim_params.output_interval)
