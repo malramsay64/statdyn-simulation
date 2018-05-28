@@ -14,7 +14,9 @@ from typing import List
 
 import hoomd
 import hoomd.md as md
+from hoomd.harmonic_force import HarmonicForceCompute
 
+from .initialise import initialise_snapshot
 from .params import SimulationParams
 
 logger = logging.getLogger(__name__)
@@ -25,8 +27,11 @@ def set_integrator(
     prime_interval: int = 33533,
     crystal: bool = False,
     create: bool = True,
+    integration_method: str = "NPT",
 ) -> hoomd.md.integrate.npt:
     """Hoomd integrate method."""
+    assert integration_method in ["NPT", "NVT"]
+
     md.integrate.mode_standard(sim_params.step_size)
     if sim_params.molecule.dimensions == 2:
         md.update.enforce2d()
@@ -34,13 +39,18 @@ def set_integrator(
     if prime_interval:
         md.update.zero_momentum(period=prime_interval, phase=-1)
 
-    integrator = md.integrate.npt(
-        group=sim_params.group,
-        kT=sim_params.temperature,
-        tau=sim_params.tau,
-        P=sim_params.pressure,
-        tauP=sim_params.tauP,
-    )
+    if integration_method == "NPT":
+        integrator = md.integrate.npt(
+            group=sim_params.group,
+            kT=sim_params.temperature,
+            tau=sim_params.tau,
+            P=sim_params.pressure,
+            tauP=sim_params.tauP,
+        )
+    elif integration_method == "NVT":
+        integrator = md.integrate.nvt(
+            group=sim_params.group, kT=sim_params.temperature, tau=sim_params.tau
+        )
 
     if crystal:
         integrator.couple = "none"
@@ -103,4 +113,19 @@ def set_thermo(outfile: str, thermo_period: int = 10000, rigid=True) -> None:
     # TODO Set logger to hdf5 file
     hoomd.analyze.log(
         outfile + ".log", quantities=default + rigid_thermo, period=thermo_period
+    )
+
+
+def set_harmonic_force(
+    snapshot: hoomd.data.SnapshotParticleData, sim_params: SimulationParams
+) -> None:
+    assert sim_params.harmonic_force is not None
+    if sim_params.harmonic_force == 0:
+        return
+    HarmonicForceCompute(
+        sim_params.group,
+        snapshot.particles.position,
+        snapshot.particles.orientation,
+        sim_params.harmonic_force,
+        sim_params.harmonic_force,
     )

@@ -12,8 +12,15 @@ import logging
 import hoomd
 import numpy as np
 
+from .helper import (
+    SimulationParams,
+    dump_frame,
+    set_dump,
+    set_harmonic_force,
+    set_integrator,
+    set_thermo,
+)
 from .initialise import initialise_snapshot
-from .helper import SimulationParams, dump_frame, set_dump, set_integrator, set_thermo
 from .StepSize import GenerateStepSeries
 
 logger = logging.getLogger(__name__)
@@ -69,6 +76,29 @@ def run_npt(
         dump_frame(sim_params.filename(), group=sim_params.group)
 
 
+def run_harmonic(
+    snapshot: hoomd.data.SnapshotParticleData,
+    context: hoomd.context.SimulationContext,
+    sim_params: SimulationParams,
+) -> None:
+    """Initialise and run a simulation with a harmonic pinning potential."""
+    with context:
+        initialise_snapshot(snapshot, context, sim_params.molecule)
+        set_integrator(sim_params, crystal=True, integration_method="NVT")
+        set_thermo(
+            sim_params.filename(prefix="thermo"),
+            thermo_period=sim_params.output_interval,
+        )
+        set_dump(
+            sim_params.filename(prefix="dump"),
+            dump_period=sim_params.output_interval,
+            group=sim_params.group,
+        )
+        set_harmonic_force(snapshot, sim_params.harmonic_force)
+        hoomd.run(sim_params.num_steps)
+        dump_frame(sim_params.filename(), group=sim_params.group)
+
+
 def read_snapshot(
     context: hoomd.context.SimulationContext, fname: str, rand: bool = False
 ) -> hoomd.data.SnapshotParticleData:
@@ -88,4 +118,4 @@ def read_snapshot(
             nbodies = snapshot.particles.body.max() + 1
             np.random.shuffle(snapshot.particles.velocity[:nbodies])
             np.random.shuffle(snapshot.particles.angmom[:nbodies])
-            return snapshot
+        return snapshot

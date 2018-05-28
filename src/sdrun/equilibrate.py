@@ -14,7 +14,7 @@ import hoomd
 import hoomd.md
 import numpy as np
 
-from .helper import dump_frame, set_dump, set_integrator, set_thermo
+from .helper import dump_frame, set_dump, set_harmonic_force, set_integrator, set_thermo
 from .initialise import initialise_snapshot, make_orthorhombic
 from .params import SimulationParams, paramsContext
 
@@ -99,6 +99,46 @@ def equil_interface(
 
         dump_frame(sim_params.outfile, group=sim_params.group, extension=False)
         return sys.take_snapshot(all=True)
+
+
+def equil_harmonic(
+    snapshot: hoomd.data.SnapshotParticleData, sim_params: SimulationParams
+) -> hoomd.data.SnapshotParticleData:
+    assert sim_params.harmonic_force is not None
+    min_snapshot = minimise_configuration(snapshot, sim_params)
+    temp_context = hoomd.context.initialize(sim_params.hoomd_args)
+    sys = initialise_snapshot(
+        snapshot=snapshot, context=temp_context, molecule=sim_params.molecule
+    )
+    with temp_context:
+        set_integrator(sim_params, crystal=True, integration_method="NVT")
+        set_thermo(
+            sim_params.filename(prefix="thermo"),
+            thermo_period=sim_params.output_interval,
+        )
+        set_dump(
+            sim_params.filename(prefix="dump"),
+            dump_period=sim_params.output_interval,
+            group=sim_params.group,
+        )
+        set_harmonic_force(min_snapshot, sim_params.harmonic_force)
+        hoomd.run(sim_params.num_steps)
+        dump_frame(sim_params.filename(), group=sim_params.group)
+    return sys.take_snapshot(all=True)
+
+
+def minimise_configuration(
+    snapshot: hoomd.data.SnapshotParticleData, sim_params: SimulationParams
+) -> hoomd.data.SnapshotParticleData:
+    temp_context = hoomd.context.initialize(sim_params.hoomd_args)
+    sys = initialise_snapshot(
+        snapshot=snapshot, context=temp_context, molecule=sim_params.molecule
+    )
+    with temp_context:
+        minimiser = hoomd.md.integrate.mode_minimize_fire(0.005, group=sim_params.group)
+        while not minimiser.has_converged():
+            hoomd.run(1000)
+    return sys.take_snapshot()
 
 
 def equil_liquid(

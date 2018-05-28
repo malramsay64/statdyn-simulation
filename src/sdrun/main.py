@@ -15,17 +15,20 @@ from typing import Callable, List, Tuple
 import hoomd.context
 
 from .crystals import CRYSTAL_FUNCS
-from .equilibrate import equil_crystal, equil_interface, equil_liquid
+from .equilibrate import equil_crystal, equil_harmonic, equil_interface, equil_liquid
 from .initialise import init_from_crystal, init_from_file, init_from_none
 from .molecules import Dimer, Disc, Sphere, Trimer
 from .params import SimulationParams
-from .simrun import run_npt
+from .simrun import run_harmonic, run_npt
 from .version import __version__
 
 logger = logging.getLogger(__name__)
 MOLECULE_OPTIONS = {"trimer": Trimer, "disc": Disc, "sphere": Sphere, "dimer": Dimer}
 EQUIL_OPTIONS = {
-    "interface": equil_interface, "liquid": equil_liquid, "crystal": equil_crystal
+    "interface": equil_interface,
+    "liquid": equil_liquid,
+    "crystal": equil_crystal,
+    "harmonic": equil_harmonic,
 }
 
 
@@ -45,7 +48,10 @@ def prod(sim_params: SimulationParams) -> None:
     )
     logger.debug("Snapshot initialised")
     sim_context = hoomd.context.initialize(sim_params.hoomd_args)
-    run_npt(snapshot=snapshot, context=sim_context, sim_params=sim_params)
+    if sim_params.harmonic_force is not None:
+        run_harmonic(snapshot, sim_context, sim_params)
+    else:
+        run_npt(snapshot, sim_context, sim_params)
 
 
 def equil(sim_params: SimulationParams) -> None:
@@ -94,6 +100,9 @@ def create_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "-o", "--output", dest="output", type=str, help="Directory to output files to"
+    )
+    parser.add_argument(
+        "-k", "--harmonic-force", type=float, help="Harmonic force constant"
     )
     parse_molecule = parser.add_argument_group("molecule")
     parse_molecule.add_argument("--molecule", choices=MOLECULE_OPTIONS.keys())
