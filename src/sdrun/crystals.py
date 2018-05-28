@@ -200,7 +200,6 @@ CRYSTAL_FUNCS = {
     "p2": TrimerP2,
     "p2gg": TrimerP2gg,
     "pg": TrimerPg,
-    "CubicSphere": CubicSphere,
     "SquareCircle": SquareCircle,
 }
 
