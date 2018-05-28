@@ -12,6 +12,7 @@ dependencies:
     - setuptools
     - hypothesis
     - coverage
+    - ipykernel
     - conda-forge::bumpversion
     - conda-forge::black
     - conda-forge::mypy
