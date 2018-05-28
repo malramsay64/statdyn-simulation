@@ -14,8 +14,8 @@ dependencies:
     - coverage
     - conda-forge::bumpversion
     - conda-forge::black
+    - conda-forge::mypy
     - pip:
-        - mypy
         - pytest-mypy
         - pytest-pylint
         - pytest-cov
