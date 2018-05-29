@@ -16,6 +16,7 @@ dependencies:
     - conda-forge::bumpversion
     - conda-forge::black=18.5b0
     - conda-forge::mypy
+    - pip=10.*
     - pip:
         - pytest-mypy
         - pytest-pylint
