@@ -171,7 +171,14 @@ def test_interface(sim_params, pressure, temperature):
             / "melt_interface-P{:.2f}-T{:.2f}.gsd".format(pressure, temperature)
         ),
     ]
+    # Run creation simulation
     create = subprocess.run(create_command)
     assert create.returncode == 0
+
+    # Ensure input file for melting simulation is present
+    assert Path(outdir).exists()
+    assert Path(create_command[-1]).exists()
+
+    # Run melting simulation
     melt = subprocess.run(melt_command)
     assert melt.returncode == 0

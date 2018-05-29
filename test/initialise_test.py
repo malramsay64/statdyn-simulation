@@ -91,7 +91,7 @@ def test_orthorhombic_null(sim_params):
     In the case where the unit cell is already orthorhombic,
     check that nothing has changed unexpectedly.
     """
-    with hoomd.context.initialize():
+    with hoomd.context.initialize(sim_params.hoomd_args):
         snap = init_from_none(sim_params)
         assert np.all(
             make_orthorhombic(snap).particles.position == snap.particles.position

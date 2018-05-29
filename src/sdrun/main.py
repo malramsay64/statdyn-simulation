@@ -62,6 +62,7 @@ def equil(sim_params: SimulationParams) -> None:
         sim_params.infile, sim_params.molecule, hoomd_args=sim_params.hoomd_args
     )
     EQUIL_OPTIONS.get(sim_params.equil_type)(snapshot, sim_params=sim_params)
+    logger.debug("Equilibration completed")
 
 
 def create(sim_params: SimulationParams) -> None:
