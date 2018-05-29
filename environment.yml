@@ -14,7 +14,7 @@ dependencies:
     - coverage
     - ipykernel
     - conda-forge::bumpversion
-    - conda-forge::black
+    - conda-forge::black=18.5b0
     - conda-forge::mypy
     - pip:
         - pytest-mypy
