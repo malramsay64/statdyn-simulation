@@ -107,14 +107,17 @@ def initialise_snapshot(
     In this function it is checked that the data in the snapshot and the
     passed arguments are in agreement with each other, and rectified if not.
     """
-    num_molecules = get_num_mols(snapshot)
-    num_particles = get_num_particles(snapshot)
-    logger.debug(
-        "Number of particles: %d , Number of molecules: %d",
-        num_particles,
-        num_molecules,
-    )
-    snapshot = _check_properties(snapshot, sim_params.molecule)
+
+    # Only use the master process to check the snapshot
+    if hoomd.comm.get_rank() == 0:
+        num_molecules = get_num_mols(snapshot)
+        num_particles = get_num_particles(snapshot)
+        logger.debug(
+            "Number of particles: %d , Number of molecules: %d",
+            num_particles,
+            num_molecules,
+        )
+        snapshot = _check_properties(snapshot, sim_params.molecule)
 
     if minimize:
         snapshot = minimize_snapshot(snapshot, sim_params, ensemble="NVE")
