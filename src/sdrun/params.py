@@ -105,7 +105,7 @@ class SimulationParams(object):
         return mol
 
     @property
-    def cell_dimensions(self) -> Tuple[int, int]:
+    def cell_dimensions(self) -> Tuple[int, ...]:
         try:
             cell_dims = self.parameters.get("cell_dimensions")
             if self.molecule.dimensions == len(cell_dims):
