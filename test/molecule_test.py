@@ -67,7 +67,7 @@ def test_moment_inertia_scaling(scaling_factor):
         assert len(reference.moment_inertia) == len(scaled.moment_inertia)
         assert np.allclose(
             np.array(reference.moment_inertia) * scaling_factor,
-            np.array(scaled.moment_inertia)
+            np.array(scaled.moment_inertia),
         )
 
 

@@ -17,7 +17,9 @@ from sdrun.main import create_parser, parse_args
 parser = create_parser()
 
 FUNCS = [
-    ("prod", ["infile"]), ("equil", ["infile", "outfile"]), ("create", ["outfile"])
+    ("prod", ["infile"]),
+    ("equil", ["infile", "outfile"]),
+    ("create", ["outfile"]),
 ]
 
 

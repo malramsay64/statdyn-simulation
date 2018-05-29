@@ -21,7 +21,26 @@ from sdrun.StepSize import GenerateStepSeries, generate_steps
             "lin": 10,
             "start": 0,
             "def": [
-                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                20,
+                30,
+                40,
+                50,
+                60,
+                70,
+                80,
+                90,
+                100,
             ],
         },
         {
@@ -29,7 +48,26 @@ from sdrun.StepSize import GenerateStepSeries, generate_steps
             "lin": 10,
             "start": 0,
             "def": [
-                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 99
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                20,
+                30,
+                40,
+                50,
+                60,
+                70,
+                80,
+                90,
+                99,
             ],
         },
         {
@@ -104,7 +142,7 @@ def test_generate_step_series(total_steps, num_linear):
 def test_num_linear(num_linear):
     """Test a range of values of num_linear will work."""
     gen_list = list(generate_steps(total_steps=1e7, num_linear=num_linear))
-    assert gen_list[:num_linear + 1] == list(range(num_linear + 1))
+    assert gen_list[: num_linear + 1] == list(range(num_linear + 1))
 
 
 def test_get_index():

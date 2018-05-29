@@ -72,7 +72,9 @@ if ncpus > 1:
 
 """
 
-create_liquid = pbs_header + """
+create_liquid = (
+    pbs_header
+    + """
 
 create_out = outdir / create_fname('Trimer', temperature, pressure, moment_inertia)
 
@@ -87,8 +89,11 @@ if not create_out.exists():
     assert return_code == 0
 
 """
+)
 
-create_crys = pbs_header + """
+create_crys = (
+    pbs_header
+    + """
 
 create_out = outdir / create_fname('Trimer', temperature, pressure, moment_inertia)
 
@@ -101,8 +106,11 @@ if not create_out.exists():
     assert return_code == 0
 
 """
+)
 
-equilibrate = pbs_header + """
+equilibrate = (
+    pbs_header
+    + """
 
 create_temp = '{create_temp:.2f}'
 
@@ -121,8 +129,11 @@ if not equil_out.exists():
     assert return_code == 0
 
 """
+)
 
-production = pbs_header + """
+production = (
+    pbs_header
+    + """
 
 equil_out = outdir / create_fname('Trimer', temperature, pressure, moment_inertia)
 
@@ -135,6 +146,7 @@ return_code = subprocess.call(run_comand + ['prod'] + common_opts + prod_opts)
 assert return_code == 0
 
 """
+)
 
 
 def get_array_flag(num_values: int) -> str:

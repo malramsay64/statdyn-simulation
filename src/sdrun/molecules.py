@@ -142,7 +142,9 @@ class Molecule(object):
         """Scale the moment of inertia by a constant factor."""
         i_x, i_y, i_z = self.moment_inertia
         self.moment_inertia = (
-            i_x * scale_factor, i_y * scale_factor, i_z * scale_factor
+            i_x * scale_factor,
+            i_y * scale_factor,
+            i_z * scale_factor,
         )
 
     def compute_moment_intertia(
@@ -234,12 +236,12 @@ class Trimer(Molecule):
                 [
                     -self.distance * np.sin(self.rad_angle / 2),
                     self.distance * np.cos(self.rad_angle / 2),
-                    0
+                    0,
                 ],
                 [
                     self.distance * np.sin(self.rad_angle / 2),
                     self.distance * np.cos(self.rad_angle / 2),
-                    0
+                    0,
                 ],
             ]
         )
@@ -323,7 +325,10 @@ class Binary_Mixture(Molecule):
 
 
 MOLECULE_DICT = {
-    "trimer": Trimer, "dimer": Dimer, "binary_mixture": Binary_Mixture, "disc": Disc
+    "trimer": Trimer,
+    "dimer": Dimer,
+    "binary_mixture": Binary_Mixture,
+    "disc": Disc,
 }
 
 MOLECULE_LIST = [Trimer(), Dimer(), Binary_Mixture(), Disc()]

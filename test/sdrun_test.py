@@ -93,8 +93,11 @@ def test_commands_mpi(arguments, output_directory):
     # Use temporary directory for output files
     if arguments[0] in ["create", "equil"]:
         arguments[-1] = str(Path(output_directory) / arguments[-1])
-    command = ["mpirun", "-np", "4", "sdrun"] + arguments + COMMON_ARGS + [
-        "-o", output_directory
-    ]
+    command = (
+        ["mpirun", "-np", "4", "sdrun"]
+        + arguments
+        + COMMON_ARGS
+        + ["-o", output_directory]
+    )
     ret = subprocess.run(command)
     assert ret.returncode == 0

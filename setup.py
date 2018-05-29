@@ -18,11 +18,11 @@ def get_version():
 
 
 setup(
-    name='sdrun',
+    name="sdrun",
     version=get_version(),
-    python_requires='>=3.6',
-    packages=find_packages('src'),
-    package_dir={'': 'src'},
+    python_requires=">=3.6",
+    packages=find_packages("src"),
+    package_dir={"": "src"},
     include_package_data=True,
     entry_points="""
         [console_scripts]
@@ -33,14 +33,14 @@ setup(
     author_email="malramsay64@gmail.com",
     description="",
     classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Environment :: Console',
-        'Intended Audience :: Developers',
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: MacOS :: MacOS X',
-        'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
+        "Development Status :: 3 - Alpha",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
     ],
 )
