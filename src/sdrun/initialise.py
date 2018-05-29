@@ -214,7 +214,7 @@ def init_from_crystal(sim_params: SimulationParams,) -> hoomd.data.SnapshotParti
         )
         equil_snap = sys.take_snapshot(all=True)
         dump_frame(sim_params.filename(), group=sim_params.group)
-    return make_orthorhombic(equil_snap)
+    return equil_snap
 
 
 def make_orthorhombic(
