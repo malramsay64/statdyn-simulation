@@ -1,11 +1,15 @@
 name: sdrun-dev
 channels:
     - defaults
+    - conda-forge
+    - glotzer
+    - malramsay
+
 dependencies:
     - python=3.6
     - numpy
-    - glotzer::hoomd
-    - malramsay::hoomd-harmonic-force=0.1.7
+    - hoomd
+    - hoomd-harmonic-force=0.1.7
     - cudatoolkit=8
     - pytest
     - pylint
@@ -13,9 +17,8 @@ dependencies:
     - hypothesis
     - coverage
     - ipykernel
-    - conda-forge::bumpversion
-    - conda-forge::black=18.5b0
-    - conda-forge::mypy
+    - black=18.5b0
+    - mypy
     - pip=10.*
     - pip:
         - pytest-mypy
