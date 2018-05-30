@@ -157,6 +157,8 @@ class SimulationParams(object):
             base_string = "{prefix}-" + base_string
         if self.parameters.get("moment_inertia_scale") is not None:
             base_string += "-I{mom_inertia:.2f}"
+        if self.parameters.get("harmonic_force") is not None:
+            base_string += "-K{harmonic_force:.2f}"
         if self.parameters.get("space_group") is not None:
             base_string += "-{space_group}"
         fname = base_string.format(
@@ -166,6 +168,7 @@ class SimulationParams(object):
             temperature=self.parameters.get("temperature"),
             mom_inertia=self.parameters.get("moment_inertia_scale"),
             space_group=self.parameters.get("space_group"),
+            harmonic_force=self.parameters.get("harmonic_force"),
         )
         return str(self.output / fname)
 
