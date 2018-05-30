@@ -130,12 +130,12 @@ class NumBodies(NamedTuple):
     molecules: int
 
 
-def _get_num_bodies(snapshot: hoomd.data.SnapshotParticleData):
+def _get_num_bodies(snapshot: hoomd.data.SnapshotParticleData) -> NumBodies:
     try:
         num_particles = snapshot.particles.N
         num_mols = max(snapshot.particles.body) + 1
     except (AttributeError, ValueError):
-        num_particles = len(snapshot.particles.N)
+        num_particles = snapshot.particles.N
         num_mols = num_particles
     if num_mols > num_particles:
         num_mols = num_particles
