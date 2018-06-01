@@ -17,7 +17,6 @@ requirements:
     build:
         - python {{ python }}
         - setuptools 36.*
-        - setuptools_scm 1.15*
         - numpy {{ numpy }}
 
     run:
