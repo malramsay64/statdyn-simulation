@@ -14,7 +14,8 @@ import hoomd
 import hoomd.md
 import numpy as np
 
-from .helper import dump_frame, set_dump, set_harmonic_force, set_integrator, set_thermo
+from .helper import (dump_frame, set_dump, set_harmonic_force, set_integrator,
+                     set_thermo)
 from .initialise import initialise_snapshot, make_orthorhombic
 from .params import SimulationParams, paramsContext
 
@@ -120,7 +121,7 @@ def equil_harmonic(
         )
         set_harmonic_force(sys.take_snapshot(all=True), sim_params)
         hoomd.run(sim_params.num_steps)
-        dump_frame(sim_params.filename(), group=sim_params.group)
+        dump_frame(sim_params.outfile, group=sim_params.group)
         equil_snapshot = sys.take_snapshot(all=True)
     return equil_snapshot
 
