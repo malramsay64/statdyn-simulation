@@ -66,10 +66,12 @@ def equil_interface(
     the liquid phase is equilibrated.
     """
 
+    # Ensure snapshot is orthorhombic
+    snapshot = make_orthorhombic(snapshot)
+
     if getattr(sim_params, "init_temp", None) is None:
         with paramsContext(sim_params, num_steps=2000, tauP=8, tau=8):
             logger.debug("sim_params Steps: %d", sim_params.num_steps)
-            snapshot = make_orthorhombic(snapshot)
             snapshot = equil_crystal(snapshot, sim_params)
 
     logger.debug("Hoomd Arguments: %s", sim_params.hoomd_args)
