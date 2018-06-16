@@ -140,6 +140,19 @@ def equil_liquid(
     return equil_snapshot
 
 
+def create_interface(sim_params: SimulationParams) -> SnapshotParticleData:
+    assert sim_params.init_temp
+    with paramsContext(sim_params, temperature=sim_params.init_temp):
+        snapshot = init_from_crystal(sim_params)
+        # Find NPT minimum of crystal
+        snapshot = equil_crystal(snapshot, sim_params)
+        # Ensure simulation cell is orthorhombic
+        snapshot = make_orthorhombic(snapshot)
+    # Equilibrate interface to temperature
+    snapshot = equil_interface(snapshot, sim_params)
+    return snapshot
+
+
 def _interface_group(sys: hoomd.data.system_data, stationary: bool = False):
     stationary_group = hoomd.group.cuboid(
         name="stationary",

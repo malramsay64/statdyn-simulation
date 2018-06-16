@@ -14,9 +14,14 @@ import numpy as np
 import pytest
 
 from sdrun.crystals import CRYSTAL_FUNCS
-from sdrun.equilibrate import equil_crystal, equil_interface, equil_liquid
+from sdrun.equilibrate import (
+    create_interface,
+    equil_crystal,
+    equil_interface,
+    equil_liquid,
+)
 from sdrun.initialise import init_from_crystal, make_orthorhombic
-from sdrun.params import SimulationParams
+from sdrun.params import SimulationParams, paramsContext
 
 
 @pytest.fixture(params=CRYSTAL_FUNCS.values(), ids=CRYSTAL_FUNCS.keys())
@@ -59,6 +64,15 @@ def test_orthorhombic_equil(sim_params):
             getattr(snap_equil.box, attribute),
             rtol=0.1,
         )
+
+
+def test_create_interface(sim_params):
+    with paramsContext(sim_params, init_temp=0.4, temperature=3.0):
+        snapshot = create_interface(sim_params)
+
+    assert snapshot.box.xy == 0
+    assert snapshot.box.xz == 0
+    assert snapshot.box.yz == 0
 
 
 def test_equil_interface(sim_params):
