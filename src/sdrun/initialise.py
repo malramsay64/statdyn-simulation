@@ -19,12 +19,12 @@ import hoomd
 import hoomd.md as md
 import numpy as np
 
-from .helper import dump_frame, get_num_mols, get_num_particles
+from .helper import dump_frame, get_num_mols, get_num_particles, set_integrator
 from .molecules import Molecule
 from .params import SimulationParams
 
 logger = logging.getLogger(__name__)
-UnitCellLengths = Union[Tuple[int, int, int], Tuple[int, int]]
+UnitCellLengths = Tuple[int, int, int]
 
 
 def init_from_file(
@@ -53,11 +53,7 @@ def init_from_none(sim_params: SimulationParams) -> hoomd.data.SnapshotParticleD
 
     """
     logger.debug("Hoomd Arguments: %s", sim_params.hoomd_args)
-    try:
-        num_x, num_y, num_z = sim_params.cell_dimensions
-    except ValueError:
-        num_x, num_y = sim_params.cell_dimensions
-        num_z = 1
+    num_x, num_y, num_z = sim_params.cell_dimensions
     molecule = sim_params.molecule
     mol_size = molecule.compute_size()
     num_molecules = num_x * num_y * num_z

@@ -37,7 +37,7 @@ def sim_params(request):
             num_steps=100,
             molecule=request.param(),
             output=Path(tmp_dir),
-            cell_dimensions=[10],
+            cell_dimensions=10,
         )
 
 
@@ -50,7 +50,7 @@ def sim_params_crystal(request):
             num_steps=100,
             crystal=request.param(),
             output=Path(tmp_dir),
-            cell_dimensions=(10, 10),
+            cell_dimensions=10,
         )
 
 

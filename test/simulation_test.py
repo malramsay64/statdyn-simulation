@@ -73,7 +73,8 @@ def test_orthorhombic_sims(cell_dimensions, sim_params_crystal):
     of the orthorhombic unit cell.
     """
     sim_params = sim_params_crystal
-    cell_dimensions = cell_dimensions * 6, cell_dimensions * 6
+    # Multiple of 6 works nicely with the p2 cyrstal
+    cell_dimensions = cell_dimensions * 6
     with paramsContext(sim_params, cell_dimensions=cell_dimensions):
         snap = init_from_crystal(sim_params)
     snap = make_orthorhombic(equil_crystal(snap, sim_params=sim_params))

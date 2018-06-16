@@ -105,20 +105,21 @@ class SimulationParams(object):
         return mol
 
     @property
-    def cell_dimensions(self) -> Tuple[int, ...]:
+    def cell_dimensions(self) -> Tuple[int, int, int]:
         try:
             cell_dims = self.parameters.get("cell_dimensions")
-            if self.molecule.dimensions == len(cell_dims):
+            if isinstance(cell_dims, int):
+                cell_dims = tuple([cell_dims] * self.molecule.dimensions)
+
+            if len(cell_dims) == 3:
                 return cell_dims
 
-            elif len(cell_dims) == 1:
-                return tuple(list(cell_dims) * self.molecule.dimensions)
+            elif len(cell_dims) == 2:
+                cell_dims = tuple(list(cell_dims) + [1])
+                assert len(cell_dims) == 3
+                return cell_dims
 
-            elif len(cell_dims) < self.molecule.dimensions:
-                return tuple(list(cell_dims) + [1])
-
-            else:
-                return tuple(list(cell_dims)[: self.molecule.dimensions])
+            return (1, 1, 1)
 
         except AttributeError:
             raise AttributeError

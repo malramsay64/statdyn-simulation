@@ -10,11 +10,13 @@
 import logging
 from copy import deepcopy
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import pytest
 from hypothesis import example, given, settings
 from hypothesis.strategies import text
-from sdrun.crystals import CubicSphere, TrimerP2
+
+from sdrun.crystals import CRYSTAL_FUNCS, CubicSphere, TrimerP2
 from sdrun.molecules import Dimer, Disc, Molecule, Sphere, Trimer
 from sdrun.params import SimulationParams, paramsContext
 
@@ -23,6 +25,20 @@ logger.setLevel(logging.DEBUG)
 logging.basicConfig(level=logging.DEBUG)
 SIM_PARAMS = SimulationParams(num_steps=1000, temperature=1.0, space_group="p2")
 MOLECULE_LIST = [Molecule, Sphere, Trimer, Dimer, Disc, None]
+
+
+@pytest.fixture(params=CRYSTAL_FUNCS.values(), ids=CRYSTAL_FUNCS.keys())
+def crystal_params(request):
+    with TemporaryDirectory() as tmp_dir:
+        output_dir = Path(tmp_dir) / "output"
+        output_dir.mkdir(exist_ok=True)
+        yield SimulationParams(
+            temperature=1.0,
+            pressure=13.5,
+            num_steps=1000,
+            crystal=request.param(),
+            output=output_dir,
+        )
 
 
 @given(key=text(), value=text())
@@ -89,12 +105,21 @@ def test_function_passing(sim_params):
 
 @pytest.mark.parametrize("sim_params", [SIM_PARAMS])
 def test_cell_dimensions(sim_params):
-    with paramsContext(sim_params, crystal=TrimerP2(), cell_dimensions=[10]):
-        assert len(sim_params.cell_dimensions) == sim_params.crystal.dimensions
-        assert sim_params.cell_dimensions == (10, 10)
-    with paramsContext(sim_params, crystal=CubicSphere(), cell_dimensions=[10]):
-        assert len(sim_params.cell_dimensions) == sim_params.crystal.dimensions
+    with paramsContext(sim_params, crystal=TrimerP2(), cell_dimensions=10):
+        assert len(sim_params.cell_dimensions) == 3
+        assert sim_params.cell_dimensions == (10, 10, 1)
+    with paramsContext(sim_params, crystal=CubicSphere(), cell_dimensions=10):
+        assert len(sim_params.cell_dimensions) == 3
         assert sim_params.cell_dimensions == (10, 10, 10)
     with paramsContext(sim_params, crystal=CubicSphere(), cell_dimensions=[10, 10]):
-        assert len(sim_params.cell_dimensions) == sim_params.crystal.dimensions
+        assert len(sim_params.cell_dimensions) == 3
         assert sim_params.cell_dimensions == (10, 10, 1)
+
+
+def test_crystal_cell_dimensions(crystal_params):
+    with paramsContext(crystal_params, cell_dimensions=10):
+        assert len(crystal_params.cell_dimensions) == 3
+    with paramsContext(crystal_params, cell_dimensions=[10, 10]):
+        assert len(crystal_params.cell_dimensions) == 3
+    with paramsContext(crystal_params, cell_dimensions=[10, 10, 10]):
+        assert len(crystal_params.cell_dimensions) == 3
