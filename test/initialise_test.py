@@ -82,8 +82,21 @@ def test_initialise_snapshot(sim_params):
 
 def test_init_crystal(sim_params_crystal):
     """Test the initialisation of all crystals."""
-    init_from_crystal(sim_params_crystal)
-    assert True
+    snap = init_from_crystal(sim_params_crystal)
+    Nx, Ny, _ = sim_params_crystal.cell_dimensions
+    unitcell = sim_params_crystal.crystal.get_matrix()
+    logger.debug("Unitcell: %s", unitcell)
+    Lx = np.linalg.norm(np.dot(np.array([1, 0, 0]), unitcell))
+    Ly = np.linalg.norm(np.dot(np.array([0, 1, 0]), unitcell))
+
+    assert Lx > 0
+    assert Ly > 0
+    assert Nx > 0
+    assert Ny > 0
+
+    # Simulation box within 20% of initialisation
+    assert np.allclose(snap.box.Lx, Lx * Nx, rtol=0.2)
+    assert np.allclose(snap.box.Ly, Ly * Ny, rtol=0.2)
 
 
 def test_orthorhombic_null(sim_params):
