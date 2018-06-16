@@ -43,7 +43,7 @@ TEST_ARGS = [
     ["equil", "-t", "2.50", "test/data/Trimer-13.50-3.00.gsd", "test_equil.gsd"],
 ]
 
-COMMON_ARGS = ["--hoomd-args", '"--mode=cpu"', "-s", "100", "-v"]
+COMMON_ARGS = ["--hoomd-args", '"--mode=cpu"', "-s", "100", "-vv"]
 
 
 @pytest.mark.parametrize("arguments", TEST_ARGS)
