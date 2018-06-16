@@ -17,7 +17,7 @@ from hypothesis import example, given, settings
 from hypothesis.strategies import text
 
 from sdrun.crystals import CRYSTAL_FUNCS, CubicSphere, TrimerP2
-from sdrun.molecules import Dimer, Disc, Molecule, Sphere, Trimer
+from sdrun.molecules import MOLECULE_DICT, Dimer, Disc, Molecule, Sphere, Trimer
 from sdrun.params import SimulationParams, paramsContext
 
 logger = logging.getLogger(__name__)
@@ -38,6 +38,20 @@ def crystal_params(request):
             num_steps=1000,
             crystal=request.param(),
             output=output_dir,
+        )
+
+
+@pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
+def mol_params(request):
+    with TemporaryDirectory() as tmp_dir:
+        output_dir = Path(tmp_dir) / "output"
+        output_dir.mkdir(exist_ok=True)
+        yield SimulationParams(
+            temperature=1.0,
+            pressure=13.5,
+            num_steps=1000,
+            output=output_dir,
+            molecule=request.param(),
         )
 
 
