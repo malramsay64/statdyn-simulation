@@ -57,11 +57,9 @@ def sim_params_crystal(request):
 @pytest.mark.simulation
 def test_run_npt(sim_params):
     """Test an npt run."""
-    run_npt(
-        snapshot=init_from_none(sim_params),
-        context=hoomd.context.initialize(HOOMD_ARGS),
-        sim_params=sim_params,
-    )
+    snapshot = init_from_none(sim_params)
+    context = hoomd.context.initialize(sim_params.hoomd_args)
+    run_npt(snapshot, context, sim_params)
 
 
 @pytest.mark.simulation
@@ -76,20 +74,21 @@ def test_orthorhombic_sims(cell_dimensions, sim_params_crystal):
     # Multiple of 6 works nicely with the p2 cyrstal
     cell_dimensions = cell_dimensions * 6
     with paramsContext(sim_params, cell_dimensions=cell_dimensions):
-        snap = init_from_crystal(sim_params)
-    snap = make_orthorhombic(equil_crystal(snap, sim_params=sim_params))
-    run_npt(snap, context=hoomd.context.initialize(HOOMD_ARGS), sim_params=sim_params)
+        snapshot = init_from_crystal(sim_params)
+        snapshot = equil_crystal(snapshot, sim_params)
+    snapshot = make_orthorhombic(snapshot)
+    temp_context = hoomd.context.initialize(sim_params.hoomd_args)
+    run_npt(snapshot, temp_context, sim_params)
 
 
 @pytest.mark.simulation
 def test_file_placement(sim_params):
     """Ensure files are located in the correct directory when created."""
+    snapshot = init_from_none(sim_params)
+    context = hoomd.context.initialize(sim_params.hoomd_args)
     with paramsContext(sim_params, dynamics=True):
-        run_npt(
-            init_from_none(sim_params),
-            hoomd.context.initialize(HOOMD_ARGS),
-            sim_params=sim_params,
-        )
+        run_npt(snapshot, context, sim_params)
+
     params = {
         "molecule": sim_params.molecule,
         "pressure": sim_params.pressure,
@@ -140,10 +139,7 @@ def test_interface(sim_params, pressure, temperature):
         "-vvv",
         "--hoomd-args",
         '"--mode=cpu"',
-        str(
-            Path(outdir)
-            / "create_interface-P{:.2f}-T{:.2f}.gsd".format(pressure, init_temp)
-        ),
+        str(Path(outdir) / "P{:.2f}-T{:.2f}.gsd".format(pressure, init_temp)),
     ]
     melt_command = [
         "sdrun",
@@ -163,14 +159,8 @@ def test_interface(sim_params, pressure, temperature):
         "-vvv",
         "--hoomd-args",
         '"--mode=cpu"',
-        str(
-            Path(outdir)
-            / "create_interface-P{:.2f}-T{:.2f}.gsd".format(pressure, init_temp)
-        ),
-        str(
-            Path(outdir)
-            / "melt_interface-P{:.2f}-T{:.2f}.gsd".format(pressure, temperature)
-        ),
+        str(Path(outdir) / "P{:.2f}-T{:.2f}.gsd".format(pressure, init_temp)),
+        str(Path(outdir) / "P{:.2f}-T{:.2f}.gsd".format(pressure, temperature)),
     ]
     # Run creation simulation
     create = subprocess.run(create_command)
