@@ -10,7 +10,7 @@
 import argparse
 import logging
 from pathlib import Path
-from typing import Callable, List, Tuple
+from typing import Callable, Dict, List, Tuple
 
 import hoomd.context
 

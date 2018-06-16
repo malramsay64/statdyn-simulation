@@ -13,13 +13,12 @@ config.
 """
 import logging
 from pathlib import Path
-from typing import Tuple, Union
 
 import hoomd
-import hoomd.md as md
+import hoomd.md
 import numpy as np
 
-from .helper import dump_frame, get_num_mols, get_num_particles, set_integrator
+from .helper import get_num_mols, get_num_particles
 from .molecules import Molecule
 from .params import SimulationParams
 
