@@ -28,6 +28,9 @@ from sdrun.initialise import (
 from sdrun.molecules import MOLECULE_DICT
 from sdrun.params import SimulationParams, paramsContext
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
 
 @pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
 def sim_params(request):
@@ -154,22 +157,21 @@ def test_orthorhombic_init(sim_params_crystal, cell_dimensions):
     assert snap_ortho.box.yz == 0
 
 
-# TODO Fix failing tests, which are for molecules which haven't implemented the scale_moment_inertia
-# functionality
-
-
-@pytest.mark.xfail
 @pytest.mark.parametrize("scaling_factor", [0.1, 1, 10, 100])
 def test_moment_inertia(sim_params, scaling_factor):
     """Ensure moment of intertia is set correctly in setup."""
     init_mol = np.array(sim_params.molecule.moment_inertia)
-    print(f"Before Scaling: {init_mol}")
+    logger.debug("Moment Intertia before scaling: %s", init_mol)
     init_mol *= scaling_factor
-    print(f"After Scaling: {init_mol}")
+    logger.debug("Moment Intertia after scaling: %s", init_mol)
     with paramsContext(sim_params, moment_inertia_scale=scaling_factor):
-        snap = init_from_none(sim_params)
+        snapshot = init_from_none(sim_params)
         context = hoomd.context.initialize(sim_params.hoomd_args)
-        snapshot = initialise_snapshot(snap, context, sim_params).take_snapshot()
+        snapshot = initialise_snapshot(snapshot, context, sim_params).take_snapshot()
         num_mols = get_num_mols(snapshot)
+        logger.debug(
+            "Simulation Moment Intertia: %s", snapshot.particles.moment_inertia[0]
+        )
+        logger.debug("Intended Moment Intertia: %s", init_mol)
         diff = snapshot.particles.moment_inertia[:num_mols] - init_mol
         assert np.allclose(diff, 0, atol=1e-1)
