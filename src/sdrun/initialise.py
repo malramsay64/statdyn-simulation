@@ -23,7 +23,6 @@ from .molecules import Molecule
 from .params import SimulationParams
 
 logger = logging.getLogger(__name__)
-UnitCellLengths = Tuple[int, int, int]
 
 
 def init_from_file(
@@ -185,9 +184,7 @@ def init_from_crystal(sim_params: SimulationParams) -> hoomd.data.SnapshotPartic
             sim_params.crystal,
             sim_params.cell_dimensions,
         )
-        cell_dimensions: Tuple[int, ...] = sim_params.cell_dimensions[
-            : sim_params.molecule.dimensions
-        ]
+        cell_dimensions = sim_params.cell_dimensions[: sim_params.molecule.dimensions]
         sys = hoomd.init.create_lattice(
             unitcell=sim_params.crystal.get_unitcell(), n=cell_dimensions
         )
