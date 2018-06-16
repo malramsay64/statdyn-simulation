@@ -25,7 +25,7 @@ def sim_params(request):
             num_steps=100,
             crystal=request.param(),
             output=Path(tmp_dir),
-            cell_dimensions=(10, 12),
+            cell_dimensions=(10, 12, 10),
             outfile=Path(tmp_dir) / "out.gsd",
         )
 
