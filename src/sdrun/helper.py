@@ -142,6 +142,7 @@ def set_thermo(outfile: str, thermo_period: int = 10000, rigid=True) -> None:
         outfile + ".log", quantities=default + rigid_thermo, period=thermo_period
     )
 
+
 def set_harmonic_force(
     snapshot: hoomd.data.SnapshotParticleData, sim_params: SimulationParams
 ) -> None:
@@ -156,6 +157,7 @@ def set_harmonic_force(
         sim_params.harmonic_force,
         sim_params.harmonic_force,
     )
+
 
 class NumBodies(NamedTuple):
     particles: int
@@ -188,5 +190,3 @@ def get_num_mols(snapshot: hoomd.data.SnapshotParticleData) -> int:
 def get_num_particles(snapshot: hoomd.data.SnapshotParticleData) -> int:
     num_bodies = _get_num_bodies(snapshot)
     return num_bodies.particles
-
-

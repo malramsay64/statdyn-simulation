@@ -168,7 +168,7 @@ def minimize_snapshot(
     return equil_snapshot
 
 
-def init_from_crystal(sim_params: SimulationParams,) -> hoomd.data.SnapshotParticleData:
+def init_from_crystal(sim_params: SimulationParams) -> hoomd.data.SnapshotParticleData:
     """Initialise a hoomd simulation from a crystal lattice.
 
     Args:
