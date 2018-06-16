@@ -13,6 +13,7 @@ from tempfile import TemporaryDirectory
 import hoomd
 import numpy as np
 import pytest
+
 from sdrun import crystals
 from sdrun.params import SimulationParams
 
@@ -74,3 +75,23 @@ def test_compute_volume(crys_class):
 def test_abs_positions(crys_class):
     """Check the absolute positions function return corectly shaped matrix."""
     assert crys_class.get_abs_positions().shape == np.array(crys_class.positions).shape
+
+
+def test_get_matrix(crys_class):
+    matrix = crys_class.get_matrix()
+    assert matrix.shape == (3, 3)
+    assert np.all(matrix >= 0)
+    for i in range(3):
+        assert matrix[i, i] > 0
+
+
+def test_matrix_values(crys_class):
+    matrix = crys_class.get_matrix()
+    if crys_class.dimensions == 2:
+        assert np.all(matrix[:2, 2] == 0)
+        assert np.all(matrix[2, :2] == 0)
+        assert np.all(matrix[2, 2] == 1)
+
+    if isinstance(crys_class, crystals.SquareCircle):
+        assert matrix[0, 0] == 2
+        assert matrix[1, 1] == 2

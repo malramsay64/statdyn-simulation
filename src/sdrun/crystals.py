@@ -182,6 +182,9 @@ class CubicSphere(Crystal):
     def get_unitcell(self):
         return hoomd.lattice.sc(self.a)
 
+    def get_matrix(self):
+        return np.identity(3) * self.a
+
 
 class SquareCircle(Crystal):
     """Create a square latttice."""
@@ -194,6 +197,11 @@ class SquareCircle(Crystal):
 
     def get_unitcell(self):
         return hoomd.lattice.sq(self.a)
+
+    def get_matrix(self):
+        matrix = np.identity(3) * self.a
+        matrix[2, 2] = 1
+        return matrix
 
 
 CRYSTAL_FUNCS = {
