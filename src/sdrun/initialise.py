@@ -155,11 +155,11 @@ def minimize_snapshot(
                 group=group, P=sim_params.pressure, tauP=sim_params.tauP
             )
 
-        num_steps = 0
+        num_steps = 100
         while not fire.has_converged():
-            hoomd.run(100)
-            num_steps += 100
-            if num_steps > 10_000:
+            hoomd.run(num_steps)
+            num_steps *= 2
+            if num_steps > sim_params.num_steps:
                 break
 
         ensemble_integrator.disable()
