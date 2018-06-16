@@ -19,6 +19,7 @@ from sdrun.equilibrate import (
     equil_crystal,
     equil_interface,
     equil_liquid,
+    equilibrate,
 )
 from sdrun.initialise import init_from_crystal, make_orthorhombic
 from sdrun.params import SimulationParams, paramsContext
@@ -78,7 +79,6 @@ def test_create_interface(sim_params):
 def test_equil_interface(sim_params):
     snap_min = init_from_crystal(sim_params)
     snap_equil = equil_crystal(snap_min, sim_params)
-    snap_ortho = make_orthorhombic(snap_equil)
     snap_int = equil_interface(snap_equil, sim_params)
     assert snap_int.box.xy == 0
     assert snap_int.box.xz == 0
@@ -88,3 +88,24 @@ def test_equil_interface(sim_params):
 def test_equil_liquid(sim_params):
     equil_liquid(init_from_crystal(sim_params), sim_params)
     assert True
+
+
+@pytest.mark.parametrize("equil_type", ["liquid", "crystal", "interface", "harmonic"])
+def test_equilibrate(sim_params, equil_type):
+    """Ensure the equilibration is close to initialisation."""
+    # Initialisation of snapshot
+    snap_min = init_from_crystal(sim_params)
+
+    # Equilibration
+    with paramsContext(sim_params, harmonic_force=1):
+        snapshot = equilibrate(snap_min, sim_params, equil_type)
+
+    # Simulation box within 10% of initialisation
+    for attribute in ["Lx", "Ly", "Lz", "xy", "xz", "yz"]:
+        assert np.isclose(
+            getattr(snap_min.box, attribute), getattr(snapshot.box, attribute), rtol=0.1
+        )
+    if equil_type in ["liquid", "interface"]:
+        assert snapshot.box.xy == 0
+        assert snapshot.box.xz == 0
+        assert snapshot.box.yz == 0
