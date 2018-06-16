@@ -199,23 +199,8 @@ def init_from_crystal(sim_params: SimulationParams) -> hoomd.data.SnapshotPartic
             rigid.create_bodies()
         snap = sys.take_snapshot(all=True)
         logger.debug("Particle Types: %s", snap.particles.types)
-    minimize_snapshot(snap, sim_params, ensemble="NPH")
-    temp_context = hoomd.context.initialize(sim_params.hoomd_args)
-    with temp_context:
-        sys = initialise_snapshot(snap, temp_context, sim_params)
-        md.integrate.mode_standard(dt=sim_params.step_size)
-        md.integrate.npt(
-            group=sim_params.group,
-            kT=sim_params.temperature,
-            xy=True,
-            couple="none",
-            P=sim_params.pressure,
-            tau=sim_params.tau,
-            tauP=sim_params.tauP,
-        )
-        equil_snap = sys.take_snapshot(all=True)
-        dump_frame(sim_params.filename(), group=sim_params.group)
-    return equil_snap
+    snap = minimize_snapshot(snap, sim_params, ensemble="NPH")
+    return snap
 
 
 def make_orthorhombic(
