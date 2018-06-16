@@ -222,15 +222,35 @@ def equil_liquid(
 
 
 def create_interface(sim_params: SimulationParams) -> SnapshotParticleData:
-    assert sim_params.init_temp
-    with paramsContext(sim_params, temperature=sim_params.init_temp):
+    """Helper for the creation of a liquid--crystal interface.
+
+    The creation of a liquid--crystal interface has a number of different steps. This is a helper
+    function which goes through those steps with the intent of having melted the liquid component
+    and having high temperature liquid--crystal interface.
+    """
+    assert sim_params.init_temp > 0
+    assert sim_params.num_steps > 0
+
+    # Initialisation typically requires fewer steps than melting
+    init_steps = sim_params.num_steps
+    if init_steps < 1_000:
+        pass
+    if init_steps < 100_000:
+        init_steps = int(init_steps / 10)
+    elif init_steps < 1_000_000:
+        init_steps = int(init_steps / 100)
+    else:
+        init_steps = int(init_steps / 1000)
+
+    # Initialise at low init_temp
+    with paramsContext(
+        sim_params, temperature=sim_params.init_temp, num_steps=init_steps
+    ):
         snapshot = init_from_crystal(sim_params)
         # Find NPT minimum of crystal
-        snapshot = equil_crystal(snapshot, sim_params)
-        # Ensure simulation cell is orthorhombic
-        snapshot = make_orthorhombic(snapshot)
-    # Equilibrate interface to temperature
-    snapshot = equil_interface(snapshot, sim_params)
+        snapshot = equilibrate(snapshot, sim_params, equil_type="crystal")
+    # Equilibrate interface to temperature with intent to melt the interface
+    snapshot = equilibrate(snapshot, sim_params, equil_type="interface")
     return snapshot
 
 
