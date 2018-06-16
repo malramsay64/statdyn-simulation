@@ -147,13 +147,13 @@ class Molecule(object):
             i_z * scale_factor,
         )
 
-    def compute_moment_intertia(
+    def compute_moment_inertia(
         self, scale_factor: float = 1
     ) -> Tuple[float, float, float]:
         """Compute the moment of inertia from the particle paramters."""
         positions = self.positions
-        COM = np.sum(positions, axis=0) / positions.shape[0]
-        moment_inertia = np.sum(np.square(positions - COM))
+        center_of_mass = np.sum(positions, axis=0) / positions.shape[0]
+        moment_inertia = np.sum(np.square(positions - center_of_mass))
         moment_inertia *= scale_factor
         return (0, 0, moment_inertia)
 
@@ -246,7 +246,7 @@ class Trimer(Molecule):
             ]
         )
         self.positions.flags.writeable = False
-        self.moment_inertia = self.compute_moment_intertia(moment_inertia_scale)
+        self.moment_inertia = self.compute_moment_inertia(moment_inertia_scale)
 
     @property
     def rad_angle(self) -> float:
@@ -275,7 +275,12 @@ class Dimer(Molecule):
 
     """
 
-    def __init__(self, radius: float = 0.637556, distance: float = 1.0) -> None:
+    def __init__(
+        self,
+        radius: float = 0.637556,
+        distance: float = 1.0,
+        moment_inertia_scale: float = 1.,
+    ) -> None:
         """Intialise Dimer molecule.
 
         Args:
@@ -294,7 +299,7 @@ class Dimer(Molecule):
         self.dimensions = 2
         self.positions = np.array([[0, 0, 0], [0, self.distance, 0]])
         self.positions.flags.writeable = False
-        self.moment_inertia = self.compute_moment_intertia()
+        self.moment_inertia = self.compute_moment_inertia(moment_inertia_scale)
 
 
 class Binary_Mixture(Molecule):

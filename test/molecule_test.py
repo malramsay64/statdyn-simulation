@@ -14,7 +14,7 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import floats
 
-from sdrun.molecules import MOLECULE_DICT, Trimer
+from sdrun.molecules import MOLECULE_DICT, Dimer, Trimer
 
 
 @pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
@@ -54,9 +54,29 @@ def test_moment_inertia_trimer():
     mol = Trimer()
     assert mol.moment_inertia == (0, 0, 1.6666666666666665)
     mol = Trimer(distance=0.8)
+    assert mol.moment_inertia[0] == 0
+    assert mol.moment_inertia[1] == 0
     assert mol.moment_inertia[2] < 1.6666666666666665
     mol = Trimer(distance=1.2)
+    assert mol.moment_inertia[0] == 0
+    assert mol.moment_inertia[1] == 0
     assert mol.moment_inertia[2] > 1.6666666666666665
+
+
+def test_moment_inertia_dimer():
+    """Ensure calculation of moment of inertia is working properly."""
+    mol = Dimer()
+    assert mol.moment_inertia[0] == 0
+    assert mol.moment_inertia[1] == 0
+    assert np.isclose(mol.moment_inertia[2], 0.5)
+    mol = Dimer(distance=0.8)
+    assert mol.moment_inertia[0] == 0
+    assert mol.moment_inertia[1] == 0
+    assert np.isclose(mol.moment_inertia[2], 0.32)
+    mol = Dimer(distance=1.2)
+    assert mol.moment_inertia[0] == 0
+    assert mol.moment_inertia[1] == 0
+    assert np.isclose(mol.moment_inertia[2], 0.72)
 
 
 @given(floats(min_value=0, allow_infinity=False, allow_nan=False))
