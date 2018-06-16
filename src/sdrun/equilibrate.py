@@ -70,11 +70,6 @@ def equil_interface(
     # Ensure snapshot is orthorhombic
     snapshot = make_orthorhombic(snapshot)
 
-    if getattr(sim_params, "init_temp", None) is None:
-        with paramsContext(sim_params, num_steps=2000, tauP=8, tau=8):
-            logger.debug("sim_params Steps: %d", sim_params.num_steps)
-            snapshot = equil_crystal(snapshot, sim_params)
-
     logger.debug("Hoomd Arguments: %s", sim_params.hoomd_args)
     temp_context = hoomd.context.initialize(sim_params.hoomd_args)
     sys = initialise_snapshot(snapshot, temp_context, sim_params)
@@ -85,7 +80,7 @@ def equil_interface(
         interface = _interface_group(sys)
         # Set mobile group for integrator
         with paramsContext(sim_params, group=interface):
-            set_integrator(sim_params=sim_params, simulation_type="crystal")
+            set_integrator(sim_params=sim_params, simulation_type="interface")
 
         set_dump(
             sim_params.filename(prefix="dump"),
