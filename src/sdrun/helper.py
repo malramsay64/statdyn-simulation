@@ -23,12 +23,25 @@ logger = logging.getLogger(__name__)
 def set_integrator(
     sim_params: SimulationParams,
     prime_interval: int = 33533,
-    crystal: bool = False,
-    create: bool = True,
+    simulation_type: str = "liquid",
     integration_method: str = "NPT",
 ) -> hoomd.md.integrate.npt:
-    """Hoomd integrate method."""
+    """Hoomd integrate method.
+
+    Args:
+        sim_params: The general parameters of the simulation.
+        prime_interval: The number of steps between zeroing the momentum of the simulation.
+            A prime number is chosen to have this change be less systematic.
+        simulation_type: The type of simulation, which influences the parameters for the
+            integration. Most simulations are fine with the default, "liq". The alternatives
+            "crys" allows for simulation cell to tilt and decoupling of cell parameters, and
+            "interface" ensures all particles are rescaled instead of just those being
+            integrated.
+        integration_method: The type of thermodynamic integration.
+
+    """
     assert integration_method in ["NPT", "NVT"]
+    assert simulation_type in ["liquid", "crystal", "interface"]
 
     md.integrate.mode_standard(sim_params.step_size)
     if sim_params.molecule.dimensions == 2:
@@ -45,9 +58,14 @@ def set_integrator(
             P=sim_params.pressure,
             tauP=sim_params.tauP,
         )
-        if crystal:
-            integrator.set_params(rescale_all=True)
+        if simulation_type == "crystal":
             integrator.couple = "none"
+            integrator.xy = True
+            integrator.xz = True
+            integrator.yz = True
+        elif simulation_type == "interface":
+            integrator.set_params(rescale_all=True)
+
     elif integration_method == "NVT":
         integrator = md.integrate.nvt(
             group=sim_params.group, kT=sim_params.temperature, tau=sim_params.tau

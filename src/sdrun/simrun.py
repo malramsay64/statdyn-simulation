@@ -43,7 +43,7 @@ def run_npt(
     with context:
         sys = initialise_snapshot(snapshot, context, sim_params)
         logger.debug("Run metadata: %s", sys.get_metadata())
-        set_integrator(sim_params)
+        set_integrator(sim_params, simulation_type="liquid")
         set_thermo(
             sim_params.filename(prefix="thermo"),
             thermo_period=sim_params.output_interval,
@@ -82,7 +82,7 @@ def run_harmonic(
     """Initialise and run a simulation with a harmonic pinning potential."""
     with context:
         initialise_snapshot(snapshot, context, sim_params)
-        set_integrator(sim_params, crystal=True, integration_method="NVT")
+        set_integrator(sim_params, simulation_type="crystal", integration_method="NVT")
         set_thermo(
             sim_params.filename(prefix="thermo"),
             thermo_period=sim_params.output_interval,

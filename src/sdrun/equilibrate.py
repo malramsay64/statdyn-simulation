@@ -31,7 +31,9 @@ def equil_crystal(
     sys = initialise_snapshot(snapshot, temp_context, sim_params)
 
     with temp_context:
-        set_integrator(sim_params=sim_params, prime_interval=307, crystal=True)
+        set_integrator(
+            sim_params=sim_params, prime_interval=307, simulation_type="crystal"
+        )
 
         set_dump(
             sim_params.filename(prefix="dump"),
@@ -84,7 +86,7 @@ def equil_interface(
         interface = _interface_group(sys)
         # Set mobile group for integrator
         with paramsContext(sim_params, group=interface):
-            set_integrator(sim_params=sim_params, crystal=True)
+            set_integrator(sim_params=sim_params, simulation_type="crystal")
 
         set_dump(
             sim_params.filename(prefix="dump"),
@@ -111,7 +113,7 @@ def equil_harmonic(
     temp_context = hoomd.context.initialize(sim_params.hoomd_args)
     sys = initialise_snapshot(snapshot, temp_context, sim_params, minimize=True)
     with temp_context:
-        set_integrator(sim_params, crystal=True, integration_method="NVT")
+        set_integrator(sim_params, simulation_type="crystal", integration_method="NVT")
         set_thermo(
             sim_params.filename(prefix="thermo"),
             thermo_period=sim_params.output_interval,
@@ -135,7 +137,7 @@ def equil_liquid(
     temp_context = hoomd.context.initialize(sim_params.hoomd_args)
     sys = initialise_snapshot(snapshot, temp_context, sim_params)
     with temp_context:
-        set_integrator(sim_params=sim_params)
+        set_integrator(sim_params=sim_params, simulation_type="liquid")
         set_thermo(sim_params.filename("log"), thermo_period=sim_params.output_interval)
         hoomd.run(sim_params.num_steps)
         logger.debug("Outfile: %s", sim_params.outfile)
