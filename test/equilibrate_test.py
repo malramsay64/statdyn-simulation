@@ -10,6 +10,7 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import numpy as np
 import pytest
 
 from sdrun.crystals import CRYSTAL_FUNCS
@@ -23,7 +24,7 @@ def sim_params(request):
     with TemporaryDirectory() as tmp_dir:
         yield SimulationParams(
             temperature=0.4,
-            num_steps=100,
+            num_steps=1000,
             crystal=request.param(),
             output=Path(tmp_dir),
             cell_dimensions=(10, 12, 10),
@@ -32,8 +33,17 @@ def sim_params(request):
 
 
 def test_equil_crystal(sim_params):
-    equil_crystal(init_from_crystal(sim_params), sim_params)
-    assert True
+    """Ensure the equilibration is close to initialisation."""
+    snap_min = init_from_crystal(sim_params)
+    snap_equil = equil_crystal(snap_min, sim_params)
+
+    # Simulation box within 10% of initialisation
+    for attribute in ["Lx", "Ly", "Lz", "xy", "xz", "yz"]:
+        assert np.isclose(
+            getattr(snap_min.box, attribute),
+            getattr(snap_equil.box, attribute),
+            rtol=0.1,
+        )
 
 
 def test_equil_interface(sim_params):
