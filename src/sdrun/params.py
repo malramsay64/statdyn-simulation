@@ -102,6 +102,10 @@ class SimulationParams(object):
             mol = self.crystal.molecule
         else:
             mol = Trimer()
+        # Ensure scale_moment_inertia set on molecule
+        mol.moment_inertia = mol.compute_moment_inertia(
+            self.parameters.get("moment_inertia_scale", 1)
+        )
         return mol
 
     @property
