@@ -36,6 +36,10 @@ def sdrun() -> None:
     """Run main function."""
     logging.debug("Running main function")
     func, sim_params = parse_args()
+
+    assert callable(func)
+    assert isinstance(sim_params, SimulationParams)
+
     func(sim_params)
 
 
@@ -61,7 +65,10 @@ def equil(sim_params: SimulationParams) -> None:
     snapshot = init_from_file(
         sim_params.infile, sim_params.molecule, hoomd_args=sim_params.hoomd_args
     )
-    EQUIL_OPTIONS.get(sim_params.equil_type)(snapshot, sim_params=sim_params)
+    equil_function = EQUIL_OPTIONS.get(sim_params.equil_type)
+    assert callable(equil_function)
+
+    equil_function(snapshot, sim_params)
     logger.debug("Equilibration completed")
 
 
@@ -69,10 +76,10 @@ def create(sim_params: SimulationParams) -> None:
     """Create things."""
     logger.debug("Running create.")
     if sim_params.parameters.get("crystal"):
-        snapshot = init_from_crystal(sim_params=sim_params)
+        snapshot = init_from_crystal(sim_params)
     else:
-        snapshot = init_from_none(sim_params=sim_params)
-    equil_crystal(snapshot=snapshot, sim_params=sim_params)
+        snapshot = init_from_none(sim_params)
+    equil_crystal(snapshot, sim_params)
 
 
 def create_parser() -> argparse.ArgumentParser:
