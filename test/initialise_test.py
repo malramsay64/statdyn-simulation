@@ -7,6 +7,7 @@
 # Distributed under terms of the MIT license.
 """Module for testing the initialisation."""
 
+import logging
 from pathlib import Path
 from tempfile import TemporaryDirectory
 

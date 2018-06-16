@@ -18,6 +18,7 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import sys
+
 import sphinx_rtd_theme
 
 sys.path.insert(0, "/usr/local/hoomd/2.0.1/lib/hoomd/python-module")

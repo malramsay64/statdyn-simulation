@@ -11,6 +11,7 @@ import numpy as np
 import pytest
 from hypothesis import given
 from hypothesis.strategies import integers
+
 from sdrun.StepSize import GenerateStepSeries, generate_steps
 
 

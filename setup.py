@@ -10,6 +10,7 @@
 
 from setuptools import find_packages, setup
 
+
 # Get the version from src/sdrun/version.py without importing the package
 def get_version():
     g = {}

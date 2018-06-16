@@ -12,6 +12,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import pytest
+
 from sdrun.main import create_parser, parse_args
 
 parser = create_parser()

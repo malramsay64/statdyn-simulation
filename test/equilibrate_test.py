@@ -11,6 +11,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import pytest
+
 from sdrun.crystals import CRYSTAL_FUNCS
 from sdrun.equilibrate import equil_crystal, equil_interface, equil_liquid
 from sdrun.initialise import init_from_crystal

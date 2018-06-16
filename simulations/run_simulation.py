@@ -16,7 +16,6 @@ import subprocess
 from pathlib import Path
 from typing import List
 
-
 pbs_header = """#!/usr/bin/env python
 #PBS -N {name}
 #PBS -m abe

@@ -9,9 +9,9 @@
 """Module to define a molecule to use for simulation."""
 
 import logging
+from collections import OrderedDict
 from itertools import combinations_with_replacement
 from typing import Any, Dict, List, Tuple
-from collections import OrderedDict
 
 import hoomd
 import hoomd.md
