@@ -186,8 +186,11 @@ def init_from_crystal(sim_params: SimulationParams,) -> hoomd.data.SnapshotParti
             sim_params.crystal,
             sim_params.cell_dimensions,
         )
+        cell_dimensions: Tuple[int, ...] = sim_params.cell_dimensions[
+            : sim_params.molecule.dimensions
+        ]
         sys = hoomd.init.create_lattice(
-            unitcell=sim_params.crystal.get_unitcell(), n=sim_params.cell_dimensions
+            unitcell=sim_params.crystal.get_unitcell(), n=cell_dimensions
         )
         for p_type in sim_params.molecule.get_types()[1:]:
             sys.particles.pdata.addType(p_type)
