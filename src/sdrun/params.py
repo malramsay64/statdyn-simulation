@@ -66,40 +66,6 @@ class SimulationParams(object):
 
     hoomd_args: str = attr.ib(default="", repr=False)
 
-    def filename(self, prefix: str = None) -> Path:
-        """Use the simulation parameters to construct a filename."""
-        base_string = "{molecule}-P{pressure:.2f}-T{temperature:.2f}"
-        if prefix:
-            base_string = "{prefix}-" + base_string
-        if self.moment_inertia_scale is not None:
-            base_string += "-I{mom_inertia:.2f}"
-        if self.harmonic_force is not None:
-            base_string += "-K{harmonic_force:.2f}"
-        if self.crystal is not None:
-            base_string += "-{space_group}"
-        fname = base_string.format(
-            prefix=prefix,
-            molecule=self.molecule,
-            pressure=self.pressure,
-            temperature=self._temperature,
-            mom_inertia=self.moment_inertia_scale,
-            space_group=self.crystal.space_group,
-            harmonic_force=self.harmonic_force,
-        )
-        return self.output / fname
-
-    @contextmanager
-    def temp_context(self, **kwargs):
-        old_params = {
-            key: val
-            for key, val in self.__dict__.items()
-            if not isinstance(val, property)
-        }
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-        yield self
-        self.__dict__.update(old_params)
-
     @property
     def temperature(self) -> Union[float, hoomd.variant.linear_interp]:
         """Temperature of the system."""
@@ -179,19 +145,81 @@ class SimulationParams(object):
         self._group = value
 
     @property
+    def infile(self) -> Path:
+        return self._infile
+
+    @infile.setter
+    def infile(self, value: Path) -> None:
+        # Ensure value is a Path
+        self._infile = Path(value)
+
+    @property
+    def outfile(self) -> Path:
+        return self._outfile
+
+    @outfile.setter
+    def outfile(self, value: Optional[Path]) -> None:
+        # Ensure value is a Path
+        if value is not None:
+            self._outfile = Path(value)
+
+    @property
     def output(self) -> Path:
         return self._output
 
     @output.setter
-    def output(self, value: Path) -> None:
+    def output(self, value: Optional[Path]) -> None:
         # Ensure value is a Path
-        self._output = Path(value)
+        if value is not None:
+            self._output = Path(value)
 
-    @property
-    def outdir(self) -> Path:
-        return self._outdir
+    @equil_type.validator
+    def validate_equil_type(self, attribute, value):
+        if value not in ["liquid", "crystal", "interface", "harmonic"]:
+            raise ValueError(
+                "'equil_type' must be one of '(liquid|crystal|interface|harmonic)'"
+            )
 
-    @outdir.setter
-    def outdir(self, value: Path) -> None:
-        # Ensure value is a Path
-        self._outdir = Path(value)
+    def filename(self, prefix: str = None) -> Path:
+        """Use the simulation parameters to construct a filename."""
+        base_string = "{molecule}-P{pressure:.2f}-T{temperature:.2f}"
+        if prefix is not None:
+            base_string = "{prefix}-" + base_string
+        if self.moment_inertia_scale is not None:
+            base_string += "-I{mom_inertia:.2f}"
+        if self.harmonic_force is not None:
+            base_string += "-K{harmonic_force:.2f}"
+
+        space_group = None
+        if self.space_group is not None:
+            base_string += "-{space_group}"
+
+        logger.debug("filename base string: %s", base_string)
+        logger.debug("Temperature: %.2f", self._temperature)
+
+        # Default extension, required as with_suffix replaces existsing extension
+        # which is mistaken for the final decimal points.
+        base_string += ".gsd"
+
+        fname = base_string.format(
+            prefix=prefix,
+            molecule=self.molecule,
+            pressure=self.pressure,
+            temperature=self._temperature,
+            mom_inertia=self.moment_inertia_scale,
+            space_group=self.space_group,
+            harmonic_force=self.harmonic_force,
+        )
+        return self.output / fname
+
+    @contextmanager
+    def temp_context(self, **kwargs):
+        old_params = {
+            key: val
+            for key, val in self.__dict__.items()
+            if not isinstance(val, property)
+        }
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        yield self
+        self.__dict__.update(old_params)
