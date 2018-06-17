@@ -319,11 +319,17 @@ class Binary_Mixture(Molecule):
         self.dimensions = 2
         self.positions = np.array([[0, 0, 0], [0, self.distance, 0]])
         self.positions.flags.writeable = False
+        self.moment_inertia = self.compute_moment_inertia()
 
     # Overwrite rigid to do nothing
-
     def define_rigid(self):
         return None
+
+    def compute_moment_inertia(
+        self, scale_factor: float = 1
+    ) -> Tuple[float, float, float]:
+        """Compute the moment of inertia from the particle paramters."""
+        return (0., 0., 0.)
 
     def identify_bodies(self, num_molecules: int) -> np.ndarray:
         return np.arange(num_molecules * self.num_particles)

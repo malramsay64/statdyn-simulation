@@ -88,7 +88,10 @@ def test_molecule_setter(sim_params, molecules):
 def test_cell_dimensions_setter(sim_params, cell_len):
     cell_dims = (cell_len, cell_len, cell_len)
     sim_params.cell_dimensions = cell_dims
-    assert sim_params.cell_dimensions == cell_dims
+    if sim_params.molecule.dimensions == 3:
+        assert sim_params.cell_dimensions == cell_dims
+    else:
+        assert sim_params.cell_dimensions == (*cell_dims[:2], 1)
 
 
 def test_group_setter(sim_params):

@@ -70,7 +70,7 @@ class SimulationParams(object):
     def temperature(self) -> Union[float, hoomd.variant.linear_interp]:
         """Temperature of the system."""
         if self.init_temp is None:
-            return self.temperature
+            return self._temperature
 
         return hoomd.variant.linear_interp(
             [
@@ -83,7 +83,8 @@ class SimulationParams(object):
 
     @temperature.setter
     def temperature(self, value: float) -> None:
-        self._temperature = value
+        assert value is not None
+        self._temperature = float(value)
 
     @property
     def molecule(self) -> Molecule:
@@ -111,19 +112,23 @@ class SimulationParams(object):
 
     @property
     def cell_dimensions(self) -> Tuple[int, int, int]:
-        cell_dims: Tuple[int, ...] = self._cell_dimensions
-        logger.debug("self._cell_dimensions %s", cell_dims)
-        if isinstance(cell_dims, int):
-            cell_dims = tuple([cell_dims] * self.molecule.dimensions)
-        elif len(cell_dims) == 1:
-            cell_dims = tuple(list(cell_dims) * self.molecule.dimensions)
+        logger.debug("self._cell_dimensions %s", self._cell_dimensions)
+        if isinstance(self._cell_dimensions, int):
+            cell_dims = [self._cell_dimensions] * self.molecule.dimensions
+        else:
+            cell_dims = list(self._cell_dimensions)
+
+        if len(cell_dims) == 1:
+            cell_dims = cell_dims * self.molecule.dimensions
 
         if len(cell_dims) == 3:
-            return cell_dims
+            if self.molecule.dimensions == 2:
+                cell_dims[2] = 1
+            return tuple(cell_dims)
 
         elif len(cell_dims) == 2:
-            cell_dims = tuple(list(cell_dims) + [1])
-            return cell_dims
+            cell_dims = cell_dims + [1]
+            return tuple(cell_dims)
 
     @cell_dimensions.setter
     def cell_dimensions(self, value: Tuple[int, ...]) -> None:
