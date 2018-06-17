@@ -57,16 +57,16 @@ def test_hoomd_args():
 @pytest.mark.parametrize("func, extras", FUNCS)
 def test_output_directory(func, extras):
     with TemporaryDirectory() as tempdir:
-        outdir = Path(tempdir) / "output"
-        parse_args([func, "--output", str(outdir)] + extras)
-        assert outdir.exists()
+        output = Path(tempdir) / "output"
+        parse_args([func, "--output", str(output)] + extras)
+        assert output.exists()
 
 
 @pytest.mark.parametrize("func, extras", FUNCS)
 def test_outfile_directory(func, extras):
     if "outfile" in extras:
         with TemporaryDirectory() as tempdir:
-            outdir = Path(tempdir) / "outdir" / "outfile"
-            extras[extras.index("outfile")] = str(outdir)
+            outfile = Path(tempdir) / "outdir" / "outfile"
+            extras[extras.index("outfile")] = str(outfile)
             parse_args([func] + extras)
-            assert outdir.parent.exists()
+            assert outfile.parent.exists()

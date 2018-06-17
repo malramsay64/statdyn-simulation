@@ -225,12 +225,10 @@ def parse_args(
     set_args = {key: val for key, val in vars(args).items() if val is not None}
     sim_params = SimulationParams(**set_args)
     # Ensure directories exist
-    try:
-        print(f"Making outfile directory {Path(sim_params.outfile).parent}")
-        logger.debug("Making outfile directory %s", Path(sim_params.outfile).parent)
-        Path(sim_params.outfile).parent.mkdir(exist_ok=True)
-    except AttributeError:
-        pass
+    if sim_params.outfile is not None:
+        print(f"Making outfile directory {sim_params.outfile.parent}")
+        logger.debug("Making outfile directory %s", sim_params.outfile.parent)
+        sim_params.outfile.parent.mkdir(exist_ok=True)
     logger.debug("Making output directory %s", sim_params.output)
-    Path(sim_params.output).mkdir(exist_ok=True)
+    sim_params.output.mkdir(exist_ok=True)
     return func, sim_params

@@ -9,6 +9,7 @@
 """Series of helper functions for the initialisation of parameters."""
 
 import logging
+from pathlib import Path
 from typing import List, NamedTuple
 
 import hoomd
@@ -75,7 +76,7 @@ def set_integrator(
 
 
 def set_dump(
-    outfile: str,
+    outfile: Path,
     dump_period: int = 10000,
     timestep: int = 0,
     group: hoomd.group.group = None,
@@ -85,14 +86,18 @@ def set_dump(
     if group is None:
         group = hoomd.group.rigid_center()
     if extension:
-        outfile += ".gsd"
+        outfile = outfile.with_suffix(".gsd")
     return hoomd.dump.gsd(
-        outfile, time_step=timestep, period=dump_period, group=group, overwrite=True
+        str(outfile),
+        time_step=timestep,
+        period=dump_period,
+        group=group,
+        overwrite=True,
     )
 
 
 def dump_frame(
-    outfile: str,
+    outfile: Path,
     timestep: int = 0,
     group: hoomd.group.group = None,
     extension: bool = True,
@@ -106,7 +111,7 @@ def dump_frame(
     )
 
 
-def set_thermo(outfile: str, thermo_period: int = 10000, rigid=True) -> None:
+def set_thermo(outfile: Path, thermo_period: int = 10000, rigid=True) -> None:
     """Set the thermodynamic quantities for a simulation."""
     default = [
         "N",

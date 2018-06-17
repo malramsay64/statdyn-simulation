@@ -12,6 +12,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import pytest
+from hypothesis import given
+from hypothesis.strategies import floats
 
 from sdrun.crystals import CRYSTAL_FUNCS, CubicSphere, SquareCircle, TrimerP2
 from sdrun.molecules import MOLECULE_DICT, Dimer, Disc, Molecule, Sphere, Trimer
@@ -108,15 +110,31 @@ def test_output(sim_params, output):
     old_output = sim_params.output
     with sim_params.temp_context(output=output):
         assert sim_params.output == Path(output)
-    assert sim_params.outdir == old_output
+    assert sim_params.output == old_output
 
 
-@pytest.mark.parametrize("outdir", ["test/output", Path("test/output")])
-def test_outdir(outdir, sim_params):
-    old_outdir = sim_params.outdir
-    with sim_params.temp_context(outdir=outdir):
-        assert sim_params.outdir == Path(outdir)
-    assert sim_params.outdir == old_outdir
+@pytest.mark.parametrize("outfile", ["test/outfile", Path("test/outfile")])
+def test_outfile(outfile, sim_params):
+    old_outfile = sim_params.outfile
+    with sim_params.temp_context(outfile=outfile):
+        assert sim_params.outfile == Path(outfile)
+    assert sim_params.outfile == old_outfile
+
+
+@pytest.mark.parametrize("infile", ["test/infile", Path("test/infile")])
+def test_infile(infile, sim_params):
+    old_outfile = sim_params.infile
+    with sim_params.temp_context(infile=infile):
+        assert sim_params.infile == Path(infile)
+    assert sim_params.infile == old_outfile
+
+
+@given(floats(allow_nan=False, allow_infinity=False))
+def test_set_moment_inertia_scale(sim_params, scaling_factor):
+    old_scaling_factor = sim_params.moment_inertia_scale
+    with sim_params.temp_context(moment_inertia_scale=scaling_factor):
+        assert sim_params.moment_inertia_scale == scaling_factor
+    assert sim_params.moment_inertia_scale == old_scaling_factor
 
 
 def func(sim_params, value):
@@ -131,6 +149,13 @@ def test_function_passing(sim_params):
 
     assert func(sim_params, "num_steps") == 1000
     assert sim_params.num_steps == 1000
+
+
+@given(floats(min_value=0, max_value=20), floats(min_value=0, max_value=20))
+def test_filename_simple(sim_params, temperature, pressure):
+    intended_fname = f"Trimer-P{pressure:.2f}-T{temperature:.2f}.gsd"
+    with sim_params.temp_context(temperature=temperature, pressure=pressure):
+        assert sim_params.filename().name == intended_fname
 
 
 def test_cell_dimensions(sim_params):
