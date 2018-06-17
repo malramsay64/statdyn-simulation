@@ -8,23 +8,34 @@
 """Test the SimulationParams class."""
 
 import logging
-from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import pytest
-from hypothesis import example, given, settings
-from hypothesis.strategies import text
 
-from sdrun.crystals import CRYSTAL_FUNCS, CubicSphere, TrimerP2
+from sdrun.crystals import CRYSTAL_FUNCS, CubicSphere, SquareCircle, TrimerP2
 from sdrun.molecules import MOLECULE_DICT, Dimer, Disc, Molecule, Sphere, Trimer
-from sdrun.params import SimulationParams, paramsContext
+from sdrun.params import SimulationParams
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logging.basicConfig(level=logging.DEBUG)
-SIM_PARAMS = SimulationParams(num_steps=1000, temperature=1.0, space_group="p2")
 MOLECULE_LIST = [Molecule, Sphere, Trimer, Dimer, Disc, None]
+
+
+@pytest.fixture(scope="function")
+def sim_params():
+    return SimulationParams(num_steps=1000, temperature=1.0)
+
+
+@pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
+def mol_params(request):
+    return SimulationParams(num_steps=1000, temperature=1.0, molecule=request.param)
+
+
+@pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
+def molecules(request):
+    return request.param
 
 
 @pytest.fixture(params=CRYSTAL_FUNCS.values(), ids=CRYSTAL_FUNCS.keys())
@@ -55,85 +66,91 @@ def mol_params(request):
         )
 
 
-@given(key=text(), value=text())
-@example(key="outfile", value="test")
-@example(key="output", value="testing")
-@settings(deadline=None)
-def test_paramContext(key, value):
-    """Ensure paramsContext sets value correctly and returns to previous state.
-
-    This is just testing that the values in the dictionary are the same since
-    that is what the paramsContext class is modifying. Note that this isn't testing
-    the getattr, setattr, delattr of the SimulationParams class.
-
-    """
-    test_values = deepcopy(SIM_PARAMS.parameters)
-    with paramsContext(SIM_PARAMS, **{key: value}) as sim_params:
-        assert sim_params.parameters.get(key) == value
-    assert test_values == sim_params.parameters
+def test_molecule(sim_params, molecules):
+    init_mol = sim_params.molecule
+    with sim_params.temp_context(molecule=molecules):
+        assert sim_params.molecule == molecules
+    assert sim_params.molecule == init_mol
 
 
-@pytest.mark.parametrize("mol", MOLECULE_LIST)
-def test_molecule(mol):
-    with paramsContext(SIM_PARAMS, molecle=mol):
-        assert SIM_PARAMS.molecle == mol
+def test_default_molecule(sim_params):
+    assert sim_params.molecule == Trimer()
 
 
-def test_default_molecule():
-    assert SIM_PARAMS.molecule == Trimer()
+def test_molecule_setter(sim_params, molecules):
+    sim_params.molecule = molecules
+    assert sim_params.molecule == molecules
 
 
-def test_mol_crys():
-    crys = TrimerP2()
-    with paramsContext(SIM_PARAMS, crystal=crys):
-        assert SIM_PARAMS.molecule == crys.molecule
+@pytest.mark.parametrize("cell_len", range(1, 10))
+def test_cell_dimensions_setter(sim_params, cell_len):
+    cell_dims = (cell_len, cell_len, cell_len)
+    sim_params.cell_dimensions = cell_dims
+    assert sim_params.cell_dimensions == cell_dims
 
 
-@pytest.mark.parametrize("outfile", ["test/data", Path("test/data")])
-def test_outfile(outfile):
-    with paramsContext(SIM_PARAMS, outfile=outfile):
-        assert SIM_PARAMS.parameters.get("outfile") == outfile
-        assert str(outfile) == SIM_PARAMS.outfile
+def test_group_setter(sim_params):
+    group = "testgroup"
+    sim_params.group = group
+    assert sim_params.group == group
 
 
-@pytest.mark.parametrize("output", ["test/output", Path("test/output")])
-def test_outdir(output):
-    with paramsContext(SIM_PARAMS, output=output):
-        assert SIM_PARAMS.parameters.get("output") == output
-        assert Path(output) == SIM_PARAMS.output
+def test_mol_crys(sim_params):
+    crys = SquareCircle()
+    init_mol = sim_params.molecule
+    with sim_params.temp_context(molecule=None, crystal=crys):
+        assert sim_params.molecule == crys.molecule
+    assert sim_params.molecule == init_mol
+
+
+@pytest.mark.parametrize("output", ["test/data", Path("test/data")])
+def test_output(sim_params, output):
+    old_output = sim_params.output
+    with sim_params.temp_context(output=output):
+        assert sim_params.output == Path(output)
+    assert sim_params.outdir == old_output
+
+
+@pytest.mark.parametrize("outdir", ["test/output", Path("test/output")])
+def test_outdir(outdir, sim_params):
+    old_outdir = sim_params.outdir
+    with sim_params.temp_context(outdir=outdir):
+        assert sim_params.outdir == Path(outdir)
+    assert sim_params.outdir == old_outdir
 
 
 def func(sim_params, value):
     return getattr(sim_params, value)
 
 
-@pytest.mark.parametrize("sim_params", [SIM_PARAMS])
 def test_function_passing(sim_params):
     assert sim_params.num_steps == 1000
-    with paramsContext(sim_params, num_steps=2000):
+    with sim_params.temp_context(num_steps=2000):
         assert func(sim_params, "num_steps") == 2000
         assert sim_params.num_steps == 2000
+
     assert func(sim_params, "num_steps") == 1000
     assert sim_params.num_steps == 1000
 
 
-@pytest.mark.parametrize("sim_params", [SIM_PARAMS])
 def test_cell_dimensions(sim_params):
-    with paramsContext(sim_params, crystal=TrimerP2(), cell_dimensions=10):
-        assert len(sim_params.cell_dimensions) == 3
-        assert sim_params.cell_dimensions == (10, 10, 1)
-    with paramsContext(sim_params, crystal=CubicSphere(), cell_dimensions=10):
+    with sim_params.temp_context(crystal=TrimerP2(), cell_dimensions=10) as temp_params:
+        assert len(temp_params.cell_dimensions) == 3
+        assert temp_params.cell_dimensions == (10, 10, 1)
+    with sim_params.temp_context(
+        crystal=CubicSphere(), cell_dimensions=10
+    ) as temp_params:
         assert len(sim_params.cell_dimensions) == 3
         assert sim_params.cell_dimensions == (10, 10, 10)
-    with paramsContext(sim_params, crystal=CubicSphere(), cell_dimensions=[10, 10]):
+    with sim_params.temp_context(crystal=CubicSphere(), cell_dimensions=[10, 10]):
         assert len(sim_params.cell_dimensions) == 3
         assert sim_params.cell_dimensions == (10, 10, 1)
 
 
 def test_crystal_cell_dimensions(crystal_params):
-    with paramsContext(crystal_params, cell_dimensions=10):
+    with crystal_params.temp_context(cell_dimensions=10):
         assert len(crystal_params.cell_dimensions) == 3
-    with paramsContext(crystal_params, cell_dimensions=[10, 10]):
+    with crystal_params.temp_context(cell_dimensions=[10, 10]):
         assert len(crystal_params.cell_dimensions) == 3
-    with paramsContext(crystal_params, cell_dimensions=[10, 10, 10]):
+    with crystal_params.temp_context(cell_dimensions=[10, 10, 10]):
         assert len(crystal_params.cell_dimensions) == 3

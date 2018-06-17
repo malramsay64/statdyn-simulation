@@ -8,85 +8,107 @@
 """Parameters for passing between functions."""
 
 import logging
-from copy import deepcopy
+from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Dict, Tuple, Union
+from typing import Optional, Tuple, Union
 
+import attr
 import hoomd
 
+from .crystals import Crystal
 from .molecules import Molecule, Trimer
 
 logger = logging.getLogger(__name__)
 
 
+@attr.s(auto_attribs=True)
 class SimulationParams(object):
     """Store the parameters of the simulation."""
-    defaults: Dict[str, Any] = {
-        "hoomd_args": "",
-        "step_size": 0.005,
-        "temperature": 0.4,
-        "tau": 1.0,
-        "pressure": 13.5,
-        "tauP": 1.0,
-        "cell_dimensions": (30, 42),
-        "output": Path.cwd(),
-        "max_gen": 500,
-        "gen_steps": 20000,
-        "output_interval": 10000,
-    }
+    # Thermodynamic Params
+    _temperature: float
+    tau: float = attr.ib(default=1.0, repr=False)
+    pressure: float = 13.5
+    tauP: float = attr.ib(default=1.0, repr=False)
+    init_temp: Optional[float] = None
+    _group: Optional[hoomd.group.group] = None
 
-    def __init__(self, **kwargs) -> None:
-        """Create SimulationParams instance."""
-        self.parameters: Dict[str, Any] = deepcopy(self.defaults)
-        self.parameters.update(kwargs)
+    # Molecule params
+    _molecule: Optional[Molecule] = None
+    moment_inertia_scale: Optional[float] = None
+    harmonic_force: Optional[float] = None
 
-    # I am using getattr over getattribute becuase of the lower search priority
-    # of getattr. This makes it a fallback, rather than the primary location
-    # for looking up attributes.
+    # Crystal Params
+    crystal: Optional[Crystal] = None
+    _cell_dimensions: Tuple[int, ...] = (30, 42, 30)
 
-    def __getattr__(self, key):
-        try:
-            return self.parameters.__getitem__(key)
+    # Step Params
+    num_steps: Optional[int] = None
+    max_gen: int = attr.ib(default=500, repr=False)
+    gen_steps: int = attr.ib(default=20_000, repr=False)
+    output_interval: int = attr.ib(default=10_000, repr=False)
 
-        except KeyError:
-            raise AttributeError
+    # File Params
+    _output: Optional[Path] = attr.ib(
+        default=None, converter=attr.converters.optional(Path)
+    )
+    _outdir: Optional[Path] = attr.ib(
+        default=None, converter=attr.converters.optional(Path)
+    )
 
-    def __setattr__(self, key, value):
-        # setattr has a higher search priority than other functions, custom
-        # setters need to be added to the list below
-        if key in ["parameters"]:
-            super().__setattr__(key, value)
-        else:
-            self.parameters.__setitem__(key, value)
+    hoomd_args: str = attr.ib(default="", repr=False)
 
-    def __delattr__(self, attr):
-        return self.parameters.__delitem__(attr)
+    def filename(self, prefix: str = None) -> Path:
+        """Use the simulation parameters to construct a filename."""
+        base_string = "{molecule}-P{pressure:.2f}-T{temperature:.2f}"
+        if prefix:
+            base_string = "{prefix}-" + base_string
+        if self.moment_inertia_scale is not None:
+            base_string += "-I{mom_inertia:.2f}"
+        if self.harmonic_force is not None:
+            base_string += "-K{harmonic_force:.2f}"
+        if self.crystal is not None:
+            base_string += "-{space_group}"
+        fname = base_string.format(
+            prefix=prefix,
+            molecule=self.molecule,
+            pressure=self.pressure,
+            temperature=self._temperature,
+            mom_inertia=self.moment_inertia_scale,
+            space_group=self.crystal.space_group,
+            harmonic_force=self.harmonic_force,
+        )
+        return self.output / fname
+
+    @contextmanager
+    def temp_context(self, **kwargs):
+        old_params = {
+            key: val
+            for key, val in self.__dict__.items()
+            if not isinstance(val, property)
+        }
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        yield self
+        self.__dict__.update(old_params)
 
     @property
     def temperature(self) -> Union[float, hoomd.variant.linear_interp]:
         """Temperature of the system."""
-        try:
-            return hoomd.variant.linear_interp(
-                [
-                    (0, self.init_temp),
-                    (
-                        int(self.num_steps * 0.75),
-                        self.parameters.get("temperature", self.init_temp),
-                    ),
-                    (
-                        self.num_steps,
-                        self.parameters.get("temperature", self.init_temp),
-                    ),
-                ],
-                zero="now",
-            )
+        if self.init_temp is None:
+            return self.temperature
 
-        except AttributeError:
-            return self.parameters.get("temperature")
+        return hoomd.variant.linear_interp(
+            [
+                (0, self.init_temp),
+                (int(self.num_steps * 0.75), self._temperature),
+                (self.num_steps, self._temperature),
+            ],
+            zero="now",
+        )
 
     @temperature.setter
     def temperature(self, value: float) -> None:
-        self.parameters["temperature"] = value
+        self._temperature = value
 
     @property
     def molecule(self) -> Molecule:
@@ -96,125 +118,71 @@ class SimulationParams(object):
         the crystal.
 
         """
-        if self.parameters.get("molecule") is not None:
-            mol = self.parameters.get("molecule")
-        elif self.parameters.get("crystal") is not None:
+        if self._molecule is not None:
+            mol = self._molecule
+        elif self.crystal is not None:
             mol = self.crystal.molecule
         else:
+            logger.debug("Using default molecule")
             mol = Trimer()
         # Ensure scale_moment_inertia set on molecule
-        mol.moment_inertia = mol.compute_moment_inertia(
-            self.parameters.get("moment_inertia_scale", 1)
-        )
+        if self.moment_inertia_scale is not None:
+            mol.moment_inertia = mol.compute_moment_inertia(self.moment_inertia_scale)
         return mol
+
+    @molecule.setter
+    def molecule(self, value: Molecule) -> None:
+        self._molecule = value
 
     @property
     def cell_dimensions(self) -> Tuple[int, int, int]:
-        try:
-            cell_dims = self.parameters.get("cell_dimensions")
-            if isinstance(cell_dims, int):
-                cell_dims = tuple([cell_dims] * self.molecule.dimensions)
+        cell_dims: Tuple[int, ...] = self._cell_dimensions
+        logger.debug("self._cell_dimensions %s", cell_dims)
+        if isinstance(cell_dims, int):
+            cell_dims = tuple([cell_dims] * self.molecule.dimensions)
+        elif len(cell_dims) == 1:
+            cell_dims = tuple(list(cell_dims) * self.molecule.dimensions)
 
-            if len(cell_dims) == 3:
-                return cell_dims
+        if len(cell_dims) == 3:
+            return cell_dims
 
-            elif len(cell_dims) == 2:
-                cell_dims = tuple(list(cell_dims) + [1])
-                assert len(cell_dims) == 3
-                return cell_dims
+        elif len(cell_dims) == 2:
+            cell_dims = tuple(list(cell_dims) + [1])
+            return cell_dims
 
-            return (1, 1, 1)
-
-        except AttributeError:
-            raise AttributeError
+    @cell_dimensions.setter
+    def cell_dimensions(self, value: Tuple[int, ...]) -> None:
+        self._cell_dimensions = value
 
     @property
     def group(self) -> hoomd.group.group:
         """Return the appropriate group."""
-        if self.parameters.get("group"):
-            return self.parameters.get("group")
+        if self._group:
+            return self._group
 
         if self.molecule.num_particles == 1:
             return hoomd.group.all()
 
         return hoomd.group.rigid_center()
 
+    @group.setter
+    def group(self, value: hoomd.group.group) -> None:
+        self._group = value
+
     @property
     def output(self) -> Path:
-        """Ensure the output directory is a path."""
-        if self.parameters.get("output"):
-            return Path(self.parameters.get("output"))
+        return self._output
 
-        return Path.cwd()
+    @output.setter
+    def output(self, value: Path) -> None:
+        # Ensure value is a Path
+        self._output = Path(value)
 
     @property
-    def outfile(self) -> str:
-        """Ensure the output file is a string."""
-        if self.parameters.get("outfile") is not None:
-            return str(self.parameters.get("outfile"))
+    def outdir(self) -> Path:
+        return self._outdir
 
-        raise AttributeError("Outfile does not exist")
-
-    def filename(self, prefix: str = None) -> str:
-        """Use the simulation parameters to construct a filename."""
-        base_string = "{molecule}-P{pressure:.2f}-T{temperature:.2f}"
-        if prefix:
-            base_string = "{prefix}-" + base_string
-        if self.parameters.get("moment_inertia_scale") is not None:
-            base_string += "-I{mom_inertia:.2f}"
-        if self.parameters.get("harmonic_force") is not None:
-            base_string += "-K{harmonic_force:.2f}"
-        if self.parameters.get("space_group") is not None:
-            base_string += "-{space_group}"
-        fname = base_string.format(
-            prefix=prefix,
-            molecule=self.molecule,
-            pressure=self.pressure,
-            temperature=self.parameters.get("temperature"),
-            mom_inertia=self.parameters.get("moment_inertia_scale"),
-            space_group=self.parameters.get("space_group"),
-            harmonic_force=self.parameters.get("harmonic_force"),
-        )
-        return str(self.output / fname)
-
-
-class paramsContext(object):
-    """Temporarily set parameter values with a context manager.
-
-    This is a context manager that can be used to temporarily set the values of a
-    SimulationParams instance. This simplifies the setup allowing for a single global
-    instance that is modified with every test. The modifications also make it clear
-    what is actually being tested.
-
-    """
-
-    def __init__(self, sim_params: SimulationParams, **kwargs) -> None:
-        """Initialise setValues class.
-
-        Args:
-            sim_params (class:`statdyn.simulation.params.SimulationParams`): The
-                instance that is to be temporarily modified.
-
-        Kwargs:
-            key: value
-
-        Any of the keys and values that are held by a SimulationParams instance.
-        """
-        self.params = sim_params
-        self.modifications = kwargs
-        self.original = {
-            key: sim_params.parameters.get(key)
-            for key in kwargs.keys()
-            if sim_params.parameters.get(key) is not None
-        }
-
-    def __enter__(self) -> SimulationParams:
-        for key, val in self.modifications.items():
-            self.params.parameters[key] = val
-        logger.debug("Parameter on entry %s", str(self.params.parameters))
-        return self.params
-
-    def __exit__(self, exc_type, exc_value, traceback) -> None:
-        for key, _ in self.modifications.items():
-            del self.params.parameters[key]
-        self.params.parameters.update(self.original)
+    @outdir.setter
+    def outdir(self, value: Path) -> None:
+        # Ensure value is a Path
+        self._outdir = Path(value)

@@ -19,6 +19,7 @@ dependencies:
     - ipykernel
     - black=18.5b0
     - mypy
+    - attrs
     - pip=10.*
     - pip:
         - pytest-mypy
