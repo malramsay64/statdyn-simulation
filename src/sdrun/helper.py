@@ -138,15 +138,16 @@ def set_thermo(outfile: str, thermo_period: int = 10000, rigid=True) -> None:
             "rotational_ndof_rigid_center",
         ]
     # TODO Set logger to hdf5 file
+    outfile = outfile.with_suffix(".log")
     hoomd.analyze.log(
-        outfile + ".log", quantities=default + rigid_thermo, period=thermo_period
+        str(outfile), quantities=default + rigid_thermo, period=thermo_period
     )
 
 
 def set_harmonic_force(
     snapshot: hoomd.data.SnapshotParticleData, sim_params: SimulationParams
 ) -> None:
-    assert sim_params.parameters.get("harmonic_force") is not None
+    assert sim_params.harmonic_force is not None
     if sim_params.harmonic_force == 0:
         return
     num_mols = get_num_mols(snapshot)

@@ -17,7 +17,7 @@ from hoomd.data import SnapshotParticleData
 
 from .helper import dump_frame, set_dump, set_harmonic_force, set_integrator, set_thermo
 from .initialise import init_from_crystal, initialise_snapshot, make_orthorhombic
-from .params import SimulationParams, paramsContext
+from .params import SimulationParams
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ def equilibrate(
             group = _interface_group(sys)
 
         # Set mobile group for integrator
-        with paramsContext(sim_params, group=group):
+        with sim_params.temp_context(group=group):
             set_integrator(
                 sim_params, prime_interval, simulation_type, integration_method
             )
@@ -160,7 +160,7 @@ def equil_interface(
 
         interface = _interface_group(sys)
         # Set mobile group for integrator
-        with paramsContext(sim_params, group=interface):
+        with sim_params.temp_context(group=interface):
             set_integrator(sim_params=sim_params, simulation_type="interface")
 
         set_dump(
@@ -184,7 +184,7 @@ def equil_interface(
 def equil_harmonic(
     snapshot: hoomd.data.SnapshotParticleData, sim_params: SimulationParams
 ) -> hoomd.data.SnapshotParticleData:
-    assert sim_params.parameters.get("harmonic_force") is not None
+    assert sim_params.harmonic_force is not None
     temp_context = hoomd.context.initialize(sim_params.hoomd_args)
     sys = initialise_snapshot(snapshot, temp_context, sim_params, minimize=True)
     with temp_context:
@@ -243,8 +243,8 @@ def create_interface(sim_params: SimulationParams) -> SnapshotParticleData:
         init_steps = int(init_steps / 1000)
 
     # Initialise at low init_temp
-    with paramsContext(
-        sim_params, temperature=sim_params.init_temp, num_steps=init_steps
+    with sim_params.temp_context(
+        temperature=sim_params.init_temp, num_steps=init_steps
     ):
         snapshot = init_from_crystal(sim_params)
         # Find NPT minimum of crystal

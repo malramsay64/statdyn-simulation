@@ -18,7 +18,7 @@ from sdrun.crystals import CRYSTAL_FUNCS
 from sdrun.equilibrate import equil_crystal, make_orthorhombic
 from sdrun.initialise import init_from_crystal, init_from_none
 from sdrun.molecules import MOLECULE_DICT
-from sdrun.params import SimulationParams, paramsContext
+from sdrun.params import SimulationParams
 from sdrun.simrun import run_npt
 
 HOOMD_ARGS = "--mode=cpu"
@@ -73,7 +73,7 @@ def test_orthorhombic_sims(cell_dimensions, sim_params_crystal):
     sim_params = sim_params_crystal
     # Multiple of 6 works nicely with the p2 cyrstal
     cell_dimensions = cell_dimensions * 6
-    with paramsContext(sim_params, cell_dimensions=cell_dimensions):
+    with sim_params.temp_context(cell_dimensions=cell_dimensions):
         snapshot = init_from_crystal(sim_params)
         snapshot = equil_crystal(snapshot, sim_params)
     snapshot = make_orthorhombic(snapshot)
@@ -86,7 +86,7 @@ def test_file_placement(sim_params):
     """Ensure files are located in the correct directory when created."""
     snapshot = init_from_none(sim_params)
     context = hoomd.context.initialize(sim_params.hoomd_args)
-    with paramsContext(sim_params, dynamics=True):
+    with sim_params.temp_context(dynamics=True):
         run_npt(snapshot, context, sim_params)
 
     params = {

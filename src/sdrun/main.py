@@ -52,7 +52,7 @@ def prod(sim_params: SimulationParams) -> None:
     )
     logger.debug("Snapshot initialised")
     sim_context = hoomd.context.initialize(sim_params.hoomd_args)
-    if sim_params.parameters.get("harmonic_force") is not None:
+    if sim_params.harmonic_force is not None:
         run_harmonic(snapshot, sim_context, sim_params)
     else:
         run_npt(snapshot, sim_context, sim_params)
@@ -75,7 +75,7 @@ def equil(sim_params: SimulationParams) -> None:
 def create(sim_params: SimulationParams) -> None:
     """Create things."""
     logger.debug("Running create.")
-    if sim_params.parameters.get("crystal"):
+    if sim_params.crystal is not None:
         snapshot = init_from_crystal(sim_params)
     else:
         snapshot = init_from_none(sim_params)

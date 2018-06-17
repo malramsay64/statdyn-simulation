@@ -26,7 +26,7 @@ from sdrun.initialise import (
     make_orthorhombic,
 )
 from sdrun.molecules import MOLECULE_DICT
-from sdrun.params import SimulationParams, paramsContext
+from sdrun.params import SimulationParams
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -164,7 +164,7 @@ def test_moment_inertia(sim_params, scaling_factor):
     logger.debug("Moment Intertia before scaling: %s", init_mol)
     init_mol *= scaling_factor
     logger.debug("Moment Intertia after scaling: %s", init_mol)
-    with paramsContext(sim_params, moment_inertia_scale=scaling_factor):
+    with sim_params.temp_context(moment_inertia_scale=scaling_factor):
         snapshot = init_from_none(sim_params)
         context = hoomd.context.initialize(sim_params.hoomd_args)
         snapshot = initialise_snapshot(snapshot, context, sim_params).take_snapshot()

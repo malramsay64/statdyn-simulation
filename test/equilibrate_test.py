@@ -22,7 +22,7 @@ from sdrun.equilibrate import (
     equilibrate,
 )
 from sdrun.initialise import init_from_crystal, make_orthorhombic
-from sdrun.params import SimulationParams, paramsContext
+from sdrun.params import SimulationParams
 
 
 @pytest.fixture(params=CRYSTAL_FUNCS.values(), ids=CRYSTAL_FUNCS.keys())
@@ -68,7 +68,7 @@ def test_orthorhombic_equil(sim_params):
 
 
 def test_create_interface(sim_params):
-    with paramsContext(sim_params, init_temp=0.4, temperature=3.0):
+    with sim_params.temp_context(init_temp=0.4, temperature=3.0):
         snapshot = create_interface(sim_params)
 
     assert snapshot.box.xy == 0
@@ -97,7 +97,7 @@ def test_equilibrate(sim_params, equil_type):
     snap_min = init_from_crystal(sim_params)
 
     # Equilibration
-    with paramsContext(sim_params, harmonic_force=1):
+    with sim_params.temp_context(harmonic_force=1):
         snapshot = equilibrate(snap_min, sim_params, equil_type)
 
     # Simulation box within 10% of initialisation
