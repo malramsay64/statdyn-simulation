@@ -10,7 +10,7 @@
 import logging
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import attr
 import hoomd
@@ -25,12 +25,14 @@ logger = logging.getLogger(__name__)
 class SimulationParams(object):
     """Store the parameters of the simulation."""
     # Thermodynamic Params
-    _temperature: float
+    _temperature: float = 0.4
     tau: float = attr.ib(default=1.0, repr=False)
     pressure: float = 13.5
     tauP: float = attr.ib(default=1.0, repr=False)
     init_temp: Optional[float] = None
     _group: Optional[hoomd.group.group] = None
+    equil_type: str = attr.ib("liquid")
+    minimize: bool = False
 
     # Molecule params
     _molecule: Optional[Molecule] = None
@@ -40,19 +42,26 @@ class SimulationParams(object):
     # Crystal Params
     crystal: Optional[Crystal] = None
     _cell_dimensions: Tuple[int, ...] = (30, 42, 30)
+    interface: bool = False
+    space_group: str = None
 
     # Step Params
     num_steps: Optional[int] = None
+    step_size: float = 0.005
     max_gen: int = attr.ib(default=500, repr=False)
     gen_steps: int = attr.ib(default=20_000, repr=False)
     output_interval: int = attr.ib(default=10_000, repr=False)
+    dynamics: bool = attr.ib(False, repr=False)
 
     # File Params
-    _output: Optional[Path] = attr.ib(
-        default=None, converter=attr.converters.optional(Path)
+    _infile: Optional[Path] = attr.ib(
+        default=None, converter=attr.converters.optional(Path), repr=False
     )
-    _outdir: Optional[Path] = attr.ib(
-        default=None, converter=attr.converters.optional(Path)
+    _outfile: Optional[Path] = attr.ib(
+        default=None, converter=attr.converters.optional(Path), repr=False
+    )
+    _output: Path = attr.ib(
+        default=Path.cwd(), converter=attr.converters.optional(Path), repr=False
     )
 
     hoomd_args: str = attr.ib(default="", repr=False)
