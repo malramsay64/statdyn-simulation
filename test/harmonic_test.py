@@ -15,7 +15,7 @@ import hoomd
 import pytest
 
 from sdrun.crystals import CRYSTAL_FUNCS
-from sdrun.equilibrate import equil_harmonic
+from sdrun.equilibrate import equilibrate
 from sdrun.initialise import init_from_crystal, minimize_snapshot
 from sdrun.params import SimulationParams
 from sdrun.simrun import run_harmonic
@@ -51,6 +51,6 @@ def test_minimize_box(sim_params):
 
 def test_run_harmonic(sim_params):
     snap_init = init_from_crystal(sim_params)
-    snap_equil = equil_harmonic(snap_init, sim_params)
+    snap_equil = equilibrate(snap_init, sim_params, equil_type="harmonic")
     context = hoomd.context.initialize(sim_params.hoomd_args)
     run_harmonic(snap_equil, context, sim_params)

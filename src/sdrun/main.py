@@ -180,7 +180,3 @@ def create(sim_params, interface: bool, outfile: Path) -> None:
     else:
         snapshot = init_from_none(sim_params)
     equilibrate(snapshot, sim_params, equil_type="crystal")
-
-
-if __name__ == "__main__":
-    sdrun()

@@ -14,13 +14,7 @@ import numpy as np
 import pytest
 
 from sdrun.crystals import CRYSTAL_FUNCS
-from sdrun.equilibrate import (
-    create_interface,
-    equil_crystal,
-    equil_interface,
-    equil_liquid,
-    equilibrate,
-)
+from sdrun.equilibrate import create_interface, equilibrate
 from sdrun.initialise import init_from_crystal, make_orthorhombic
 from sdrun.params import SimulationParams
 
@@ -41,7 +35,7 @@ def sim_params(request):
 def test_equil_crystal(sim_params):
     """Ensure the equilibration is close to initialisation."""
     snap_min = init_from_crystal(sim_params)
-    snap_equil = equil_crystal(snap_min, sim_params)
+    snap_equil = equilibrate(snap_min, sim_params, equil_type="crystal")
 
     # Simulation box within 10% of initialisation
     for attribute in ["Lx", "Ly", "Lz", "xy", "xz", "yz"]:
@@ -56,7 +50,7 @@ def test_orthorhombic_equil(sim_params):
     """Ensure the equilibration is close to initialisation."""
     snap_min = init_from_crystal(sim_params)
     snap_ortho = make_orthorhombic(snap_min)
-    snap_equil = equil_crystal(snap_ortho, sim_params)
+    snap_equil = equilibrate(snap_ortho, sim_params, equil_type="crystal")
 
     # Simulation box within 10% of initialisation
     for attribute in ["Lx", "Ly", "Lz", "xy", "xz", "yz"]:
@@ -78,16 +72,20 @@ def test_create_interface(sim_params):
 
 def test_equil_interface(sim_params):
     snap_min = init_from_crystal(sim_params)
-    snap_equil = equil_crystal(snap_min, sim_params)
-    snap_int = equil_interface(snap_equil, sim_params)
+    snap_equil = equilibrate(snap_min, sim_params, equil_type="crystal")
+    snap_int = equilibrate(snap_equil, sim_params, equil_type="interface")
     assert snap_int.box.xy == 0
     assert snap_int.box.xz == 0
     assert snap_int.box.yz == 0
 
 
 def test_equil_liquid(sim_params):
-    equil_liquid(init_from_crystal(sim_params), sim_params)
-    assert True
+    snap_init = init_from_crystal(sim_params)
+    snap_equil = equilibrate(snap_init, sim_params, equil_type="liquid")
+
+    assert snap_equil.box.xy == 0
+    assert snap_equil.box.xz == 0
+    assert snap_equil.box.yz == 0
 
 
 @pytest.mark.parametrize("equil_type", ["liquid", "crystal", "interface", "harmonic"])
