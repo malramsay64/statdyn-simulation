@@ -12,25 +12,26 @@ import logging
 import subprocess
 import sys
 from pathlib import Path
+from pprint import pformat
 from tempfile import TemporaryDirectory
 
 import pytest
-from sdrun.main import parse_args
+from click.testing import CliRunner
+
+from sdrun.main import sdrun
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-@pytest.fixture
-def output_directory():
-    with TemporaryDirectory() as tmp_dst:
-        yield tmp_dst
-
-
-TEST_ARGS = [
-    ["prod", "test/data/Trimer-13.50-3.00.gsd", "-t", "3.00", "--no-dynamics"],
-    [
-        "create",
+@pytest.fixture(params=["create", "equil", "prod"])
+def arguments(request):
+    common_args = [
+        "--hoomd-args",
+        '"--mode=cpu"',
+        "-s",
+        "100",
+        "-vv",
         "-t",
         "2.50",
         "--space-group",
@@ -38,50 +39,60 @@ TEST_ARGS = [
         "--lattice-lengths",
         "20",
         "24",
-        "test_create.gsd",
-    ],
-    ["equil", "-t", "2.50", "test/data/Trimer-13.50-3.00.gsd", "test_equil.gsd"],
-]
+    ]
+    args = []
 
-COMMON_ARGS = ["--hoomd-args", '"--mode=cpu"', "-s", "100", "-vv"]
+    with TemporaryDirectory() as tmp_dst:
+        tmp_dst = Path(tmp_dst)
+        common_args += ["-o", str(tmp_dst / "output")]
+
+        if request.param == "create":
+            args = ["create", str(tmp_dst / "test_create.gsd")]
+        elif request.param == "equil":
+            args = [
+                "equil",
+                "liquid",
+                "test/data/Trimer-13.50-3.00.gsd",
+                str(tmp_dst / "test_equil.gsd"),
+            ]
+        elif request.param == "prod":
+            args = ["prod", "--no-dynamics", "test/data/Trimer-13.50-3.00.gsd"]
+
+        yield common_args + args
 
 
-@pytest.mark.parametrize("arguments", TEST_ARGS)
-def test_manually(arguments, output_directory):
+@pytest.fixture
+def runner():
+    return CliRunner()
+
+
+def test_manually(arguments, runner):
     """Testing the functionality of the argument parsing.
 
     This test replicates the operations of the main() function in a more manual fashion, ensuring
     the parseing of the arguments works appropriately.
 
     """
-    logging.debug("output_directory: %s", output_directory)
-    # Use temporary directory for output files
-    if arguments[0] in ["create", "equil"]:
-        arguments[-1] = str(Path(output_directory) / arguments[-1])
-    func, sim_params = parse_args(arguments + COMMON_ARGS + ["-o", output_directory])
-    func(sim_params)
+    result = runner.invoke(sdrun, arguments)
+    logger.debug("Runner output: \n%s", result.output)
+    assert result.exit_code == 0
 
 
-@pytest.mark.parametrize("arguments", TEST_ARGS)
-def test_commands(arguments, output_directory):
+def test_commands(arguments):
     """Ensure sdrun command line interface works.
 
     This tests the command line interface is both installed and working correctly, testing each of
     the main arguments.
 
     """
-    logging.debug("output_directory: %s", output_directory)
-    # Use temporary directory for output files
-    if arguments[0] in ["create", "equil"]:
-        arguments[-1] = str(Path(output_directory) / arguments[-1])
-    command = ["sdrun"] + arguments + COMMON_ARGS + ["-o", output_directory]
+    command = ["sdrun"] + arguments
+    logger.debug("Running command: \n%s", pformat(command))
     ret = subprocess.run(command)
     assert ret.returncode == 0
 
 
 @pytest.mark.skipif(sys.platform == "darwin", reason="No MPI support on macOS")
-@pytest.mark.parametrize("arguments", TEST_ARGS)
-def test_commands_mpi(arguments, output_directory):
+def test_commands_mpi(arguments):
     """Ensure sdrun command line interface works with mpi.
 
     This ensures that running commands with MPI doesn't break things unexpectedly. The test is only
@@ -89,15 +100,6 @@ def test_commands_mpi(arguments, output_directory):
     exactly the same as the test_commands tests, apart from running with mpi.
 
     """
-    logging.debug("output_directory: %s", output_directory)
-    # Use temporary directory for output files
-    if arguments[0] in ["create", "equil"]:
-        arguments[-1] = str(Path(output_directory) / arguments[-1])
-    command = (
-        ["mpirun", "-np", "4", "sdrun"]
-        + arguments
-        + COMMON_ARGS
-        + ["-o", output_directory]
-    )
+    command = ["mpirun", "-np", "4", "sdrun"] + arguments
     ret = subprocess.run(command)
     assert ret.returncode == 0

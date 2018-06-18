@@ -34,6 +34,7 @@ def init_from_file(
     logger.debug("Hoomd Arguments: %s", hoomd_args)
     temp_context = hoomd.context.initialize(hoomd_args)
     with temp_context:
+        logger.debug("Reading snapshot: %s", fname)
         snapshot = hoomd.data.gsd_snapshot(str(fname), frame=0)
         sys = hoomd.init.read_snapshot(snapshot)
         rigid = molecule.define_rigid()
@@ -174,9 +175,9 @@ def init_from_crystal(sim_params: SimulationParams) -> hoomd.data.SnapshotPartic
             generate the simulation from.
     """
     logger.info("Hoomd Arguments: %s", sim_params.hoomd_args)
-    assert hasattr(sim_params, "cell_dimensions")
-    assert hasattr(sim_params, "crystal")
-    assert hasattr(sim_params, "molecule")
+    assert sim_params.cell_dimensions is not None
+    assert sim_params.crystal is not None
+    assert sim_params.molecule is not None
     temp_context = hoomd.context.initialize(sim_params.hoomd_args)
     with temp_context:
         logger.debug(
