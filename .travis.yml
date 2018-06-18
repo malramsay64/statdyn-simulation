@@ -13,9 +13,8 @@ install:
 
   - conda env update
   - source activate sdrun-dev
-  - python setup.py install
-  - python setup.py build_ext --inplace
-  - pip install codecov
+  - pip install .
+  - conda install -c conda-forge codecov
 
 script:
     - pytest
