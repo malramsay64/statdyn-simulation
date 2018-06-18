@@ -8,14 +8,12 @@
 
 """Test the parsing of arguments gives the correct results."""
 
-from pathlib import Path
-from tempfile import TemporaryDirectory
+from typing import NamedTuple
 
 import pytest
+from click.testing import CliRunner
 
-from sdrun.main import create_parser, parse_args
-
-parser = create_parser()
+from sdrun.main import __version__, create, equil, prod, sdrun
 
 FUNCS = [
     ("prod", ["infile"]),
@@ -24,49 +22,27 @@ FUNCS = [
 ]
 
 
-@pytest.mark.parametrize("func, extras", FUNCS)
-def test_verbose(func, extras):
-    args = parser.parse_args([func, "-v"] + extras)
-    assert args.verbose == 1
-    args = parser.parse_args([func, "--verbose"] + extras)
-    assert args.verbose == 1
-    args = parser.parse_args([func] + ["-v"] * 3 + extras)
-    assert args.verbose == 3
+@pytest.fixture
+def runner():
+    yield CliRunner()
 
 
-@pytest.mark.parametrize("func, extras", FUNCS)
-def test_version(func, extras):
-    with pytest.raises(SystemExit) as e:
-        parser.parse_args(["--version"])
-        assert e == 0
-    with pytest.raises(SystemExit) as e:
-        parser.parse_args([func, "--version"])
-        assert e == 0
-    with pytest.raises(SystemExit) as e:
-        parser.parse_args(["--version", func])
-        assert e == 0
+@pytest.fixture(params=["create", "equil", "prod"])
+def subcommands(request):
+
+    class Subcommand(NamedTuple):
+        command: Callable
+        params: List
+
+    if request.param == "create":
+        yield Subcommand(create, ["infile"])
+    elif request.param == "equil":
+        yield Subcommand(equil, ["infile", "outfile"])
+    elif request.param == "prod":
+        yield Subcommand(prod, ["outfile"])
 
 
-def test_hoomd_args():
-    args = parser.parse_args(
-        ["equil", "--hoomd-args", '"-mode=cpu"', "infile", "outfile"]
-    )
-    assert args.hoomd_args == '"-mode=cpu"'
-
-
-@pytest.mark.parametrize("func, extras", FUNCS)
-def test_output_directory(func, extras):
-    with TemporaryDirectory() as tempdir:
-        output = Path(tempdir) / "output"
-        parse_args([func, "--output", str(output)] + extras)
-        assert output.exists()
-
-
-@pytest.mark.parametrize("func, extras", FUNCS)
-def test_outfile_directory(func, extras):
-    if "outfile" in extras:
-        with TemporaryDirectory() as tempdir:
-            outfile = Path(tempdir) / "outdir" / "outfile"
-            extras[extras.index("outfile")] = str(outfile)
-            parse_args([func] + extras)
-            assert outfile.parent.exists()
+def test_version(runner):
+    result = runner.invoke(sdrun, ["--version"])
+    assert "sdrun" in result.output
+    assert __version__ in result.output
