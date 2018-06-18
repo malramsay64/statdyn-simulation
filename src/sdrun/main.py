@@ -10,7 +10,6 @@
 import logging
 from pathlib import Path
 from pprint import pformat
-from typing import Callable, List
 
 import click
 import hoomd.context

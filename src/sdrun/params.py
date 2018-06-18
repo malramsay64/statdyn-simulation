@@ -10,7 +10,7 @@
 import logging
 from contextlib import contextmanager
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 
 import attr
 import hoomd
@@ -117,14 +117,13 @@ class SimulationParams(object):
         if len(cell_dims) == 1:
             cell_dims = cell_dims * self.molecule.dimensions
 
-        if len(cell_dims) == 3:
-            if self.molecule.dimensions == 2:
-                cell_dims[2] = 1
-            return tuple(cell_dims)
-
-        elif len(cell_dims) == 2:
+        if len(cell_dims) == 2:
             cell_dims = cell_dims + [1]
-            return tuple(cell_dims)
+            return (cell_dims[0], cell_dims[1], cell_dims[2])
+
+        if self.molecule.dimensions == 2:
+            cell_dims[2] = 1
+        return (cell_dims[0], cell_dims[1], cell_dims[2])
 
     @cell_dimensions.setter
     def cell_dimensions(self, value: Tuple[int, ...]) -> None:
