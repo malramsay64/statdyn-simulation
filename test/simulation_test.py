@@ -35,7 +35,6 @@ def sim_params(request):
             outfile=Path(tmp_dir) / "testout",
             dynamics=False,
             hoomd_args=HOOMD_ARGS,
-            minimize=True,
         )
 
 
@@ -50,7 +49,6 @@ def sim_params_crystal(request):
             outfile=Path(tmp_dir) / "testout",
             dynamics=False,
             hoomd_args=HOOMD_ARGS,
-            minimize=True,
         )
 
 

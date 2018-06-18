@@ -31,8 +31,6 @@ class SimulationParams(object):
     tauP: float = attr.ib(default=1.0, repr=False)
     init_temp: Optional[float] = None
     _group: Optional[hoomd.group.group] = None
-    equil_type: str = attr.ib("liquid")
-    minimize: bool = False
 
     # Molecule params
     _molecule: Optional[Molecule] = None
@@ -176,13 +174,6 @@ class SimulationParams(object):
         # Ensure value is a Path
         if value is not None:
             self._output = Path(value)
-
-    @equil_type.validator
-    def validate_equil_type(self, attribute, value):
-        if value not in ["liquid", "crystal", "interface", "harmonic"]:
-            raise ValueError(
-                "'equil_type' must be one of '(liquid|crystal|interface|harmonic)'"
-            )
 
     def filename(self, prefix: str = None) -> Path:
         """Use the simulation parameters to construct a filename."""
