@@ -13,7 +13,7 @@ install:
 
   - conda env update
   - source activate sdrun-dev
-  - pip install .
+  - pip install -e .
   - conda install -c conda-forge codecov
 
 script:
