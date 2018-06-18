@@ -42,7 +42,6 @@ class SimulationParams(object):
     # Crystal Params
     crystal: Optional[Crystal] = None
     _cell_dimensions: Tuple[int, ...] = (30, 42, 30)
-    interface: bool = False
     space_group: str = None
 
     # Step Params

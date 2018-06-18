@@ -16,7 +16,7 @@ import click
 import hoomd.context
 
 from .crystals import CRYSTAL_FUNCS
-from .equilibrate import equilibrate
+from .equilibrate import create_interface, equilibrate
 from .initialise import init_from_crystal, init_from_file, init_from_none
 from .molecules import Dimer, Disc, Sphere, Trimer
 from .params import SimulationParams
@@ -171,6 +171,10 @@ def create(sim_params, interface: bool, outfile: Path) -> None:
     """Create things."""
     logger.debug("Running create.")
     sim_params.outfile = outfile
+    if interface:
+        create_interface(sim_params)
+        return
+
     if sim_params.crystal is not None:
         snapshot = init_from_crystal(sim_params)
     else:
