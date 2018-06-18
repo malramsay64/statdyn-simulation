@@ -150,6 +150,7 @@ def test_interface(sim_params, pressure, temperature):
         "--hoomd-args",
         '"--mode=cpu"',
         "equil",
+        "--equil-type",
         "interface",
         str(Path(outdir) / "P{:.2f}-T{:.2f}.gsd".format(pressure, init_temp)),
         str(Path(outdir) / "P{:.2f}-T{:.2f}.gsd".format(pressure, temperature)),

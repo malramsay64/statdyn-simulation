@@ -51,6 +51,7 @@ def arguments(request):
         elif request.param == "equil":
             args = [
                 "equil",
+                "--equil-type",
                 "liquid",
                 "test/data/Trimer-13.50-3.00.gsd",
                 str(tmp_dst / "test_equil.gsd"),
