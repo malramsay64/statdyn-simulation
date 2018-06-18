@@ -142,7 +142,9 @@ def prod(sim_params: SimulationParams, dynamics: bool, infile: Path) -> None:
 
 @sdrun.command()
 @click.pass_obj
-@click.argument("equil_type", type=str)
+@click.argument(
+    "equil_type", type=click.Choice(["liquid", "crystal", "interface", "harmonic"])
+)
 @click.argument("infile", type=click.Path(exists=True, file_okay=True, dir_okay=False))
 @click.argument("outfile", type=click.Path(exists=None, file_okay=True, dir_okay=False))
 def equil(
