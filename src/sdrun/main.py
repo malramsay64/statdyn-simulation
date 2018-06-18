@@ -127,7 +127,6 @@ def prod(sim_params: SimulationParams, dynamics: bool, infile: Path) -> None:
     """Run simulations on equilibrated phase."""
     logger.debug("running prod")
     sim_params.infile = infile
-    sim_params.dynamics = dynamics
     logger.debug("Reading %s", sim_params.infile)
 
     snapshot = init_from_file(
@@ -139,7 +138,7 @@ def prod(sim_params: SimulationParams, dynamics: bool, infile: Path) -> None:
     if sim_params.harmonic_force is not None:
         run_harmonic(snapshot, sim_context, sim_params)
     else:
-        run_npt(snapshot, sim_context, sim_params)
+        run_npt(snapshot, sim_context, sim_params, dynamics)
 
 
 @sdrun.command()

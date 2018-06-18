@@ -48,7 +48,6 @@ class SimulationParams(object):
     max_gen: int = attr.ib(default=500, repr=False)
     gen_steps: int = attr.ib(default=20_000, repr=False)
     output_interval: int = attr.ib(default=10_000, repr=False)
-    dynamics: bool = attr.ib(False, repr=False)
 
     # File Params
     _infile: Optional[Path] = attr.ib(

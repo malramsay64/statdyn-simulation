@@ -30,6 +30,7 @@ def run_npt(
     snapshot: hoomd.data.SnapshotParticleData,
     context: hoomd.context.SimulationContext,
     sim_params: SimulationParams,
+    dynamics: bool = True,
 ) -> None:
     """Initialise and run a hoomd npt simulation.
 
@@ -53,7 +54,7 @@ def run_npt(
             dump_period=sim_params.output_interval,
             group=sim_params.group,
         )
-        if sim_params.dynamics:
+        if dynamics:
             iterator = GenerateStepSeries(
                 sim_params.num_steps,
                 num_linear=100,
