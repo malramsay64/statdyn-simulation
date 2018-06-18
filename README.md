@@ -40,37 +40,69 @@ Running Simulations
 -------------------
 
 Interaction with the program is currently through the command line, using the
-command line arguments to specify the various parameters.
+command line arguments to specify the various parameters. There are two types
+of parameters that can be specified. 
 
-To create a crystal structure for a simulation run
+The simulation options, which map to the internal SimulationParams class, which
+are the general properties of the simulation. These idea is that these options
+will be shared across all simulation types. The simulation options are
+specified after the `sdrun` portion of the command.
 
-    sdrun create --space-group p2 -s 1000 test.gsd
+```bash
+$ sdrun --temperature 0.4 --pressure 13.5 --num-steps 1000 --molecule trimer ...
+```
 
-which will generate a file which has a trimer molecule with a p2 crystal
-structure. The simulation will be run for 1000 steps at a default low
-temperature to relax any stress.
+The other option are the simulation specific options and arguments. These are
+specific to each simulation type. The simulation specific options are specified
+after the simulation type.
 
-For other options see
+```bash
+$ sdrun --temperature 0.4 --pressure 13.5 --num-steps 1000 --molecule trimer \
+  create --interface interface.gsd
+```
 
-    sdrun create --help
+There is documentation on each of the options and arguments that can be
+specified in the help of the command.
 
-This output file we created can then be equilibrated using
+To create a crystal structure for a simulation, the command 
 
-    sdrun equil -t 1.2 -s 1000 test.gsd test-1.2.gsd
+```bash
+$ sdrun --space-group p2 --num-steps 1000 --temperature 0.4 create test.gsd
+```
 
-which will gradually bring the temperature from the default to 1.2 over 1000
-steps with the final configuration output to `test-1.2.gsd`. This is unlikely
-to actually equilibrate this configuration, but it will run fast.
+will generate a file which has a trimer molecule with a p2 crystal structure.
+The simulation will be run for 1000 steps at a temperature of 0.4.
 
-A production run can be run with the `prod` sub-command
+The output file we created be equilibrated at a higher temperature using the command
 
-    sdrun prod -t 1.2 -s 1000 test-1.2.gsd
+```bash
+$ sdrun --space-group p2 --num-steps 1000 --temperature 1.2 --init-temp 0.4 \
+  equil --equil-type crystal test.gsd test-equil.gsd
+```
+
+which will gradually increase the temperature from 0.4 to 1.2 over 1000 steps
+with the final configuration output to `test-1.2.gsd`. This equilibration will
+use the equilibration type of crystal, allowing the simulation cell to tilt and
+adjusting the length of each side of the box independently. This is unlikely to
+equilibrate this configuration; however, it runs in a reasonable time.
+
+A production simulation can be run with the `prod` sub-command
+
+```bash
+$ sdrun --space-group p2 --num-steps 1000 --temperature 1.2 --init-temp 0.4 \
+  prod test-equil.gsd
+```
 
 This has a different series of options including outputting a series of
-timesteps optimised for the analysis of dynamics quantities in the file
+timesteps optimised for the analysis of dynamics quantities in a file
 prefixed with `trajectory-`. 
 
-For the analysis of the resulting trajectories the [sdanalysis][sdanalyis] tool
-can be used.
+Another tool I have written, [sdanalysis][sdanalyis] can be used to easily
+analyse the resulting trajectories.
+
+For running simulations with many different parameters, [experi][experi]
+provides an easy to read yaml interface for running a series of command line
+scripts with a complex set of variables.
 
 [sdanalysis]: https://github.com/malramsay64/statdyn-analysis
+[experi]: https://github.com/malramsay64/experi
