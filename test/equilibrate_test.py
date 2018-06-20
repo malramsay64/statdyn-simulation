@@ -38,12 +38,12 @@ def test_orthorhombic_equil(sim_params):
     snap_ortho = make_orthorhombic(snap_min)
     snap_equil = equilibrate(snap_ortho, sim_params, equil_type="crystal")
 
-    # Simulation box within 10% of initialisation
+    # Simulation box within 20% of initialisation
     for attribute in ["Lx", "Ly", "Lz", "xy", "xz", "yz"]:
         assert np.isclose(
             getattr(snap_ortho.box, attribute),
             getattr(snap_equil.box, attribute),
-            rtol=0.1,
+            rtol=0.2,
         )
 
 
@@ -69,7 +69,9 @@ def test_equilibrate(sim_params, equil_type):
     # Simulation box within 10% of initialisation
     for attribute in ["Lx", "Ly", "Lz", "xy", "xz", "yz"]:
         assert np.isclose(
-            getattr(snap_min.box, attribute), getattr(snapshot.box, attribute), rtol=0.1
+            getattr(snap_min.box, attribute),
+            getattr(snapshot.box, attribute),
+            rtol=0.20,
         )
     if equil_type in ["liquid", "interface"]:
         assert snapshot.box.xy == 0
