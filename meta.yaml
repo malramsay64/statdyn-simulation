@@ -27,6 +27,7 @@ requirements:
         - hoomd-harmonic-force >=0.1.7
         - setuptools *
         - attrs
+        - click
 
 build:
     entry_points:
