@@ -20,6 +20,7 @@ dependencies:
     - black=18.5b0
     - mypy
     - attrs
+    - click
     - pip=10.*
     - pip:
         - pytest-mypy
