@@ -71,10 +71,16 @@ class SimulationParams(object):
         if self.init_temp is None:
             return self._temperature
 
+        assert self.init_temp > 0
+        assert self.num_steps is not None
+        assert self.num_steps > 0
+
+        ramp_steps = int(min(0.75e6, self.num_steps * 0.75))
+        logger.debug("Ramp steps: %d", ramp_steps)
         return hoomd.variant.linear_interp(
             [
                 (0, self.init_temp),
-                (int(self.num_steps * 0.75), self._temperature),
+                (ramp_steps, self._temperature),
                 (self.num_steps, self._temperature),
             ],
             zero="now",
