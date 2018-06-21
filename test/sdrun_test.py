@@ -16,7 +16,6 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import pytest
-from click.testing import CliRunner
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -89,12 +88,7 @@ def arguments(request):
         yield common_args + args
 
 
-@pytest.fixture
-def runner():
-    return CliRunner()
-
-
-def test_commands(arguments, runner):
+def test_commands(arguments):
     """Ensure sdrun command line interface works.
 
     This tests the command line interface is both installed and working correctly, testing each of
