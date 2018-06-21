@@ -16,7 +16,7 @@ import hoomd.md
 import numpy as np
 from hoomd.data import SnapshotParticleData
 
-from .helper import dump_frame, set_dump, set_harmonic_force, set_integrator, set_thermo
+from .util import dump_frame, set_dump, set_harmonic_force, set_integrator, set_thermo
 from .initialise import init_from_crystal, initialise_snapshot, make_orthorhombic
 from .params import SimulationParams
 from .StepSize import GenerateStepSeries

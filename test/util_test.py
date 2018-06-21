@@ -6,14 +6,14 @@
 #
 # Distributed under terms of the MIT license.
 
-"""Test the helper module."""
+"""Test the util module."""
 
 import hoomd
 import pytest
 from hoomd.data import boxdim, make_snapshot
 
 # TODO set_integrator, set_debug, set_dump, dump_frame, set_thermo, set_harmonic_force
-from sdrun.helper import NumBodies, _get_num_bodies, get_num_mols, get_num_particles
+from sdrun.util import NumBodies, _get_num_bodies, get_num_mols, get_num_particles
 
 
 @pytest.fixture

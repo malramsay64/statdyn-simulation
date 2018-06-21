@@ -18,7 +18,7 @@ import hoomd
 import hoomd.md
 import numpy as np
 
-from .helper import get_num_mols, get_num_particles
+from .util import get_num_mols, get_num_particles
 from .molecules import Molecule
 from .params import SimulationParams
 
