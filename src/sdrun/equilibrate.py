@@ -52,6 +52,8 @@ def equilibrate(
     if equil_type in ["liquid", "interface"]:
         snapshot = make_orthorhombic(snapshot)
 
+    logger.debug("Snapshot box size: %s", snapshot.box)
+
     temp_context = hoomd.context.initialize(sim_params.hoomd_args)
     sys = initialise_snapshot(snapshot, temp_context, sim_params)
 
@@ -91,6 +93,12 @@ def equilibrate(
         logger.debug(
             "Running %s equilibration for %d steps.", equil_type, sim_params.num_steps
         )
+        logger.debug(
+            "Simulation box size: %f, %f, %f", sys.box.Lx, sys.box.Ly, sys.box.Lz
+        )
+        logger.debug("Simulation box dimensions: %d", sys.box.dimensions)
+        logger.debug("Simulation num particles: %d", sys.particles.pdata.getN())
+
         hoomd.run(sim_params.num_steps)
         logger.debug("Equilibration completed")
 
