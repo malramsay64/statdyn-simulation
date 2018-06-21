@@ -113,15 +113,9 @@ def create_interface(sim_params: SimulationParams) -> SnapshotParticleData:
     assert sim_params.num_steps > 0
 
     # Initialisation typically requires fewer steps than melting
-    init_steps = sim_params.num_steps
-    if init_steps < 1_000:
-        pass
-    if init_steps < 100_000:
-        init_steps = int(init_steps / 10)
-    elif init_steps < 1_000_000:
-        init_steps = int(init_steps / 100)
-    else:
-        init_steps = int(init_steps / 1000)
+    # 100 initialisation steps is a 'magic number' which works for the p2 crystal. I don't know why
+    # this works however it is a TODO item.
+    init_steps = min(sim_params.num_steps, 100)
 
     # Initialise at low init_temp
     with sim_params.temp_context(
