@@ -154,7 +154,7 @@ def test_function_passing(sim_params):
     assert sim_params.num_steps == 1000
 
 
-@given(floats(min_value=0, max_value=20), floats(min_value=0, max_value=20))
+@given(floats(min_value=0.1, max_value=20), floats(min_value=0.1, max_value=20))
 def test_filename_simple(sim_params, temperature, pressure):
     intended_fname = f"Trimer-P{pressure:.2f}-T{temperature:.2f}.gsd"
     with sim_params.temp_context(temperature=temperature, pressure=pressure):

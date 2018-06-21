@@ -45,6 +45,7 @@ def equilibrate(
     assert sim_params.hoomd_args is not None
     assert sim_params.group is not None
     assert sim_params.output_interval is not None
+    assert sim_params.num_steps is not None
     assert sim_params.num_steps > 0
 
     # Ensure orthorhombic liquid and interface
@@ -109,7 +110,9 @@ def create_interface(sim_params: SimulationParams) -> SnapshotParticleData:
     function which goes through those steps with the intent of having melted the liquid component
     and having high temperature liquid--crystal interface.
     """
+    assert sim_params.init_temp is not None
     assert sim_params.init_temp > 0
+    assert sim_params.num_steps is not None
     assert sim_params.num_steps > 0
 
     # Initialisation typically requires fewer steps than melting
