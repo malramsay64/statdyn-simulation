@@ -14,6 +14,8 @@ from typing import List, NamedTuple
 
 import hoomd
 import hoomd.md as md
+import numpy as np
+from hoomd.data import SnapshotParticleData
 from hoomd.harmonic_force import HarmonicForceCompute
 
 from .params import SimulationParams
@@ -163,6 +165,14 @@ def set_harmonic_force(
         sim_params.harmonic_force,
         sim_params.harmonic_force,
     )
+
+
+def randomise_momenta(snapshot: SnapshotParticleData) -> SnapshotParticleData:
+    """Randomise the momenta of particles in a snapshot."""
+    num_mols = get_num_mols(snapshot)
+    np.random.shuffle(snapshot.particles.velocity[:num_mols])
+    np.random.shuffle(snapshot.particles.angmom[:num_mols])
+    return snapshot
 
 
 class NumBodies(NamedTuple):
