@@ -152,7 +152,7 @@ def set_thermo(outfile: Path, thermo_period: int = 10000, rigid=True) -> None:
 
 
 def set_harmonic_force(
-    snapshot: hoomd.data.SnapshotParticleData, sim_params: SimulationParams
+    snapshot: SnapshotParticleData, sim_params: SimulationParams
 ) -> None:
     assert sim_params.harmonic_force is not None
     if sim_params.harmonic_force == 0:
@@ -180,7 +180,7 @@ class NumBodies(NamedTuple):
     molecules: int
 
 
-def _get_num_bodies(snapshot: hoomd.data.SnapshotParticleData) -> NumBodies:
+def _get_num_bodies(snapshot: SnapshotParticleData) -> NumBodies:
     try:
         num_particles = snapshot.particles.N
         num_mols = max(snapshot.particles.body) + 1
@@ -198,11 +198,11 @@ def _get_num_bodies(snapshot: hoomd.data.SnapshotParticleData) -> NumBodies:
     return NumBodies(num_particles, num_mols)
 
 
-def get_num_mols(snapshot: hoomd.data.SnapshotParticleData) -> int:
+def get_num_mols(snapshot: SnapshotParticleData) -> int:
     num_bodies = _get_num_bodies(snapshot)
     return num_bodies.molecules
 
 
-def get_num_particles(snapshot: hoomd.data.SnapshotParticleData) -> int:
+def get_num_particles(snapshot: SnapshotParticleData) -> int:
     num_bodies = _get_num_bodies(snapshot)
     return num_bodies.particles
