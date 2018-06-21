@@ -15,11 +15,10 @@ import hoomd
 import pytest
 
 from sdrun.crystals import CRYSTAL_FUNCS
-from sdrun.equilibrate import equilibrate, make_orthorhombic
 from sdrun.initialise import init_from_crystal, init_from_none
 from sdrun.molecules import MOLECULE_DICT
 from sdrun.params import SimulationParams
-from sdrun.simrun import production
+from sdrun.simulation import production, equilibrate, make_orthorhombic
 
 
 @pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())

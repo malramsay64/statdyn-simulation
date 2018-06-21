@@ -15,10 +15,9 @@ import hoomd
 import pytest
 
 from sdrun.crystals import CRYSTAL_FUNCS
-from sdrun.equilibrate import equilibrate
 from sdrun.initialise import init_from_crystal, minimize_snapshot
 from sdrun.params import SimulationParams
-from sdrun.simrun import production
+from sdrun.simulation import production, equilibrate
 
 
 @pytest.fixture(params=CRYSTAL_FUNCS.values(), ids=CRYSTAL_FUNCS.keys())

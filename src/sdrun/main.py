@@ -15,11 +15,10 @@ import click
 import hoomd.context
 
 from .crystals import CRYSTAL_FUNCS
-from .equilibrate import create_interface, equilibrate
 from .initialise import init_from_crystal, init_from_file, init_from_none
 from .molecules import Dimer, Disc, Sphere, Trimer
 from .params import SimulationParams
-from .simrun import production
+from .simulation import production, create_interface, equilibrate
 from .version import __version__
 
 logger = logging.getLogger(__name__)
