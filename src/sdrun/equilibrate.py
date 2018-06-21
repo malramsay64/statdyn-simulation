@@ -122,7 +122,7 @@ def create_interface(sim_params: SimulationParams) -> SnapshotParticleData:
 
     # Initialise at low init_temp
     with sim_params.temp_context(
-        temperature=sim_params.init_temp, num_steps=init_steps
+        temperature=sim_params.init_temp, num_steps=init_steps, init_temp=None
     ):
         snapshot = init_from_crystal(sim_params)
         # Find NPT minimum of crystal
