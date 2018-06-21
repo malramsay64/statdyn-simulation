@@ -11,34 +11,51 @@
 import logging
 import subprocess
 import sys
+from itertools import product
 from pathlib import Path
-from pprint import pformat
 from tempfile import TemporaryDirectory
 
 import pytest
 from click.testing import CliRunner
 
-from sdrun.main import sdrun
-
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-@pytest.fixture(params=["create", "equil", "prod"])
+def create_parameters():
+    command_list = ["create", "equil", "prod"]
+    crystal_list = ["p2", "p2gg", "pg"]
+    for command, crystal in product(command_list, crystal_list):
+        if command == "create":
+            for interface in [True, False]:
+                yield {"command": command, "crystal": crystal, "interface": interface}
+        else:
+            yield {"command": command, "crystal": crystal}
+
+
+@pytest.fixture(params=create_parameters())
 def arguments(request):
+    lattice_x, lattice_y = 20, 24
+    crystal = request.param["crystal"]
+    # p2gg lattice has twice the particles in the y direction of other crystals
+    if crystal == "p2gg":
+        lattice_y = int(lattice_y / 2)
+
     common_args = [
         "--hoomd-args",
         '"--mode=cpu"',
-        "-s",
-        "100",
-        "-vv",
-        "-t",
+        "--num-steps",
+        "2000",
+        "--temperature",
         "2.50",
+        "--pressure",
+        "13.50",
         "--space-group",
-        "pg",
+        crystal,
         "--lattice-lengths",
-        "20",
-        "24",
+        str(lattice_x),
+        str(lattice_y),
+        "-vvv",
     ]
     args = []
 
@@ -46,9 +63,19 @@ def arguments(request):
         tmp_dst = Path(tmp_dst)
         common_args += ["-o", str(tmp_dst / "output")]
 
-        if request.param == "create":
-            args = ["create", str(tmp_dst / "test_create.gsd")]
-        elif request.param == "equil":
+        command = request.param["command"]
+        if command == "create":
+            if request.param.get("interface"):
+                args = [
+                    "--init-temp",
+                    "0.4",
+                    "create",
+                    "--interface",
+                    str(tmp_dst / "test_create.gsd"),
+                ]
+            else:
+                args = ["create", str(tmp_dst / "test_create.gsd")]
+        elif command == "equil":
             args = [
                 "equil",
                 "--equil-type",
@@ -56,7 +83,7 @@ def arguments(request):
                 "test/data/Trimer-13.50-3.00.gsd",
                 str(tmp_dst / "test_equil.gsd"),
             ]
-        elif request.param == "prod":
+        elif command == "prod":
             args = ["prod", "--no-dynamics", "test/data/Trimer-13.50-3.00.gsd"]
 
         yield common_args + args
@@ -67,28 +94,15 @@ def runner():
     return CliRunner()
 
 
-def test_manually(arguments, runner):
-    """Testing the functionality of the argument parsing.
-
-    This test replicates the operations of the main() function in a more manual fashion, ensuring
-    the parseing of the arguments works appropriately.
-
-    """
-    result = runner.invoke(sdrun, arguments)
-    logger.debug("Runner output: \n%s", result.output)
-    assert result.exit_code == 0
-
-
-def test_commands(arguments):
+def test_commands(arguments, runner):
     """Ensure sdrun command line interface works.
 
     This tests the command line interface is both installed and working correctly, testing each of
     the main arguments.
 
     """
-    command = ["sdrun"] + arguments
-    logger.debug("Running command: \n%s", pformat(command))
-    ret = subprocess.run(command)
+    logger.debug("Running command: sdrun %s", " ".join(arguments))
+    ret = subprocess.run(["sdrun"] + arguments)
     assert ret.returncode == 0
 
 
