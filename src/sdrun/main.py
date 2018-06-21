@@ -19,7 +19,7 @@ from .equilibrate import create_interface, equilibrate
 from .initialise import init_from_crystal, init_from_file, init_from_none
 from .molecules import Dimer, Disc, Sphere, Trimer
 from .params import SimulationParams
-from .simrun import run_harmonic, run_npt
+from .simrun import production
 from .version import __version__
 
 logger = logging.getLogger(__name__)
@@ -134,10 +134,13 @@ def prod(sim_params: SimulationParams, dynamics: bool, infile: Path) -> None:
     logger.debug("Snapshot initialised")
 
     sim_context = hoomd.context.initialize(sim_params.hoomd_args)
+
     if sim_params.harmonic_force is not None:
-        run_harmonic(snapshot, sim_context, sim_params)
+        simulation_type = "harmonic"
     else:
-        run_npt(snapshot, sim_context, sim_params, dynamics)
+        simulation_type = "liquid"
+
+    production(snapshot, sim_context, sim_params, dynamics, simulation_type)
 
 
 @sdrun.command()

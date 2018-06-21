@@ -10,7 +10,6 @@
 import logging
 
 import hoomd
-import numpy as np
 
 from .helper import (
     SimulationParams,
@@ -26,11 +25,12 @@ from .StepSize import GenerateStepSeries
 logger = logging.getLogger(__name__)
 
 
-def run_npt(
+def production(
     snapshot: hoomd.data.SnapshotParticleData,
     context: hoomd.context.SimulationContext,
     sim_params: SimulationParams,
     dynamics: bool = True,
+    simulation_type: str = "liquid",
 ) -> None:
     """Initialise and run a hoomd npt simulation.
 
@@ -41,10 +41,23 @@ def run_npt(
 
 
     """
+    assert sim_params.num_steps is not None
+    assert sim_params.output_interval is not None
+    assert isinstance(context, hoomd.context.SimulationContext)
+    assert simulation_type in ["liquid", "harmonic"]
+
     with context:
         sys = initialise_snapshot(snapshot, context, sim_params)
         logger.debug("Run metadata: %s", sys.get_metadata())
-        set_integrator(sim_params, simulation_type="liquid")
+
+        if simulation_type == "harmonic":
+            set_integrator(
+                sim_params, simulation_type="crystal", integration_method="NVT"
+            )
+            set_harmonic_force(snapshot, sim_params)
+        else:
+            set_integrator(sim_params, simulation_type="liquid")
+
         set_thermo(
             sim_params.filename(prefix="thermo"),
             thermo_period=sim_params.output_interval,
@@ -54,6 +67,7 @@ def run_npt(
             dump_period=sim_params.output_interval,
             group=sim_params.group,
         )
+
         if dynamics:
             iterator = GenerateStepSeries(
                 sim_params.num_steps,
@@ -73,48 +87,3 @@ def run_npt(
         else:
             hoomd.run(sim_params.num_steps)
         dump_frame(sim_params.filename(), group=sim_params.group)
-
-
-def run_harmonic(
-    snapshot: hoomd.data.SnapshotParticleData,
-    context: hoomd.context.SimulationContext,
-    sim_params: SimulationParams,
-) -> None:
-    """Initialise and run a simulation with a harmonic pinning potential."""
-    with context:
-        initialise_snapshot(snapshot, context, sim_params)
-        set_integrator(sim_params, simulation_type="crystal", integration_method="NVT")
-        set_thermo(
-            sim_params.filename(prefix="thermo"),
-            thermo_period=sim_params.output_interval,
-        )
-        set_dump(
-            sim_params.filename(prefix="dump"),
-            dump_period=sim_params.output_interval,
-            group=sim_params.group,
-        )
-        set_harmonic_force(snapshot, sim_params)
-        hoomd.run(sim_params.num_steps)
-        dump_frame(sim_params.filename(), group=sim_params.group)
-
-
-def read_snapshot(
-    context: hoomd.context.SimulationContext, fname: str, rand: bool = False
-) -> hoomd.data.SnapshotParticleData:
-    """Read a hoomd snapshot from a hoomd gsd file.
-
-    Args:
-    fname (string): Filename of GSD file to read in
-    rand (bool): Whether to randomise the momenta of all the particles
-
-    Returns:
-    class:`hoomd.data.SnapshotParticleData`: Hoomd snapshot
-
-    """
-    with context:
-        snapshot = hoomd.data.gsd_snapshot(fname)
-        if rand:
-            nbodies = snapshot.particles.body.max() + 1
-            np.random.shuffle(snapshot.particles.velocity[:nbodies])
-            np.random.shuffle(snapshot.particles.angmom[:nbodies])
-        return snapshot

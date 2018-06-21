@@ -18,7 +18,7 @@ from sdrun.crystals import CRYSTAL_FUNCS
 from sdrun.equilibrate import equilibrate
 from sdrun.initialise import init_from_crystal, minimize_snapshot
 from sdrun.params import SimulationParams
-from sdrun.simrun import run_harmonic
+from sdrun.simrun import production
 
 
 @pytest.fixture(params=CRYSTAL_FUNCS.values(), ids=CRYSTAL_FUNCS.keys())
@@ -53,4 +53,6 @@ def test_run_harmonic(sim_params):
     snap_init = init_from_crystal(sim_params)
     snap_equil = equilibrate(snap_init, sim_params, equil_type="harmonic")
     context = hoomd.context.initialize(sim_params.hoomd_args)
-    run_harmonic(snap_equil, context, sim_params)
+    production(
+        snap_equil, context, sim_params, dynamics=False, simulation_type="harmonic"
+    )

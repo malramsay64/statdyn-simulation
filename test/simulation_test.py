@@ -19,7 +19,7 @@ from sdrun.equilibrate import equilibrate, make_orthorhombic
 from sdrun.initialise import init_from_crystal, init_from_none
 from sdrun.molecules import MOLECULE_DICT
 from sdrun.params import SimulationParams
-from sdrun.simrun import run_npt
+from sdrun.simrun import production
 
 
 @pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
@@ -53,7 +53,7 @@ def test_run_npt(sim_params):
     """Test an npt run."""
     snapshot = init_from_none(sim_params)
     context = hoomd.context.initialize(sim_params.hoomd_args)
-    run_npt(snapshot, context, sim_params, dynamics=False)
+    production(snapshot, context, sim_params, dynamics=False)
 
 
 @pytest.mark.simulation
@@ -72,7 +72,7 @@ def test_orthorhombic_sims(cell_dimensions, sim_params_crystal):
         snapshot = equilibrate(snapshot, sim_params, equil_type="crystal")
     snapshot = make_orthorhombic(snapshot)
     temp_context = hoomd.context.initialize(sim_params.hoomd_args)
-    run_npt(snapshot, temp_context, sim_params, dynamics=False)
+    production(snapshot, temp_context, sim_params, dynamics=False)
 
 
 @pytest.mark.simulation
@@ -80,7 +80,7 @@ def test_file_placement(sim_params):
     """Ensure files are located in the correct directory when created."""
     snapshot = init_from_none(sim_params)
     context = hoomd.context.initialize(sim_params.hoomd_args)
-    run_npt(snapshot, context, sim_params, dynamics=True)
+    production(snapshot, context, sim_params, dynamics=True)
 
     params = {
         "molecule": sim_params.molecule,
