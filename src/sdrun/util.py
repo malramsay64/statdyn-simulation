@@ -167,9 +167,34 @@ def set_harmonic_force(
     )
 
 
-def randomise_momenta(snapshot: SnapshotParticleData) -> SnapshotParticleData:
+def randomise_momenta(
+    snapshot: SnapshotParticleData, interface: bool = False
+) -> SnapshotParticleData:
     """Randomise the momenta of particles in a snapshot."""
     num_mols = get_num_mols(snapshot)
+
+    if interface:
+        velocity_dist = snapshot.particles.velocity[:num_mols]
+        velocity_dist = velocity_dist[np.linalg.norm(velocity_dist, axis=1) > 1e-5]
+        # Flatten array to choose from distribution of all values
+        #  velocity_dist = velocity_dist.flatten()
+        assert velocity_dist.shape[0] > 0
+
+        angmom_dist = snapshot.particles.angmom[:num_mols]
+        # Only choose values that are non-zero
+        angmom_dist = angmom_dist[np.linalg.norm(angmom_dist, axis=1) > 0]
+        assert angmom_dist.shape[0] > 0
+
+        for i in range(num_mols):
+            snapshot.particles.velocity[i] = velocity_dist[
+                np.random.choice(velocity_dist.shape[0], 1)
+            ]
+            snapshot.particles.angmom[i] = angmom_dist[
+                np.random.choice(angmom_dist.shape[0], 1)
+            ]
+
+        return snapshot
+
     np.random.shuffle(snapshot.particles.velocity[:num_mols])
     np.random.shuffle(snapshot.particles.angmom[:num_mols])
     return snapshot
