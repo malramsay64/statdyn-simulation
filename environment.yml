@@ -2,13 +2,12 @@ name: sdrun-dev
 channels:
     - defaults
     - conda-forge
-    - glotzer
     - malramsay
 
 dependencies:
     - python=3.6
     - numpy
-    - hoomd=2.3.1
+    - glotzer::hoomd=2.3.1
     - hoomd-harmonic-force=0.1.7
     - cudatoolkit=8
     - pytest
