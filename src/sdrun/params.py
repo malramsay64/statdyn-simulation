@@ -61,6 +61,7 @@ class SimulationParams(object):
     )
 
     hoomd_args: str = attr.ib(default="", repr=False)
+    iteration_id: int = None
 
     @property
     def temperature(self) -> Union[float, hoomd.variant.linear_interp]:
@@ -196,6 +197,9 @@ class SimulationParams(object):
         space_group = None
         if self.space_group is not None:
             base_string += "-{space_group}"
+
+        if self.iteration_id is not None:
+            base_string += "-ID{iteration_id}"
 
         logger.debug("filename base string: %s", base_string)
         logger.debug("Temperature: %.2f", self._temperature)
