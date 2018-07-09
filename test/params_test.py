@@ -9,6 +9,7 @@
 
 import logging
 from pathlib import Path
+from itertools import product
 from tempfile import TemporaryDirectory
 
 import pytest
@@ -182,3 +183,58 @@ def test_crystal_cell_dimensions(crystal_params):
         assert len(crystal_params.cell_dimensions) == 3
     with crystal_params.temp_context(cell_dimensions=[10, 10, 10]):
         assert len(crystal_params.cell_dimensions) == 3
+
+
+def filename_params():
+    all_params = [
+        "molecule",
+        "pressure",
+        "temperature",
+        "moment_inertia_scale",
+        "harmonic_force",
+        "space_group",
+    ]
+    space_groups = ["p2", "p2gg", "pg"]
+    molecules = [Trimer()]
+    values1 = [None, 0, 0.1, 1]
+    values2 = [0, 0.1, 1]
+    for space_group, molecule, value1, value2 in product(
+        space_groups, molecules, values1, values2
+    ):
+        params = {}
+        for param in all_params:
+            if param == "molecule":
+                params["molecule"] = molecule
+            elif param == "space_group":
+                params["space_group"] = space_group
+            elif param in ["temperature", "pressure"]:
+                params[param] = value2
+            else:
+                params[param] = value1
+        yield params
+
+
+def get_filename_prefix(key):
+    prefixes = {
+        "temperature": "T",
+        "pressure": "P",
+        "moment_inertia_scale": "I",
+        "harmonic_force": "K",
+    }
+    return prefixes.get(key, "")
+
+
+@pytest.mark.parametrize("params", filename_params())
+def test_filename(sim_params, params):
+
+    with sim_params.temp_context(**params):
+        fname = sim_params.filename().stem
+    for key, value in params.items():
+        if value is not None:
+            prefix = get_filename_prefix(key)
+            assert isinstance(prefix, str)
+            logger.debug("Prefix: %s, Value: %s", prefix, value)
+            if isinstance(value, (int, float)):
+                assert f"{prefix}{value:.2f}" in fname
+            else:
+                assert f"{prefix}{value}" in fname
