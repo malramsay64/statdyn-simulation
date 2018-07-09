@@ -8,8 +8,8 @@
 """Test the SimulationParams class."""
 
 import logging
-from pathlib import Path
 from itertools import product
+from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import pytest
@@ -193,6 +193,7 @@ def filename_params():
         "moment_inertia_scale",
         "harmonic_force",
         "space_group",
+        "iteration_id",
     ]
     space_groups = ["p2", "p2gg", "pg"]
     molecules = [Trimer()]
@@ -209,6 +210,8 @@ def filename_params():
                 params["space_group"] = space_group
             elif param in ["temperature", "pressure"]:
                 params[param] = value2
+            elif param in ["iteration_id"]:
+                params[param] = int(value1) if value1 is not None else None
             else:
                 params[param] = value1
         yield params
@@ -220,6 +223,7 @@ def get_filename_prefix(key):
         "pressure": "P",
         "moment_inertia_scale": "I",
         "harmonic_force": "K",
+        "iteration_id": "ID",
     }
     return prefixes.get(key, "")
 
@@ -235,6 +239,9 @@ def test_filename(sim_params, params):
             assert isinstance(prefix, str)
             logger.debug("Prefix: %s, Value: %s", prefix, value)
             if isinstance(value, (int, float)):
-                assert f"{prefix}{value:.2f}" in fname
+                if key == "iteration_id":
+                    assert f"{prefix}{value:d}" in fname
+                else:
+                    assert f"{prefix}{value:.2f}" in fname
             else:
                 assert f"{prefix}{value}" in fname

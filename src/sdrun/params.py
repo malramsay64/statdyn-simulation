@@ -67,7 +67,7 @@ class SimulationParams(object):
     def temperature(self) -> Union[float, hoomd.variant.linear_interp]:
         """Temperature of the system."""
         assert self._temperature is not None
-        assert self._temperature > 0
+        assert self._temperature >= 0
 
         if self.init_temp is None:
             return self._temperature
@@ -90,7 +90,7 @@ class SimulationParams(object):
     @temperature.setter
     def temperature(self, value: float) -> None:
         assert value is not None
-        assert value > 0, f"Temperature cannot be negative. You gave: {value}"
+        assert value >= 0, f"Temperature cannot be negative. You gave: {value}"
         self._temperature = float(value)
 
     @property
@@ -216,6 +216,7 @@ class SimulationParams(object):
             mom_inertia=self.moment_inertia_scale,
             space_group=self.space_group,
             harmonic_force=self.harmonic_force,
+            iteration_id=self.iteration_id,
         )
         return self.output / fname
 
