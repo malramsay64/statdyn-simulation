@@ -168,10 +168,13 @@ def set_harmonic_force(
 
 
 def randomise_momenta(
-    snapshot: SnapshotParticleData, interface: bool = False
+    snapshot: SnapshotParticleData, interface: bool = False, random_seed=None
 ) -> SnapshotParticleData:
     """Randomise the momenta of particles in a snapshot."""
     num_mols = get_num_mols(snapshot)
+
+    if random_seed is not None:
+        np.random.RandomState(seed=random_seed)
 
     if interface:
         velocity_dist = snapshot.particles.velocity[:num_mols]

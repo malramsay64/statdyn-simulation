@@ -18,9 +18,9 @@ import hoomd
 import hoomd.md
 import numpy as np
 
-from .util import get_num_mols, get_num_particles, randomise_momenta
 from .molecules import Molecule
 from .params import SimulationParams
+from .util import get_num_mols, get_num_particles, randomise_momenta
 
 logger = logging.getLogger(__name__)
 
@@ -122,7 +122,9 @@ def initialise_snapshot(
         # Interface simulations require the space_group paramter to be set
         if sim_params.space_group is not None:
             interface = True
-        snapshot = randomise_momenta(snapshot, interface)
+        snapshot = randomise_momenta(
+            snapshot, interface, random_seed=sim_params.iteration_id
+        )
 
     with context:
         sys = hoomd.init.read_snapshot(snapshot)
