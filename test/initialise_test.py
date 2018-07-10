@@ -18,7 +18,6 @@ from hypothesis import given, settings
 from hypothesis.strategies import integers, tuples
 
 from sdrun.crystals import CRYSTAL_FUNCS, TrimerP2
-from sdrun.util import get_num_mols
 from sdrun.initialise import (
     init_from_crystal,
     init_from_none,
@@ -27,6 +26,7 @@ from sdrun.initialise import (
 )
 from sdrun.molecules import MOLECULE_DICT
 from sdrun.params import SimulationParams
+from sdrun.util import get_num_mols
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -81,6 +81,24 @@ def test_initialise_snapshot(sim_params):
         * sim_params.molecule.num_particles
     )
     assert snap_init.particles.N == num_particles
+
+
+def test_initialise_randomise(sim_params):
+    snapshot = hoomd.data.gsd_snapshot("test/data/Trimer-13.50-3.00.gsd")
+    context = hoomd.context.initialize(sim_params.hoomd_args)
+    num_mols = get_num_mols(snapshot)
+    with sim_params.temp_context(iteration_id=0):
+        sys = initialise_snapshot(snapshot, context, sim_params)
+        assert isinstance(sys, hoomd.data.system_data)
+        snap = sys.take_snapshot()
+    angmom_similarity = np.sum(
+        snap.particles.angmom[:num_mols] != snapshot.particles.angmom[:num_mols]
+    )
+    velocity_similarity = np.sum(
+        snap.particles.velocity[:num_mols] != snapshot.particles.velocity[:num_mols]
+    )
+    assert angmom_similarity < 5
+    assert velocity_similarity < 5
 
 
 def test_init_crystal(sim_params_crystal):
