@@ -18,7 +18,7 @@ import hoomd
 import hoomd.md
 import numpy as np
 
-from .util import get_num_mols, get_num_particles
+from .util import get_num_mols, get_num_particles, randomise_momenta
 from .molecules import Molecule
 from .params import SimulationParams
 
@@ -116,6 +116,13 @@ def initialise_snapshot(
 
     if minimize:
         snapshot = minimize_snapshot(snapshot, sim_params, ensemble="NVE")
+
+    if sim_params.iteration_id is not None:
+        interface = False
+        # Interface simulations require the space_group paramter to be set
+        if sim_params.space_group is not None:
+            interface = True
+        snapshot = randomise_momenta(snapshot, interface)
 
     with context:
         sys = hoomd.init.read_snapshot(snapshot)
