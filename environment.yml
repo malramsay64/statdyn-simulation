@@ -8,7 +8,7 @@ dependencies:
     - python=3.6
     - numpy
     - glotzer::hoomd=2.2.5
-    - hoomd-harmonic-force=0.1.7
+    - hoomd-harmonic-force=0.1.8
     - cudatoolkit=8
     - pytest
     - pylint
