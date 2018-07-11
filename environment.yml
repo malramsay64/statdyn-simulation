@@ -7,7 +7,7 @@ channels:
 dependencies:
     - python=3.6
     - numpy
-    - glotzer::hoomd=2.3.1
+    - glotzer::hoomd=2.2.5
     - hoomd-harmonic-force=0.1.7
     - cudatoolkit=8
     - pytest
