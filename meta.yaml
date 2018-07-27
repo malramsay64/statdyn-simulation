@@ -32,7 +32,8 @@ requirements:
 build:
     entry_points:
         - sdrun = sdrun.main:sdrun
-    preserve_egg_dir: True
+    preserve_egg_dir: False
+    include_recipe: False
     script: python setup.py bdist_wheel sdist && pip install dist/sdrun-{{version}}.tar.gz
     number: {{ GIT_DESCRIBE_NUMBER }}
 
