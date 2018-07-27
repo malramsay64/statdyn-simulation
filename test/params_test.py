@@ -33,11 +33,6 @@ def sim_params():
 
 
 @pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
-def mol_params(request):
-    return SimulationParams(num_steps=1000, temperature=1.0, molecule=request.param)
-
-
-@pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
 def molecules(request):
     return request.param
 
