@@ -63,7 +63,6 @@ def dummy_subcommand(obj):
 
 @pytest.fixture(params=["create", "equil", "prod"])
 def subcommands(request):
-
     class Subcommand(NamedTuple):
         command: Callable
         params: List

@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 @attr.s(auto_attribs=True)
 class SimulationParams(object):
     """Store the parameters of the simulation."""
+
     # Thermodynamic Params
     _temperature: float = 0.4
     tau: float = attr.ib(default=1.0, repr=False)

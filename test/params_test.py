@@ -235,7 +235,6 @@ def get_filename_prefix(key):
 
 @pytest.mark.parametrize("params", filename_params())
 def test_filename(sim_params, params):
-
     with sim_params.temp_context(**params):
         fname = sim_params.filename().stem
     for key, value in params.items():

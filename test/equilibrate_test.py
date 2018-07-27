@@ -14,9 +14,9 @@ import numpy as np
 import pytest
 
 from sdrun.crystals import CRYSTAL_FUNCS
-from sdrun.simulation import create_interface, equilibrate
 from sdrun.initialise import init_from_crystal, make_orthorhombic
 from sdrun.params import SimulationParams
+from sdrun.simulation import create_interface, equilibrate
 
 
 @pytest.fixture(params=CRYSTAL_FUNCS.values(), ids=CRYSTAL_FUNCS.keys())

@@ -16,7 +16,7 @@ dependencies:
     - hypothesis
     - coverage
     - ipykernel
-    - black=18.5b0
+    - black=18.6b2
     - mypy
     - attrs
     - click
@@ -25,4 +25,3 @@ dependencies:
         - pytest-mypy
         - pytest-pylint
         - pytest-cov
-

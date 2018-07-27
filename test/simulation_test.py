@@ -18,7 +18,7 @@ from sdrun.crystals import CRYSTAL_FUNCS
 from sdrun.initialise import init_from_crystal, init_from_none
 from sdrun.molecules import MOLECULE_DICT
 from sdrun.params import SimulationParams
-from sdrun.simulation import production, equilibrate, make_orthorhombic
+from sdrun.simulation import equilibrate, make_orthorhombic, production
 
 
 @pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
