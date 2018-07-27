@@ -14,7 +14,7 @@ import logging
 import hoomd
 import hoomd.md
 import numpy as np
-from hoomd.data import SnapshotParticleData
+from hoomd.data import SnapshotParticleData as Snapshot, system_data as System
 from hoomd.group import group as Group
 
 from .initialise import init_from_crystal, initialise_snapshot, make_orthorhombic
@@ -26,10 +26,8 @@ logger = logging.getLogger(__name__)
 
 
 def equilibrate(
-    snapshot: SnapshotParticleData,
-    sim_params: SimulationParams,
-    equil_type: str = "liquid",
-) -> SnapshotParticleData:
+    snapshot: Snapshot, sim_params: SimulationParams, equil_type: str = "liquid"
+) -> Snapshot:
     """Run an equilibration simulation.
 
     This will configure and run an equilibration simulation of the type specified in equil_type.
@@ -114,7 +112,7 @@ def equilibrate(
     return equil_snapshot
 
 
-def create_interface(sim_params: SimulationParams) -> SnapshotParticleData:
+def create_interface(sim_params: SimulationParams) -> Snapshot:
     """Helper for the creation of a liquid--crystal interface.
 
     The creation of a liquid--crystal interface has a number of different steps. This is a helper
@@ -144,7 +142,7 @@ def create_interface(sim_params: SimulationParams) -> SnapshotParticleData:
 
 
 def get_group(
-    sys: hoomd.data.system_data, sim_params: SimulationParams, interface: bool = False
+    sys: System, sim_params: SimulationParams, interface: bool = False
 ) -> Group:
     if sim_params.molecule.num_particles > 1:
         group = hoomd.group.rigid_center()
@@ -155,9 +153,7 @@ def get_group(
     return group
 
 
-def _interface_group(
-    sys: hoomd.data.system_data, base_group: Group, stationary: bool = False
-):
+def _interface_group(sys: System, base_group: Group, stationary: bool = False):
     assert base_group is not None
     stationary_group = hoomd.group.cuboid(
         name="stationary",
@@ -179,7 +175,7 @@ def _interface_group(
 
 
 def production(
-    snapshot: SnapshotParticleData,
+    snapshot: Snapshot,
     context: hoomd.context.SimulationContext,
     sim_params: SimulationParams,
     dynamics: bool = True,

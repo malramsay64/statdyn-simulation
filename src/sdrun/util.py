@@ -15,7 +15,7 @@ from typing import List, NamedTuple
 import hoomd
 import hoomd.md as md
 import numpy as np
-from hoomd.data import SnapshotParticleData
+from hoomd.data import SnapshotParticleData as Snapshot
 from hoomd.group import group as Group
 
 from .params import SimulationParams
@@ -146,7 +146,7 @@ def set_thermo(outfile: Path, thermo_period: int = 10000, rigid=True) -> None:
 
 
 def set_harmonic_force(
-    snapshot: SnapshotParticleData, sim_params: SimulationParams, group: Group
+    snapshot: Snapshot, sim_params: SimulationParams, group: Group
 ) -> None:
     from hoomd.harmonic_force import HarmonicForceCompute
 
@@ -164,8 +164,8 @@ def set_harmonic_force(
 
 
 def randomise_momenta(
-    snapshot: SnapshotParticleData, interface: bool = False, random_seed=None
-) -> SnapshotParticleData:
+    snapshot: Snapshot, interface: bool = False, random_seed=None
+) -> Snapshot:
     """Randomise the momenta of particles in a snapshot."""
     num_mols = get_num_mols(snapshot)
 
@@ -204,7 +204,7 @@ class NumBodies(NamedTuple):
     molecules: int
 
 
-def _get_num_bodies(snapshot: SnapshotParticleData) -> NumBodies:
+def _get_num_bodies(snapshot: Snapshot) -> NumBodies:
     try:
         num_particles = snapshot.particles.N
         num_mols = max(snapshot.particles.body) + 1
@@ -222,11 +222,11 @@ def _get_num_bodies(snapshot: SnapshotParticleData) -> NumBodies:
     return NumBodies(num_particles, num_mols)
 
 
-def get_num_mols(snapshot: SnapshotParticleData) -> int:
+def get_num_mols(snapshot: Snapshot) -> int:
     num_bodies = _get_num_bodies(snapshot)
     return num_bodies.molecules
 
 
-def get_num_particles(snapshot: SnapshotParticleData) -> int:
+def get_num_particles(snapshot: Snapshot) -> int:
     num_bodies = _get_num_bodies(snapshot)
     return num_bodies.particles

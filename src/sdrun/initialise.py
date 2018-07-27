@@ -17,6 +17,8 @@ from pathlib import Path
 import hoomd
 import hoomd.md
 import numpy as np
+from hoomd.context import SimulationContext as Context
+from hoomd.data import SnapshotParticleData as Snapshot, system_data as System
 
 from .molecules import Molecule
 from .params import SimulationParams
@@ -25,9 +27,7 @@ from .util import get_num_mols, get_num_particles, randomise_momenta
 logger = logging.getLogger(__name__)
 
 
-def init_from_file(
-    fname: Path, molecule: Molecule, hoomd_args: str = ""
-) -> hoomd.data.SnapshotParticleData:
+def init_from_file(fname: Path, molecule: Molecule, hoomd_args: str = "") -> Snapshot:
     """Initialise a hoomd simulation from an input file."""
     logger.debug("Initialising from file %s", fname)
     # Hoomd context needs to be initialised before calling gsd_snapshot
@@ -44,7 +44,7 @@ def init_from_file(
     return init_snapshot
 
 
-def init_from_none(sim_params: SimulationParams) -> hoomd.data.SnapshotParticleData:
+def init_from_none(sim_params: SimulationParams) -> Snapshot:
     """Initialise a system from no inputs.
 
     This creates a simulation with a large unit cell lattice such that there
@@ -92,11 +92,11 @@ def init_from_none(sim_params: SimulationParams) -> hoomd.data.SnapshotParticleD
 
 
 def initialise_snapshot(
-    snapshot: hoomd.data.SnapshotParticleData,
-    context: hoomd.context.SimulationContext,
+    snapshot: Snapshot,
+    context: Context,
     sim_params: SimulationParams,
     minimize: bool = False,
-) -> hoomd.data.system_data:
+) -> System:
     """Initialise the configuration from a snapshot.
 
     In this function it is checked that the data in the snapshot and the
@@ -137,10 +137,8 @@ def initialise_snapshot(
 
 
 def minimize_snapshot(
-    snapshot: hoomd.data.SnapshotParticleData,
-    sim_params: SimulationParams,
-    ensemble: str = "NVE",
-) -> hoomd.data.SnapshotParticleData:
+    snapshot: Snapshot, sim_params: SimulationParams, ensemble: str = "NVE"
+) -> Snapshot:
     assert ensemble in ["NVE", "NPH"]
     temp_context = hoomd.context.initialize(sim_params.hoomd_args)
     with temp_context:
@@ -176,7 +174,7 @@ def minimize_snapshot(
     return equil_snapshot
 
 
-def init_from_crystal(sim_params: SimulationParams) -> hoomd.data.SnapshotParticleData:
+def init_from_crystal(sim_params: SimulationParams) -> Snapshot:
     """Initialise a hoomd simulation from a crystal lattice.
 
     Args:
@@ -210,9 +208,7 @@ def init_from_crystal(sim_params: SimulationParams) -> hoomd.data.SnapshotPartic
     return snap
 
 
-def make_orthorhombic(
-    snapshot: hoomd.data.SnapshotParticleData
-) -> hoomd.data.SnapshotParticleData:
+def make_orthorhombic(snapshot: Snapshot) -> Snapshot:
     """Create orthorhombic unit cell from snapshot.
 
     This uses the periodic boundary conditions of the cell to generate an
@@ -241,9 +237,7 @@ def make_orthorhombic(
     return snapshot
 
 
-def _check_properties(
-    snapshot: hoomd.data.SnapshotParticleData, molecule: Molecule
-) -> hoomd.data.SnapshotParticleData:
+def _check_properties(snapshot: Snapshot, molecule: Molecule) -> Snapshot:
     num_molecules = get_num_mols(snapshot)
     num_particles = get_num_particles(snapshot)
 

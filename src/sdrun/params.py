@@ -179,7 +179,6 @@ class SimulationParams(object):
         if self.harmonic_force is not None:
             base_string += "-K{harmonic_force:.2f}"
 
-        space_group = None
         if self.space_group is not None:
             base_string += "-{space_group}"
 
