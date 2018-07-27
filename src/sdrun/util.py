@@ -16,6 +16,7 @@ import hoomd
 import hoomd.md as md
 import numpy as np
 from hoomd.data import SnapshotParticleData
+from hoomd.group import group as Group
 
 from .params import SimulationParams
 
@@ -24,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 def set_integrator(
     sim_params: SimulationParams,
+    group: Group,
     prime_interval: int = 33533,
     simulation_type: str = "liquid",
     integration_method: str = "NPT",
@@ -44,6 +46,7 @@ def set_integrator(
     """
     assert integration_method in ["NPT", "NVT"]
     assert simulation_type in ["liquid", "crystal", "interface"]
+    assert group is not None
 
     md.integrate.mode_standard(sim_params.step_size)
     if sim_params.molecule.dimensions == 2:
@@ -54,7 +57,7 @@ def set_integrator(
 
     if integration_method == "NPT":
         integrator = md.integrate.npt(
-            group=sim_params.get_group(),
+            group=group,
             kT=sim_params.temperature,
             tau=sim_params.tau,
             P=sim_params.pressure,
@@ -70,22 +73,21 @@ def set_integrator(
 
     elif integration_method == "NVT":
         integrator = md.integrate.nvt(
-            group=sim_params.get_group(), kT=sim_params.temperature, tau=sim_params.tau
+            group=group, kT=sim_params.temperature, tau=sim_params.tau
         )
 
     return integrator
 
 
 def set_dump(
+    group: Group,
     outfile: Path,
     dump_period: int = 10000,
     timestep: int = 0,
-    group: hoomd.group.group = None,
     extension: bool = True,
 ) -> hoomd.dump.gsd:
     """Initialise dumping configuration to a file."""
-    if group is None:
-        group = hoomd.group.rigid_center()
+    assert group is not None
     if extension:
         outfile = outfile.with_suffix(".gsd")
     return hoomd.dump.gsd(
@@ -98,17 +100,10 @@ def set_dump(
 
 
 def dump_frame(
-    outfile: Path,
-    timestep: int = 0,
-    group: hoomd.group.group = None,
-    extension: bool = True,
+    group: Group, outfile: Path, timestep: int = 0, extension: bool = True
 ) -> hoomd.dump.gsd:
     return set_dump(
-        outfile=outfile,
-        dump_period=None,
-        group=group,
-        extension=extension,
-        timestep=timestep,
+        group, outfile=outfile, dump_period=None, extension=extension, timestep=timestep
     )
 
 
@@ -151,7 +146,7 @@ def set_thermo(outfile: Path, thermo_period: int = 10000, rigid=True) -> None:
 
 
 def set_harmonic_force(
-    snapshot: SnapshotParticleData, sim_params: SimulationParams
+    snapshot: SnapshotParticleData, sim_params: SimulationParams, group
 ) -> None:
     from hoomd.harmonic_force import HarmonicForceCompute
 

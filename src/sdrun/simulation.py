@@ -15,6 +15,7 @@ import hoomd
 import hoomd.md
 import numpy as np
 from hoomd.data import SnapshotParticleData
+from hoomd.group import group as Group
 
 from .initialise import init_from_crystal, initialise_snapshot, make_orthorhombic
 from .params import SimulationParams
@@ -61,7 +62,7 @@ def equilibrate(
     with temp_context:
         prime_interval = 33533
         simulation_type = equil_type
-        group = sim_params.get_group()
+        group = get_group(sys, sim_params)
         assert group is not None
         integration_method = "NPT"
 
@@ -72,18 +73,18 @@ def equilibrate(
         if equil_type == "crystal":
             prime_interval = 307
         if equil_type == "interface":
-            group = _interface_group(sys)
+            group = get_group(sys, sim_params, interface=True)
+            assert group is not None
 
         # Set mobile group for integrator
-        with sim_params.temp_context(group=group):
-            set_integrator(
-                sim_params, prime_interval, simulation_type, integration_method
-            )
+        set_integrator(
+            sim_params, group, prime_interval, simulation_type, integration_method
+        )
 
         set_dump(
+            group,
             sim_params.filename(prefix="dump"),
             dump_period=sim_params.output_interval,
-            group=sim_params.get_group(),
         )
 
         set_thermo(
@@ -107,7 +108,7 @@ def equilibrate(
         # TODO run a check for equilibration and emit a warning if the simulation is not
         # equilibrated properly. This will be through monitoing the thermodynamics.
 
-        dump_frame(sim_params.outfile, group=sim_params.get_group(), extension=False)
+        dump_frame(group, sim_params.outfile, extension=False)
 
         equil_snapshot = sys.take_snapshot(all=True)
     return equil_snapshot
@@ -142,7 +143,22 @@ def create_interface(sim_params: SimulationParams) -> SnapshotParticleData:
     return snapshot
 
 
-def _interface_group(sys: hoomd.data.system_data, stationary: bool = False):
+def get_group(
+    sys: hoomd.data.system_data, sim_params: SimulationParams, interface: bool = False
+) -> Group:
+    if sim_params.molecule.num_particles > 1:
+        group = hoomd.group.rigid_center()
+    else:
+        group = hoomd.group.all()
+    if interface is True:
+        return _interface_group(sys, group)
+    return group
+
+
+def _interface_group(
+    sys: hoomd.data.system_data, base_group: Group, stationary: bool = False
+):
+    assert base_group is not None
     stationary_group = hoomd.group.cuboid(
         name="stationary",
         xmin=-sys.box.Lx / 3,
@@ -152,13 +168,13 @@ def _interface_group(sys: hoomd.data.system_data, stationary: bool = False):
     )
     if stationary:
         return hoomd.group.intersection(
-            "rigid_stationary", stationary_group, hoomd.group.rigid_center()
+            "rigid_stationary", stationary_group, base_group
         )
 
     return hoomd.group.intersection(
         "rigid_mobile",
         hoomd.group.difference("mobile", hoomd.group.all(), stationary_group),
-        hoomd.group.rigid_center(),
+        base_group,
     )
 
 
@@ -200,9 +216,9 @@ def production(
             thermo_period=sim_params.output_interval,
         )
         set_dump(
+            group,
             sim_params.filename(prefix="dump"),
             dump_period=sim_params.output_interval,
-            group=sim_params.get_group(),
         )
 
         if dynamics:
@@ -215,12 +231,10 @@ def production(
             # Zeroth step
             curr_step = iterator.next()
             assert curr_step == 0
-            dumpfile = dump_frame(
-                sim_params.filename(prefix="trajectory"), group=sim_params.get_group()
-            )
+            dumpfile = dump_frame(group, sim_params.filename(prefix="trajectory"))
             for curr_step in iterator:
                 hoomd.run_upto(curr_step, quiet=True)
                 dumpfile.write_restart()
         else:
             hoomd.run(sim_params.num_steps)
-        dump_frame(sim_params.filename(), group=sim_params.get_group())
+        dump_frame(group, sim_params.filename())

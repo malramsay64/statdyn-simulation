@@ -31,7 +31,6 @@ class SimulationParams(object):
     pressure: float = 13.5
     tauP: float = attr.ib(default=1.0, repr=False)
     init_temp: Optional[float] = None
-    group: Optional[hoomd.group.group] = None
 
     # Molecule params
     _molecule: Optional[Molecule] = None
@@ -205,13 +204,6 @@ class SimulationParams(object):
             iteration_id=self.iteration_id,
         )
         return self.output / fname
-
-    def get_group(self) -> hoomd.group.group:
-        if self.group is None:
-            if self.molecule.num_particles > 1:
-                return hoomd.group.rigid_center()
-            return hoomd.group.all()
-        return self.group
 
     @contextmanager
     def temp_context(self, **kwargs):
