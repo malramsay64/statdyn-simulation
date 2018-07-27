@@ -45,7 +45,6 @@ def equilibrate(
     # Check for required paramters, faililng early if missing
     assert equil_type in ["liquid", "crystal", "interface", "harmonic"]
     assert sim_params.hoomd_args is not None
-    assert sim_params.group is not None
     assert sim_params.output_interval is not None
     assert sim_params.num_steps is not None
     assert sim_params.num_steps > 0
@@ -62,7 +61,8 @@ def equilibrate(
     with temp_context:
         prime_interval = 33533
         simulation_type = equil_type
-        group = sim_params.group
+        group = sim_params.get_group()
+        assert group is not None
         integration_method = "NPT"
 
         if equil_type == "harmonic":
@@ -83,7 +83,7 @@ def equilibrate(
         set_dump(
             sim_params.filename(prefix="dump"),
             dump_period=sim_params.output_interval,
-            group=sim_params.group,
+            group=sim_params.get_group(),
         )
 
         set_thermo(
@@ -107,7 +107,7 @@ def equilibrate(
         # TODO run a check for equilibration and emit a warning if the simulation is not
         # equilibrated properly. This will be through monitoing the thermodynamics.
 
-        dump_frame(sim_params.outfile, group=sim_params.group, extension=False)
+        dump_frame(sim_params.outfile, group=sim_params.get_group(), extension=False)
 
         equil_snapshot = sys.take_snapshot(all=True)
     return equil_snapshot
@@ -202,7 +202,7 @@ def production(
         set_dump(
             sim_params.filename(prefix="dump"),
             dump_period=sim_params.output_interval,
-            group=sim_params.group,
+            group=sim_params.get_group(),
         )
 
         if dynamics:
@@ -216,11 +216,11 @@ def production(
             curr_step = iterator.next()
             assert curr_step == 0
             dumpfile = dump_frame(
-                sim_params.filename(prefix="trajectory"), group=sim_params.group
+                sim_params.filename(prefix="trajectory"), group=sim_params.get_group()
             )
             for curr_step in iterator:
                 hoomd.run_upto(curr_step, quiet=True)
                 dumpfile.write_restart()
         else:
             hoomd.run(sim_params.num_steps)
-        dump_frame(sim_params.filename(), group=sim_params.group)
+        dump_frame(sim_params.filename(), group=sim_params.get_group())

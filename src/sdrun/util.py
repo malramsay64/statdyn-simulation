@@ -54,7 +54,7 @@ def set_integrator(
 
     if integration_method == "NPT":
         integrator = md.integrate.npt(
-            group=sim_params.group,
+            group=sim_params.get_group(),
             kT=sim_params.temperature,
             tau=sim_params.tau,
             P=sim_params.pressure,
@@ -70,7 +70,7 @@ def set_integrator(
 
     elif integration_method == "NVT":
         integrator = md.integrate.nvt(
-            group=sim_params.group, kT=sim_params.temperature, tau=sim_params.tau
+            group=sim_params.get_group(), kT=sim_params.temperature, tau=sim_params.tau
         )
 
     return integrator
@@ -160,7 +160,7 @@ def set_harmonic_force(
         return
     num_mols = get_num_mols(snapshot)
     HarmonicForceCompute(
-        sim_params.group,
+        sim_params.get_group(),
         snapshot.particles.position[:num_mols],
         snapshot.particles.orientation[:num_mols],
         sim_params.harmonic_force,
