@@ -32,11 +32,6 @@ def sim_params():
 
 
 @pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
-def mol_params(request):
-    return SimulationParams(num_steps=1000, temperature=1.0, molecule=request.param)
-
-
-@pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
 def molecules(request):
     return request.param
 
@@ -93,12 +88,6 @@ def test_cell_dimensions_setter(sim_params, cell_len):
         assert sim_params.cell_dimensions == cell_dims
     else:
         assert sim_params.cell_dimensions == (*cell_dims[:2], 1)
-
-
-def test_group_setter(sim_params):
-    group = "testgroup"
-    sim_params.group = group
-    assert sim_params.group == group
 
 
 def test_mol_crys(sim_params):
@@ -230,7 +219,6 @@ def get_filename_prefix(key):
 
 @pytest.mark.parametrize("params", filename_params())
 def test_filename(sim_params, params):
-
     with sim_params.temp_context(**params):
         fname = sim_params.filename().stem
     for key, value in params.items():

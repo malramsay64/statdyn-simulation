@@ -17,7 +17,7 @@ import pytest
 from sdrun.crystals import CRYSTAL_FUNCS
 from sdrun.initialise import init_from_crystal, minimize_snapshot
 from sdrun.params import SimulationParams
-from sdrun.simulation import production, equilibrate
+from sdrun.simulation import equilibrate, production
 
 
 @pytest.fixture(params=CRYSTAL_FUNCS.values(), ids=CRYSTAL_FUNCS.keys())

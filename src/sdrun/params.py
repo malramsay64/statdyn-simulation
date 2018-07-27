@@ -24,13 +24,13 @@ logger = logging.getLogger(__name__)
 @attr.s(auto_attribs=True)
 class SimulationParams(object):
     """Store the parameters of the simulation."""
+
     # Thermodynamic Params
     _temperature: float = 0.4
     tau: float = attr.ib(default=1.0, repr=False)
     pressure: float = 13.5
     tauP: float = attr.ib(default=1.0, repr=False)
     init_temp: Optional[float] = None
-    _group: Optional[hoomd.group.group] = None
 
     # Molecule params
     _molecule: Optional[Molecule] = None
@@ -139,21 +139,6 @@ class SimulationParams(object):
     @cell_dimensions.setter
     def cell_dimensions(self, value: Tuple[int, ...]) -> None:
         self._cell_dimensions = value
-
-    @property
-    def group(self) -> hoomd.group.group:
-        """Return the appropriate group."""
-        if self._group:
-            return self._group
-
-        if self.molecule.num_particles == 1:
-            return hoomd.group.all()
-
-        return hoomd.group.rigid_center()
-
-    @group.setter
-    def group(self, value: hoomd.group.group) -> None:
-        self._group = value
 
     @property
     def infile(self) -> Path:

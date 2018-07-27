@@ -236,7 +236,6 @@ def make_orthorhombic(
     snapshot.particles.position[:, 0] += xlen / 2.
     snapshot.particles.position[:, 0] %= len_x
     snapshot.particles.position[:, 0] -= len_x / 2.
-    logger.debug("Updated positions: \n%s", snapshot.particles.position)
     box = hoomd.data.boxdim(len_x, len_y, len_z, 0, 0, 0, dimensions=dimensions)
     hoomd.data.set_snapshot_box(snapshot, box)
     return snapshot

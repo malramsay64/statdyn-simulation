@@ -10,13 +10,15 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import hoomd
 import numpy as np
 import pytest
 
 from sdrun.crystals import CRYSTAL_FUNCS
-from sdrun.simulation import create_interface, equilibrate
 from sdrun.initialise import init_from_crystal, make_orthorhombic
+from sdrun.molecules import MOLECULE_DICT
 from sdrun.params import SimulationParams
+from sdrun.simulation import create_interface, equilibrate, get_group
 
 
 @pytest.fixture(params=CRYSTAL_FUNCS.values(), ids=CRYSTAL_FUNCS.keys())
@@ -29,6 +31,21 @@ def sim_params(request):
             output=Path(tmp_dir),
             cell_dimensions=(10, 12, 10),
             outfile=Path(tmp_dir) / "out.gsd",
+            hoomd_args="--mode=cpu --notice-level=0",
+        )
+
+
+@pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
+def mol_params(request):
+    with TemporaryDirectory() as tmp_dir:
+        yield SimulationParams(
+            temperature=0.4,
+            num_steps=1000,
+            molecule=request.param(),
+            output=Path(tmp_dir),
+            cell_dimensions=(10, 12, 10),
+            outfile=Path(tmp_dir) / "out.gsd",
+            hoomd_args="--mode=cpu --notice-level=0",
         )
 
 
@@ -77,3 +94,10 @@ def test_equilibrate(sim_params, equil_type):
         assert snapshot.box.xy == 0
         assert snapshot.box.xz == 0
         assert snapshot.box.yz == 0
+
+
+def test_get_group(mol_params):
+    with hoomd.context.initialize(mol_params.hoomd_args):
+        sys = hoomd.init.create_lattice(hoomd.lattice.sq(1), 5)
+        group = get_group(sys, mol_params)
+        assert group is not None
