@@ -30,7 +30,7 @@ def sim_params(request):
             molecule=request.param(),
             output=tmp_dir,
             outfile=Path(tmp_dir) / "testout",
-            hoomd_args="--mode=cpu",
+            hoomd_args="--mode=cpu --notice-level=0",
         )
 
 
@@ -43,7 +43,7 @@ def sim_params_crystal(request):
             crystal=request.param(),
             output=tmp_dir,
             outfile=Path(tmp_dir) / "testout",
-            hoomd_args="--mode=cpu",
+            hoomd_args="--mode=cpu --notice-level=0",
         )
 
 
@@ -129,7 +129,7 @@ def test_interface(sim_params, pressure, temperature):
         outdir,
         "-vvv",
         "--hoomd-args",
-        '"--mode=cpu"',
+        '"--mode=cpu --notice-level=0"',
         "create",
         str(Path(outdir) / "P{:.2f}-T{:.2f}.gsd".format(pressure, init_temp)),
     ]
@@ -147,7 +147,7 @@ def test_interface(sim_params, pressure, temperature):
         "1000",
         "-vvv",
         "--hoomd-args",
-        '"--mode=cpu"',
+        '"--mode=cpu --notice-level=0"',
         "equil",
         "--equil-type",
         "interface",

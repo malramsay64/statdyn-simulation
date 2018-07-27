@@ -29,6 +29,7 @@ def sim_params(request):
             output=Path(tmp_dir),
             cell_dimensions=(10, 12, 10),
             outfile=Path(tmp_dir) / "out.gsd",
+            hoomd_args="--mode=cpu --notice-level=0",
         )
 
 
