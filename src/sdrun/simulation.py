@@ -203,13 +203,15 @@ def production(
         sys = initialise_snapshot(snapshot, context, sim_params)
         logger.debug("Run metadata: %s", sys.get_metadata())
 
+        group = get_group(sys, sim_params)
+
         if simulation_type == "harmonic":
             set_integrator(
-                sim_params, simulation_type="crystal", integration_method="NVT"
+                sim_params, group, simulation_type="crystal", integration_method="NVT"
             )
-            set_harmonic_force(snapshot, sim_params)
+            set_harmonic_force(snapshot, sim_params, group)
         else:
-            set_integrator(sim_params, simulation_type="liquid")
+            set_integrator(sim_params, group, simulation_type="liquid")
 
         set_thermo(
             sim_params.filename(prefix="thermo"),

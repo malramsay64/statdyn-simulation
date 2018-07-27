@@ -12,7 +12,6 @@ from itertools import product
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-import hoomd
 import pytest
 from hypothesis import given
 from hypothesis.strategies import floats
@@ -89,16 +88,6 @@ def test_cell_dimensions_setter(sim_params, cell_len):
         assert sim_params.cell_dimensions == cell_dims
     else:
         assert sim_params.cell_dimensions == (*cell_dims[:2], 1)
-
-
-def test_group_setter(sim_params):
-    group = "testgroup"
-    sim_params.group = group
-    assert sim_params.group == group
-
-
-def get_group_default(sim_params):
-    assert sim_params.group is None
 
 
 def test_mol_crys(sim_params):
@@ -244,10 +233,3 @@ def test_filename(sim_params, params):
                     assert f"{prefix}{value:.2f}" in fname
             else:
                 assert f"{prefix}{value}" in fname
-
-
-def test_get_group(mol_params):
-    with hoomd.context.initialize(mol_params.hoomd_args):
-        hoomd.init.create_lattice(hoomd.lattice.sq(1), 1)
-        group = mol_params.get_group()
-        assert group is not None
