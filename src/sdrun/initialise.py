@@ -22,7 +22,6 @@ from hoomd.data import SnapshotParticleData as Snapshot, system_data as System
 
 from .molecules import Molecule
 from .params import SimulationParams
-from .simulation import equilibrate
 from .util import get_num_mols, get_num_particles, randomise_momenta
 
 logger = logging.getLogger(__name__)
@@ -93,6 +92,8 @@ def init_from_none(
             )
     snapshot = minimize_snapshot(snapshot, sim_params, ensemble="NPH")
     if equilibration:
+        from .simulation import equilibrate
+
         equilibrate(snapshot, sim_params, equil_type="liquid")
     return snapshot
 
@@ -214,6 +215,8 @@ def init_from_crystal(
         logger.debug("Particle Types: %s", snap.particles.types)
     snap = minimize_snapshot(snap, sim_params, ensemble="NPH")
     if equilibration:
+        from .simulation import equilibrate
+
         snap = equilibrate(snap, sim_params, equil_type="crystal")
     return snap
 
