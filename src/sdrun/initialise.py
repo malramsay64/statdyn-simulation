@@ -22,6 +22,7 @@ from hoomd.data import SnapshotParticleData as Snapshot, system_data as System
 
 from .molecules import Molecule
 from .params import SimulationParams
+from .simulation import equilibrate
 from .util import get_num_mols, get_num_particles, randomise_momenta
 
 logger = logging.getLogger(__name__)
@@ -44,7 +45,9 @@ def init_from_file(fname: Path, molecule: Molecule, hoomd_args: str = "") -> Sna
     return init_snapshot
 
 
-def init_from_none(sim_params: SimulationParams) -> Snapshot:
+def init_from_none(
+    sim_params: SimulationParams, equilibration: bool = False
+) -> Snapshot:
     """Initialise a system from no inputs.
 
     This creates a simulation with a large unit cell lattice such that there
@@ -88,7 +91,10 @@ def init_from_none(sim_params: SimulationParams) -> Snapshot:
             snapshot.particles.moment_inertia[:] = np.array(
                 [molecule.moment_inertia] * num_molecules * molecule.num_particles
             )
-    return minimize_snapshot(snapshot, sim_params, ensemble="NPH")
+    snapshot = minimize_snapshot(snapshot, sim_params, ensemble="NPH")
+    if equilibration:
+        equilibrate(snapshot, sim_params, equil_type="liquid")
+    return snapshot
 
 
 def initialise_snapshot(
@@ -174,7 +180,9 @@ def minimize_snapshot(
     return equil_snapshot
 
 
-def init_from_crystal(sim_params: SimulationParams) -> Snapshot:
+def init_from_crystal(
+    sim_params: SimulationParams, equilibration: bool = False
+) -> Snapshot:
     """Initialise a hoomd simulation from a crystal lattice.
 
     Args:
@@ -205,6 +213,8 @@ def init_from_crystal(sim_params: SimulationParams) -> Snapshot:
         snap = sys.take_snapshot(all=True)
         logger.debug("Particle Types: %s", snap.particles.types)
     snap = minimize_snapshot(snap, sim_params, ensemble="NPH")
+    if equilibration:
+        snap = equilibrate(snap, sim_params, equil_type="crystal")
     return snap
 
 
