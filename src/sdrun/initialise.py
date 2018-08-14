@@ -13,12 +13,14 @@ config.
 """
 import logging
 from pathlib import Path
+from typing import Tuple
 
 import hoomd
 import hoomd.md
 import numpy as np
 from hoomd.context import SimulationContext as Context
 from hoomd.data import SnapshotParticleData as Snapshot, system_data as System
+from scipy.stats import maxwell, norm
 
 from .molecules import Molecule
 from .params import SimulationParams
@@ -248,6 +250,72 @@ def make_orthorhombic(snapshot: Snapshot) -> Snapshot:
     box = hoomd.data.boxdim(len_x, len_y, len_z, 0, 0, 0, dimensions=dimensions)
     hoomd.data.set_snapshot_box(snapshot, box)
     return snapshot
+
+
+def thermalise(snapshot: Snapshot, sim_params: SimulationParams) -> Snapshot:
+    """Set the momentum of the particles to the temperature distribution."""
+    size = get_num_mols(snapshot)
+
+    snapshot.particles.velocity[:] = _scale_velocity(size, sim_params)
+    snapshot.particles.angmom[:] = _scale_angmom(size, sim_params)
+
+    return snapshot
+
+
+def _scale_angmom(size: int, sim_params: SimulationParams) -> np.ndarray:
+    energy_distribution = _generate_energies(size)
+    if sim_params.molecule.dimensions == 2:
+        direction_distribution = _generate_vectors(size, 1)[:, 0]
+    elif sim_params.molecule.dimensions == 3:
+        raise NotImplementedError(
+            "Scaling angular momentum for 3d molecules is not yet implemented"
+        )
+
+    temperature = sim_params.temperature
+    velocity_magnitude = np.sqrt(2 * temperature)
+
+    return z2quaternion(
+        energy_distribution * direction_distribution * velocity_magnitude
+    )
+
+
+def _scale_velocity(size: int, sim_params: SimulationParams) -> np.ndarray:
+    energy_distribution = _generate_energies(size)
+    direction_distribution = _generate_vectors(size, sim_params.molecule.dimensions)
+
+    temperature = sim_params.temperature
+    mass = sim_params.molecule.num_particles
+    velocity_magnitude = np.sqrt(2 * temperature / mass)
+
+    return energy_distribution * direction_distribution * velocity_magnitude
+
+
+def _generate_energies(size: int) -> np.ndarray:
+    """Create a boltzmann distribution of energies.
+
+    A function for generating a random distribution of values in a boltzmann distribution, which
+    is the distribution for energies in a molecular simulation. This function is concerned with
+    the shape of the distribution, with the values intended to be rescaled for the required
+    temperature.
+
+    """
+    energy = maxwell.rvs(1, 0.2, size=size) / maxwell.mean(1, 0.2)
+    return energy
+
+
+def _generate_vectors(size: int, dimensions: int = 2) -> np.ndarray:
+    """Create a random distribution of unit vectors."""
+    # The minimum number of dimensions for a position vector is 3, this would also allow for 4D
+    # values like quaternions.
+    vec_dim = max(3, dimensions)
+
+    vec = norm.rvs(size=(size, dimensions))
+
+    # Set values of dimensions larger than shpae to 0
+    if vec.shape[1] > dimensions:
+        vec[:, dimensions:] = 0
+    vec /= np.linalg.norm(vec, axis=1)
+    return vec
 
 
 def _check_properties(snapshot: Snapshot, molecule: Molecule) -> Snapshot:
