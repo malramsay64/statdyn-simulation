@@ -14,46 +14,16 @@ import hoomd
 import numpy as np
 import pytest
 
-from sdrun.crystals import CRYSTAL_FUNCS
 from sdrun.initialise import init_from_crystal, make_orthorhombic
-from sdrun.molecules import MOLECULE_DICT
 from sdrun.params import SimulationParams
 from sdrun.simulation import create_interface, equilibrate, get_group
 
 
-@pytest.fixture(params=CRYSTAL_FUNCS.values(), ids=CRYSTAL_FUNCS.keys())
-def sim_params(request):
-    with TemporaryDirectory() as tmp_dir:
-        yield SimulationParams(
-            temperature=0.4,
-            num_steps=1000,
-            crystal=request.param(),
-            output=Path(tmp_dir),
-            cell_dimensions=(10, 12, 10),
-            outfile=Path(tmp_dir) / "out.gsd",
-            hoomd_args="--mode=cpu --notice-level=0",
-        )
-
-
-@pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
-def mol_params(request):
-    with TemporaryDirectory() as tmp_dir:
-        yield SimulationParams(
-            temperature=0.4,
-            num_steps=1000,
-            molecule=request.param(),
-            output=Path(tmp_dir),
-            cell_dimensions=(10, 12, 10),
-            outfile=Path(tmp_dir) / "out.gsd",
-            hoomd_args="--mode=cpu --notice-level=0",
-        )
-
-
-def test_orthorhombic_equil(sim_params):
+def test_orthorhombic_equil(crystal_params):
     """Ensure the equilibration is close to initialisation."""
-    snap_min = init_from_crystal(sim_params)
+    snap_min = init_from_crystal(crystal_params)
     snap_ortho = make_orthorhombic(snap_min)
-    snap_equil = equilibrate(snap_ortho, sim_params, equil_type="crystal")
+    snap_equil = equilibrate(snap_ortho, crystal_params, equil_type="crystal")
 
     # Simulation box within 20% of initialisation
     for attribute in ["Lx", "Ly", "Lz", "xy", "xz", "yz"]:
@@ -64,9 +34,9 @@ def test_orthorhombic_equil(sim_params):
         )
 
 
-def test_create_interface(sim_params):
-    with sim_params.temp_context(init_temp=0.4, temperature=3.0):
-        snapshot = create_interface(sim_params)
+def test_create_interface(crystal_params):
+    with crystal_params.temp_context(init_temp=0.4, temperature=3.0):
+        snapshot = create_interface(crystal_params)
 
     assert snapshot.box.xy == 0
     assert snapshot.box.xz == 0
@@ -74,14 +44,14 @@ def test_create_interface(sim_params):
 
 
 @pytest.mark.parametrize("equil_type", ["liquid", "crystal", "interface", "harmonic"])
-def test_equilibrate(sim_params, equil_type):
+def test_equilibrate(crystal_params, equil_type):
     """Ensure the equilibration is close to initialisation."""
     # Initialisation of snapshot
-    snap_min = init_from_crystal(sim_params)
+    snap_min = init_from_crystal(crystal_params)
 
     # Equilibration
-    with sim_params.temp_context(harmonic_force=1):
-        snapshot = equilibrate(snap_min, sim_params, equil_type)
+    with crystal_params.temp_context(harmonic_force=1):
+        snapshot = equilibrate(snap_min, crystal_params, equil_type)
 
     # Simulation box within 10% of initialisation
     for attribute in ["Lx", "Ly", "Lz", "xy", "xz", "yz"]:
