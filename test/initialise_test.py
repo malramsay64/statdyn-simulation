@@ -8,8 +8,6 @@
 """Module for testing the initialisation."""
 
 import logging
-from pathlib import Path
-from tempfile import TemporaryDirectory
 
 import hoomd
 import numpy as np
@@ -17,14 +15,13 @@ import pytest
 from hypothesis import given, settings
 from hypothesis.strategies import integers, tuples
 
-from sdrun.crystals import CRYSTAL_FUNCS, TrimerP2
+from sdrun.crystals import TrimerP2
 from sdrun.initialise import (
     init_from_crystal,
     init_from_none,
     initialise_snapshot,
     make_orthorhombic,
 )
-from sdrun.molecules import MOLECULE_DICT
 from sdrun.params import SimulationParams
 from sdrun.util import get_num_mols
 
@@ -32,63 +29,37 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-@pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
-def sim_params(request):
-    with TemporaryDirectory() as tmp_dir:
-        yield SimulationParams(
-            temperature=0.4,
-            pressure=1.0,
-            num_steps=100,
-            molecule=request.param(),
-            output=Path(tmp_dir),
-            cell_dimensions=10,
-        )
-
-
-@pytest.fixture(params=CRYSTAL_FUNCS.values(), ids=CRYSTAL_FUNCS.keys())
-def sim_params_crystal(request):
-    with TemporaryDirectory() as tmp_dir:
-        yield SimulationParams(
-            temperature=0.4,
-            pressure=1.0,
-            num_steps=100,
-            crystal=request.param(),
-            output=Path(tmp_dir),
-            cell_dimensions=10,
-        )
-
-
-def test_init_from_none(sim_params):
+def test_init_from_none(mol_params):
     """Ensure init_from_none has the correct type and number of particles."""
-    snap = init_from_none(sim_params)
+    snap = init_from_none(mol_params)
     # Each unit cell should create a single particle
-    num_particles = np.prod(np.array(sim_params.cell_dimensions))
-    assert snap.particles.N == num_particles * sim_params.molecule.num_particles
+    num_particles = np.prod(np.array(mol_params.cell_dimensions))
+    assert snap.particles.N == num_particles * mol_params.molecule.num_particles
 
 
-def test_initialise_snapshot(sim_params):
+def test_initialise_snapshot(mol_params):
     """Test initialisation from a snapshot works."""
-    snap = init_from_none(sim_params)
-    context = hoomd.context.initialize(sim_params.hoomd_args)
-    sys = initialise_snapshot(snap, context, sim_params)
+    snap = init_from_none(mol_params)
+    context = hoomd.context.initialize(mol_params.hoomd_args)
+    sys = initialise_snapshot(snap, context, mol_params)
     assert isinstance(sys, hoomd.data.system_data)
     snap_init = sys.take_snapshot()
     # Ensure bodies are initialised
     assert np.any(snap.particles.body != 2 ** 32 - 1)
     # Ensure all particles in molecules are created
     num_particles = (
-        np.prod(np.array(sim_params.cell_dimensions))
-        * sim_params.molecule.num_particles
+        np.prod(np.array(mol_params.cell_dimensions))
+        * mol_params.molecule.num_particles
     )
     assert snap_init.particles.N == num_particles
 
 
-def test_initialise_randomise(sim_params):
+def test_initialise_randomise(mol_params):
     snapshot = hoomd.data.gsd_snapshot("test/data/Trimer-13.50-3.00.gsd")
-    context = hoomd.context.initialize(sim_params.hoomd_args)
+    context = hoomd.context.initialize(mol_params.hoomd_args)
     num_mols = get_num_mols(snapshot)
-    with sim_params.temp_context(iteration_id=0):
-        sys = initialise_snapshot(snapshot, context, sim_params)
+    with mol_params.temp_context(iteration_id=0):
+        sys = initialise_snapshot(snapshot, context, mol_params)
         assert isinstance(sys, hoomd.data.system_data)
         snap = sys.take_snapshot()
     angmom_similarity = np.sum(
@@ -101,11 +72,11 @@ def test_initialise_randomise(sim_params):
     assert velocity_similarity < 5
 
 
-def test_init_crystal(sim_params_crystal):
+def test_init_crystal(crystal_params):
     """Test the initialisation of all crystals."""
-    snap = init_from_crystal(sim_params_crystal)
-    Nx, Ny, _ = sim_params_crystal.cell_dimensions
-    unitcell = sim_params_crystal.crystal.get_matrix()
+    snap = init_from_crystal(crystal_params)
+    Nx, Ny, _ = crystal_params.cell_dimensions
+    unitcell = crystal_params.crystal.get_matrix()
     logger.debug("Unitcell: %s", unitcell)
     Lx = np.linalg.norm(np.dot(np.array([1, 0, 0]), unitcell))
     Ly = np.linalg.norm(np.dot(np.array([0, 1, 0]), unitcell))
@@ -120,14 +91,14 @@ def test_init_crystal(sim_params_crystal):
     assert np.allclose(snap.box.Ly, Ly * Ny, rtol=0.2)
 
 
-def test_orthorhombic_null(sim_params):
+def test_orthorhombic_null(mol_params):
     """Ensure null operation with orthorhombic function.
 
     In the case where the unit cell is already orthorhombic,
     check that nothing has changed unexpectedly.
     """
-    with hoomd.context.initialize(sim_params.hoomd_args):
-        snap = init_from_none(sim_params)
+    with hoomd.context.initialize(mol_params.hoomd_args):
+        snap = init_from_none(mol_params)
         assert np.all(
             make_orthorhombic(snap).particles.position == snap.particles.position
         )
@@ -161,9 +132,9 @@ def test_make_orthorhombic(cell_dimensions):
 
 
 @pytest.mark.parametrize("cell_dimensions", [[5, 10, 15, 20]])
-def test_orthorhombic_init(sim_params_crystal, cell_dimensions):
+def test_orthorhombic_init(crystal_params, cell_dimensions):
     """Ensure orthorhombic cell initialises correctly."""
-    snap = init_from_crystal(sim_params_crystal)
+    snap = init_from_crystal(crystal_params)
     snap_ortho = make_orthorhombic(snap)
     assert np.all(snap_ortho.particles.position == snap.particles.position)
     assert np.all(snap_ortho.particles.position[:, 0] < snap_ortho.box.Lx / 2.)
@@ -176,16 +147,16 @@ def test_orthorhombic_init(sim_params_crystal, cell_dimensions):
 
 
 @pytest.mark.parametrize("scaling_factor", [0.1, 1, 10, 100])
-def test_moment_inertia(sim_params, scaling_factor):
+def test_moment_inertia(mol_params, scaling_factor):
     """Ensure moment of intertia is set correctly in setup."""
-    init_mol = np.array(sim_params.molecule.moment_inertia)
+    init_mol = np.array(mol_params.molecule.moment_inertia)
     logger.debug("Moment Intertia before scaling: %s", init_mol)
     init_mol *= scaling_factor
     logger.debug("Moment Intertia after scaling: %s", init_mol)
-    with sim_params.temp_context(moment_inertia_scale=scaling_factor):
-        snapshot = init_from_none(sim_params)
-        context = hoomd.context.initialize(sim_params.hoomd_args)
-        snapshot = initialise_snapshot(snapshot, context, sim_params).take_snapshot()
+    with mol_params.temp_context(moment_inertia_scale=scaling_factor):
+        snapshot = init_from_none(mol_params)
+        context = hoomd.context.initialize(mol_params.hoomd_args)
+        snapshot = initialise_snapshot(snapshot, context, mol_params).take_snapshot()
         num_mols = get_num_mols(snapshot)
         logger.debug(
             "Simulation Moment Intertia: %s", snapshot.particles.moment_inertia[0]
@@ -193,3 +164,7 @@ def test_moment_inertia(sim_params, scaling_factor):
         logger.debug("Intended Moment Intertia: %s", init_mol)
         diff = snapshot.particles.moment_inertia[:num_mols] - init_mol
         assert np.allclose(diff, 0, atol=1e-1)
+
+
+def test_thermalise(snapshot):
+    pass

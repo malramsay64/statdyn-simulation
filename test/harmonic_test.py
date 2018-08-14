@@ -8,38 +8,17 @@
 
 """Test harmonic module."""
 
-from pathlib import Path
-from tempfile import TemporaryDirectory
 
 import hoomd
-import pytest
 
-from sdrun.crystals import CRYSTAL_FUNCS
 from sdrun.initialise import init_from_crystal, minimize_snapshot
-from sdrun.params import SimulationParams
 from sdrun.simulation import equilibrate, production
 
 
-@pytest.fixture(params=CRYSTAL_FUNCS.values(), ids=CRYSTAL_FUNCS.keys())
-def sim_params(request):
-    with TemporaryDirectory() as tmp_dir:
-        output_dir = Path(tmp_dir) / "output"
-        output_dir.mkdir(exist_ok=True)
-        yield SimulationParams(
-            temperature=0.4,
-            num_steps=100,
-            output=output_dir,
-            outfile=output_dir / "test.gsd",
-            crystal=request.param(),
-            cell_dimensions=5,
-            harmonic_force=1,
-        )
-
-
-def test_minimize_box(sim_params):
+def test_minimize_box(crystal_params):
     """Ensure the box doesn't change size"""
-    snap_init = init_from_crystal(sim_params)
-    snap_final = minimize_snapshot(snap_init, sim_params, ensemble="NVE")
+    snap_init = init_from_crystal(crystal_params)
+    snap_final = minimize_snapshot(snap_init, crystal_params, ensemble="NVE")
     assert snap_init.box.Lx == snap_final.box.Lx
     assert snap_init.box.Ly == snap_final.box.Ly
     assert snap_init.box.Lz == snap_final.box.Lz
@@ -48,10 +27,15 @@ def test_minimize_box(sim_params):
     assert snap_init.box.yz == snap_final.box.yz
 
 
-def test_run_harmonic(sim_params):
-    snap_init = init_from_crystal(sim_params)
-    snap_equil = equilibrate(snap_init, sim_params, equil_type="harmonic")
-    context = hoomd.context.initialize(sim_params.hoomd_args)
-    production(
-        snap_equil, context, sim_params, dynamics=False, simulation_type="harmonic"
-    )
+def test_run_harmonic(crystal_params):
+    with crystal_params.temp_context(harmonic_force=0.1):
+        snap_init = init_from_crystal(crystal_params)
+        snap_equil = equilibrate(snap_init, crystal_params, equil_type="harmonic")
+        context = hoomd.context.initialize(crystal_params.hoomd_args)
+        production(
+            snap_equil,
+            context,
+            crystal_params,
+            dynamics=False,
+            simulation_type="harmonic",
+        )

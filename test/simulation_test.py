@@ -21,72 +21,45 @@ from sdrun.params import SimulationParams
 from sdrun.simulation import equilibrate, make_orthorhombic, production
 
 
-@pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
-def sim_params(request):
-    with TemporaryDirectory() as tmp_dir:
-        yield SimulationParams(
-            temperature=0.4,
-            num_steps=100,
-            molecule=request.param(),
-            output=tmp_dir,
-            outfile=Path(tmp_dir) / "testout",
-            hoomd_args="--mode=cpu --notice-level=0",
-        )
-
-
-@pytest.fixture(params=CRYSTAL_FUNCS.values(), ids=CRYSTAL_FUNCS.keys())
-def sim_params_crystal(request):
-    with TemporaryDirectory() as tmp_dir:
-        yield SimulationParams(
-            temperature=0.4,
-            num_steps=100,
-            crystal=request.param(),
-            output=tmp_dir,
-            outfile=Path(tmp_dir) / "testout",
-            hoomd_args="--mode=cpu --notice-level=0",
-        )
-
-
 @pytest.mark.simulation
-def test_run_npt(sim_params):
+def test_run_npt(mol_params):
     """Test an npt run."""
-    snapshot = init_from_none(sim_params)
-    context = hoomd.context.initialize(sim_params.hoomd_args)
-    production(snapshot, context, sim_params, dynamics=False)
+    snapshot = init_from_none(mol_params)
+    context = hoomd.context.initialize(mol_params.hoomd_args)
+    production(snapshot, context, mol_params, dynamics=False)
 
 
 @pytest.mark.simulation
 @pytest.mark.parametrize("cell_dimensions", range(1, 5))
-def test_orthorhombic_sims(cell_dimensions, sim_params_crystal):
+def test_orthorhombic_sims(cell_dimensions, crystal_params):
     """Test the initialisation from a crystal unit cell.
 
     This also ensures there is no unusual things going on with the calculation
     of the orthorhombic unit cell.
     """
-    sim_params = sim_params_crystal
     # Multiple of 6 works nicely with the p2 cyrstal
     cell_dimensions = cell_dimensions * 6
-    with sim_params.temp_context(cell_dimensions=cell_dimensions):
-        snapshot = init_from_crystal(sim_params)
-        snapshot = equilibrate(snapshot, sim_params, equil_type="crystal")
+    with mol_params.temp_context(cell_dimensions=cell_dimensions):
+        snapshot = init_from_crystal(crystal_params)
+        snapshot = equilibrate(snapshot, crystal_params, equil_type="crystal")
     snapshot = make_orthorhombic(snapshot)
-    temp_context = hoomd.context.initialize(sim_params.hoomd_args)
-    production(snapshot, temp_context, sim_params, dynamics=False)
+    temp_context = hoomd.context.initialize(crystal_params.hoomd_args)
+    production(snapshot, temp_context, crystal_params, dynamics=False)
 
 
 @pytest.mark.simulation
-def test_file_placement(sim_params):
+def test_file_placement(mol_params):
     """Ensure files are located in the correct directory when created."""
-    snapshot = init_from_none(sim_params)
-    context = hoomd.context.initialize(sim_params.hoomd_args)
-    production(snapshot, context, sim_params, dynamics=True)
+    snapshot = init_from_none(mol_params)
+    context = hoomd.context.initialize(mol_params.hoomd_args)
+    production(snapshot, context, mol_params, dynamics=True)
 
     params = {
-        "molecule": sim_params.molecule,
-        "pressure": sim_params.pressure,
-        "temperature": sim_params.temperature,
+        "molecule": mol_params.molecule,
+        "pressure": mol_params.pressure,
+        "temperature": mol_params.temperature,
     }
-    outdir = Path(sim_params.output)
+    outdir = Path(mol_params.output)
     print(list(outdir.glob("*")))
     assert (
         outdir / "{molecule}-P{pressure:.2f}-T{temperature:.2f}.gsd".format(**params)
@@ -109,9 +82,9 @@ def test_file_placement(sim_params):
 
 @pytest.mark.simulation
 @pytest.mark.parametrize("pressure, temperature", [(1.0, 1.8), (13.5, 3.00)])
-def test_interface(sim_params, pressure, temperature):
+def test_interface(mol_params, pressure, temperature):
     init_temp = 0.4
-    outdir = str(sim_params.output)
+    outdir = str(mol_params.output)
     create_command = [
         "sdrun",
         "--pressure",
