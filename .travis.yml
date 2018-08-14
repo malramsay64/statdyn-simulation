@@ -1,6 +1,6 @@
 language: python
 
-install:
+before_install:
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
   - bash miniconda.sh -b -u -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
@@ -13,8 +13,10 @@ install:
 
   - conda env update
   - source activate sdrun-dev
-  - pip install -e .
   - conda install -c conda-forge codecov
+
+install:
+  - pip install -e .
 
 script:
     - pytest
