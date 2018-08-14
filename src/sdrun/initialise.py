@@ -22,7 +22,7 @@ from hoomd.data import SnapshotParticleData as Snapshot, system_data as System
 
 from .molecules import Molecule
 from .params import SimulationParams
-from .util import get_num_mols, get_num_particles, randomise_momenta
+from .util import get_num_mols, get_num_particles, randomise_momenta, z2quaternion
 
 logger = logging.getLogger(__name__)
 

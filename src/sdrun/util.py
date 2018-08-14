@@ -230,3 +230,13 @@ def get_num_mols(snapshot: Snapshot) -> int:
 def get_num_particles(snapshot: Snapshot) -> int:
     num_bodies = _get_num_bodies(snapshot)
     return num_bodies.particles
+
+
+def z2quaternion(theta: np.ndarray) -> np.ndarray:
+    """Compute quaternion for a given rotation in the z direction."""
+    result = np.zeros((theta.shape[0], 4), dtype=np.float32)
+    q_angle = theta / 2
+    q_angle[np.isclose(q_angle, 0, atol=2 * np.finfo(np.float32).eps)] = 0
+    result[:, 0] = np.cos(q_angle)
+    result[:, 3] = np.sin(q_angle)
+    return result
