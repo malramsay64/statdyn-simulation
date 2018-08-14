@@ -27,6 +27,7 @@ requirements:
         - hoomd-harmonic-force >=0.1.8
         - setuptools *
         - attrs
+        - scipy
         - click
 
 build:
