@@ -24,6 +24,12 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+def _to_path(value: Optional[Path]) -> Optional[Path]:
+    if value is not None:
+        return Path(value)
+    return value
+
+
 @attr.s(auto_attribs=True)
 class SimulationParams(object):
     """Store the parameters of the simulation."""
@@ -53,15 +59,9 @@ class SimulationParams(object):
     output_interval: int = attr.ib(default=10_000, repr=False)
 
     # File Params
-    _infile: Optional[Path] = attr.ib(
-        default=None, converter=attr.converters.optional(Path), repr=False
-    )
-    _outfile: Optional[Path] = attr.ib(
-        default=None, converter=attr.converters.optional(Path), repr=False
-    )
-    _output: Path = attr.ib(
-        default=Path.cwd(), converter=attr.converters.optional(Path), repr=False
-    )
+    _infile: Optional[Path] = attr.ib(default=None, converter=_to_path, repr=False)
+    _outfile: Optional[Path] = attr.ib(default=None, converter=_to_path, repr=False)
+    _output: Path = attr.ib(default=Path.cwd(), converter=_to_path, repr=False)
 
     hoomd_args: str = attr.ib(default="", repr=False)
     iteration_id: int = None
