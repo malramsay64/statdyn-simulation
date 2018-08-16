@@ -11,7 +11,7 @@
 import logging
 from collections import OrderedDict
 from itertools import combinations_with_replacement
-from typing import Any, Dict, List, Mapping, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Tuple
 
 import attr
 import hoomd
@@ -43,6 +43,7 @@ class Molecule(object):
     particles: List[str] = attr.ib(factory=lambda: ["A"])
     potential_args: Dict[str, Any] = attr.ib(factory=dict)
     _radii: Dict[str, float] = attr.ib(factory=OrderedDict)
+    rigid: bool = False
 
     def __attrs_post_init__(self) -> None:
         self.potential_args.setdefault("r_cut", 2.5)
@@ -60,6 +61,9 @@ class Molecule(object):
     @property
     def num_particles(self) -> int:
         """Count of particles in the molecule."""
+        if self.rigid:
+            # Rigid bodies have an additional center-of-mass particle
+            return len(self.particles) + 1
         return len(self.particles)
 
     @property
@@ -113,13 +117,21 @@ class Molecule(object):
         """
         potential = self.potential(**self.potential_args, nlist=hoomd.md.nlist.cell())
         # Each conbination of two particles requires a pair coefficient to be defined
-        for i, j in combinations_with_replacement(self._radii.keys(), 2):
-            potential.pair_coeff.set(
-                i, j, epsilon=1, sigma=self._radii[i] + self._radii[j]
-            )
+        sites = list(self._radii.keys())
+        if self.rigid:
+            sites.append("R")
+        for i, j in combinations_with_replacement(sites, 2):
+            if "R" in [i, j]:
+                potential.pair_coeff.set(i, j, epsilon=0, sigma=0)
+            else:
+                potential.pair_coeff.set(
+                    i, j, epsilon=1, sigma=self._radii[i] + self._radii[j]
+                )
         return potential
 
-    def define_rigid(self, params: Dict[Any, Any] = None) -> hoomd.md.constrain.rigid:
+    def define_rigid(
+        self, params: Dict[Any, Any] = None
+    ) -> Optional[hoomd.md.constrain.rigid]:
         """Define the rigid constraints of the molecule.
 
         This is a helper function to define the rigid body constraints of the
@@ -138,8 +150,8 @@ class Molecule(object):
             class:`hoomd.md.constrain.rigid`: Rigid constraint object
 
         """
-        if len(self.particles) <= 1:
-            logger.info("Not enough particles for a rigid body")
+        if not self.rigid:
+            logger.info("Not a rigid body")
             return
 
         if params is None:
@@ -263,6 +275,7 @@ class Trimer(Molecule):
             radii=radii,
             particles=particles,
             moment_inertia_scale=moment_inertia_scale,
+            rigid=True,
         )
 
     @property
@@ -319,6 +332,7 @@ class Dimer(Molecule):
             positions=positions,
             radii=radii,
             moment_inertia_scale=moment_inertia_scale,
+            rigid=True,
         )
 
 
@@ -344,10 +358,6 @@ class Binary_Mixture(Molecule):
     @property
     def moment_inertia(self):
         return np.zeros(3)
-
-    # Overwrite rigid to do nothing
-    def define_rigid(self):
-        return None
 
     def identify_bodies(self, num_molecules: int) -> np.ndarray:
         return np.arange(num_molecules * self.num_particles)

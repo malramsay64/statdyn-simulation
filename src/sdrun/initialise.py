@@ -37,8 +37,8 @@ def init_from_file(fname: Path, molecule: Molecule, hoomd_args: str = "") -> Sna
         logger.debug("Reading snapshot: %s", fname)
         snapshot = hoomd.data.gsd_snapshot(str(fname), frame=0)
         sys = hoomd.init.read_snapshot(snapshot)
-        rigid = molecule.define_rigid()
-        if rigid:
+        if molecule.rigid:
+            rigid = molecule.define_rigid()
             rigid.create_bodies()
         init_snapshot = sys.take_snapshot(all=True)
     return init_snapshot
@@ -137,8 +137,8 @@ def initialise_snapshot(
         sys = hoomd.init.read_snapshot(snapshot)
         sim_params.molecule.define_potential()
         sim_params.molecule.define_dimensions()
-        rigid = sim_params.molecule.define_rigid()
-        if rigid:
+        if sim_params.molecule.rigid:
+            rigid = sim_params.molecule.define_rigid()
             rigid.check_initialization()
         return sys
 
@@ -152,12 +152,13 @@ def minimize_snapshot(
         sys = hoomd.init.read_snapshot(snapshot)
         sim_params.molecule.define_potential()
         sim_params.molecule.define_dimensions()
-        rigid = sim_params.molecule.define_rigid()
-        if rigid:
+        if sim_params.molecule.rigid:
+            rigid = sim_params.molecule.define_rigid()
             rigid.check_initialization()
             group = hoomd.group.rigid_center()
         else:
             group = hoomd.group.all()
+
         logger.debug("Minimizing energy")
         fire = hoomd.md.integrate.mode_minimize_fire(0.001)
 
@@ -205,11 +206,11 @@ def init_from_crystal(
         sys = hoomd.init.create_lattice(
             unitcell=sim_params.crystal.get_unitcell(), n=cell_dimensions
         )
-        for p_type in sim_params.molecule.get_types()[1:]:
+        for p_type in sim_params.molecule.get_types():
             sys.particles.pdata.addType(p_type)
         logger.debug("Particle Types: %s", sys.particles.types)
-        rigid = sim_params.molecule.define_rigid()
-        if rigid:
+        if sim_params.molecule.rigid:
+            rigid = sim_params.molecule.define_rigid()
             rigid.create_bodies()
         snap = sys.take_snapshot(all=True)
         logger.debug("Particle Types: %s", snap.particles.types)

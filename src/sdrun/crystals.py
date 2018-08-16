@@ -56,6 +56,7 @@ class Crystal(object):
         a1, a2, a3 = self.get_cell_len()  # pylint: disable=invalid-name
         mass = self.molecule.mass
         num_mols = self.get_num_molecules()
+        type_name = "R" if self.molecule.rigid else "A"
         return hoomd.lattice.unitcell(
             N=num_mols,
             a1=a1,
@@ -64,7 +65,7 @@ class Crystal(object):
             position=self.get_abs_positions(),
             dimensions=self.dimensions,
             orientation=self.get_orientations(),
-            type_name=["R"] * num_mols,
+            type_name=[type_name] * num_mols,
             mass=[mass] * num_mols,
             moment_inertia=([self.molecule.moment_inertia] * num_mols),
         )

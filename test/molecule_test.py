@@ -132,3 +132,13 @@ def test_moment_inertia_scaling(scaling_factor):
 def test_compute_size(molecule):
     size = molecule.compute_size()
     assert size >= 2.
+
+
+def test_rigid(molecule):
+    if not molecule.rigid:
+        return
+    with hoomd.context.initialize("--mode=cpu"):
+        sys = hoomd.init.create_lattice(hoomd.lattice.sq(2, type_name="R"), 2)
+        for particle_type in molecule.get_types():
+            sys.particles.types.add(particle_type)
+        molecule.define_rigid()
