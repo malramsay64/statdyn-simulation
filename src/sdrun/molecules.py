@@ -335,38 +335,6 @@ class Dimer(Molecule):
         )
 
 
-class Binary_Mixture(Molecule):
-    """Define an equimolar binary mixture.
+MOLECULE_DICT = {"trimer": Trimer, "dimer": Dimer, "disc": Disc}
 
-    This is done by creating a 'molecule' which has no links between the particles
-    so they are able to freely diffuse.
-
-    """
-
-    def __init__(self, radius=0.715):
-        self.radius = radius
-        distance = 1 + radius
-        positions = np.array([[0, 0, 0], [0, distance, 0]])
-        particles = ["A", "B"]
-        radii = OrderedDict(A=1.0, B=self.radius)
-        positions = np.array([[0, 0, 0], [0, distance, 0]])
-        super().__init__(
-            dimensions=2, particles=particles, positions=positions, radii=radii
-        )
-
-    @property
-    def moment_inertia(self):
-        return np.zeros(3)
-
-    def identify_bodies(self, num_molecules: int) -> np.ndarray:
-        return np.arange(num_molecules * self.num_particles)
-
-
-MOLECULE_DICT = {
-    "trimer": Trimer,
-    "dimer": Dimer,
-    "binary_mixture": Binary_Mixture,
-    "disc": Disc,
-}
-
-MOLECULE_LIST = [Trimer(), Dimer(), Binary_Mixture(), Disc()]
+MOLECULE_LIST = [Trimer(), Dimer(), Disc()]
