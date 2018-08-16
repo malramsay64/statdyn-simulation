@@ -44,7 +44,8 @@ def test_initialise_snapshot(mol_params):
     assert isinstance(sys, hoomd.data.system_data)
     snap_init = sys.take_snapshot()
     # Ensure bodies are initialised
-    assert np.any(snap.particles.body != 2 ** 32 - 1)
+    if mol_params.molecule.rigid:
+        assert np.any(snap.particles.body != 2 ** 32 - 1)
     # Ensure all particles in molecules are created
     num_mols = np.prod(np.array(mol_params.cell_dimensions))
     num_particles = num_mols * mol_params.molecule.num_particles

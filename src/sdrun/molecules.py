@@ -11,7 +11,7 @@
 import logging
 from collections import OrderedDict
 from itertools import combinations_with_replacement
-from typing import Any, Dict, List, Mapping, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import attr
 import hoomd
@@ -90,6 +90,8 @@ class Molecule(object):
 
     def get_types(self) -> List[str]:
         """Get the types of particles present in a molecule."""
+        if self.rigid:
+            return ["R"] + sorted(list(self._radii.keys()))
         return sorted(list(self._radii.keys()))
 
     def define_dimensions(self) -> None:
