@@ -23,7 +23,7 @@ class Crystal(object):
 
     cell_matrix: np.ndarray = np.identity(3)
     molecule: Molecule = attr.ib(factory=Molecule)
-    positions: np.ndarray = np.zeros((1, 3))
+    positions: np.ndarray = 0.5 * np.ones((1, 3))
     _orientations: np.ndarray = np.zeros(1)
 
     @property
