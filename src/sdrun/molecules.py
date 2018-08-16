@@ -39,7 +39,7 @@ class Molecule(object):
     dimensions: int = 3
     moment_inertia_scale: float = 1
     positions: np.ndarray = np.zeros((1, 3))
-    potential: Pair = hoomd.md.pair.lj
+    potential: Pair = hoomd.md.pair.slj
     particles: List[str] = attr.ib(factory=lambda: ["A"])
     potential_args: Dict[str, Any] = attr.ib(factory=dict)
     _radii: Dict[str, float] = attr.ib(factory=OrderedDict)
