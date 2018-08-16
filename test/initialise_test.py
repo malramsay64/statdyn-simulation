@@ -32,8 +32,8 @@ def test_init_from_none(mol_params):
     """Ensure init_from_none has the correct type and number of particles."""
     snap = init_from_none(mol_params)
     # Each unit cell should create a single particle
-    num_particles = np.prod(np.array(mol_params.cell_dimensions))
-    assert snap.particles.N == num_particles * mol_params.molecule.num_particles
+    num_mols = np.prod(np.array(mol_params.cell_dimensions))
+    assert snap.particles.N == num_mols * mol_params.molecule.num_particles
 
 
 def test_initialise_snapshot(mol_params):
@@ -46,10 +46,8 @@ def test_initialise_snapshot(mol_params):
     # Ensure bodies are initialised
     assert np.any(snap.particles.body != 2 ** 32 - 1)
     # Ensure all particles in molecules are created
-    num_particles = (
-        np.prod(np.array(mol_params.cell_dimensions))
-        * mol_params.molecule.num_particles
-    )
+    num_mols = np.prod(np.array(mol_params.cell_dimensions))
+    num_particles = num_mols * mol_params.molecule.num_particles
     assert snap_init.particles.N == num_particles
 
 

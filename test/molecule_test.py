@@ -10,12 +10,13 @@
 
 from collections import OrderedDict
 
+import hoomd
 import numpy as np
 import pytest
 from hypothesis import given
 from hypothesis.strategies import floats
 
-from sdrun.molecules import Dimer, Molecule, Trimer
+from sdrun.molecules import Binary_Mixture, Dimer, Molecule, Trimer
 
 
 @pytest.fixture
@@ -98,6 +99,16 @@ def test_moment_inertia_trimer():
     assert molecule.moment_inertia[0] == 0
     assert molecule.moment_inertia[1] == 0
     assert molecule.moment_inertia[2] > 1.6666666666666665
+
+
+def test_binary_mixture():
+    molecule = Binary_Mixture()
+    assert molecule.num_particles == 2
+    assert molecule.rigid == False
+    assert np.all(molecule.moment_inertia == np.zeros(3))
+    assert molecule.dimensions == 2
+    assert molecule.get_types() == ["A", "B"]
+    assert molecule.define_rigid() is None
 
 
 def test_moment_inertia_dimer():
