@@ -159,10 +159,7 @@ class Molecule(object):
 
         params["type_name"] = "R"
         params["types"] = self.particles
-        params.setdefault(
-            "positions",
-            [tuple(pos - self.center_of_mass) for i, pos in enumerate(self.positions)],
-        )
+        params.setdefault("positions", list(self.positions - self.center_of_mass))
         rigid = hoomd.md.constrain.rigid()
         rigid.set_param(**params)
         logger.debug("Rigid: %s", rigid)
