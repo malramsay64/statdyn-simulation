@@ -8,37 +8,38 @@
 """Crystals module for generating unit cells for use in hoomd."""
 
 import math
+from typing import Tuple
 
+import attr
 import hoomd
 import numpy as np
 
 from .molecules import Disc, Molecule, Sphere, Trimer
 
 
+@attr.s(auto_attribs=True)
 class Crystal(object):
     """Defines the base class of a crystal lattice."""
 
-    def __init__(self):
-        super().__init__()
-        # Hoomd requires that the cell length parameters are a list rather than a tuple.
-        self.a1 = [1., 0., 0.]  # pylint: disable=invalid-name
-        self.a2 = [0., 1., 0.]  # pylint: disable=invalid-name
-        self.a3 = [0., 0., 1.]  # pylint: disable=invalid-name
-        self.dimensions = 2
-        self._orientations = np.zeros(1)
-        self.positions = [[0, 0, 0]]
-        self.molecule = Molecule()
+    cell_matrix: np.ndarray = np.identity(3)
+    molecule: Molecule = attr.ib(factory=Molecule)
+    positions: np.ndarray = np.zeros((1, 3))
+    _orientations: np.ndarray = np.zeros(1)
 
-    def get_cell_len(self):
+    @property
+    def dimensions(self) -> int:
+        return self.molecule.dimensions
+
+    def get_cell_len(self) -> Tuple[Tuple[float, ...], ...]:
         """Return the unit cell parameters.
 
         Returns:
             tuple: A tuple containing all the unit cell parameters
 
         """
-        return self.a1, self.a2, self.a3
+        return tuple(tuple(i) for i in self.cell_matrix)
 
-    def get_abs_positions(self):
+    def get_abs_positions(self) -> np.ndarray:
         """Return the absolute positions of the molecules.
 
         This converts the relative positions that the positions are stored in
@@ -48,24 +49,27 @@ class Crystal(object):
             class:`numpy.ndarray`: Positions of each molecule
 
         """
-        return np.dot(np.array(self.positions), self.get_matrix())
+        return np.dot(np.array(self.positions), self.cell_matrix)
 
-    def get_unitcell(self):
+    def get_unitcell(self) -> hoomd.lattice.unitcell:
         """Return the hoomd unit cell parameter."""
+        a1, a2, a3 = self.get_cell_len()  # pylint: disable=invalid-name
+        mass = self.molecule.mass
+        num_mols = self.get_num_molecules()
         return hoomd.lattice.unitcell(
-            N=self.get_num_molecules(),
-            a1=self.a1,
-            a2=self.a2,
-            a3=self.a3,
+            N=num_mols,
+            a1=a1,
+            a2=a2,
+            a3=a3,
             position=self.get_abs_positions(),
             dimensions=self.dimensions,
             orientation=self.get_orientations(),
-            type_name=["A"] * self.get_num_molecules(),
-            mass=[1.0] * self.get_num_molecules(),
-            moment_inertia=([self.molecule.moment_inertia] * self.get_num_molecules()),
+            type_name=["R"] * num_mols,
+            mass=[mass] * num_mols,
+            moment_inertia=([self.molecule.moment_inertia] * num_mols),
         )
 
-    def compute_volume(self):
+    def compute_volume(self) -> float:
         """Calculate the volume of the unit cell.
 
         If the number of dimensions is 2, then the returned value will be the
@@ -75,29 +79,17 @@ class Crystal(object):
             float: Volume or area in unitless quantity
 
         """
+        a1, a2, a3 = self.cell_matrix  # pylint: disable=invalid-name
         if self.dimensions == 3:
-            return np.linalg.norm(
-                np.dot(
-                    np.array(self.a1), np.cross(np.array(self.a2), np.array(self.a3))
-                )
-            )
+            return np.linalg.norm(np.dot(a1, np.cross(a2, a3)))
 
         elif self.dimensions == 2:
-            return np.linalg.norm(np.cross(np.array(self.a1), np.array(self.a2)))
+            return np.linalg.norm(np.cross(a1, a2))
 
         else:
             raise ValueError("Dimensions needs to be either 2 or 3")
 
-    def get_matrix(self) -> np.ndarray:
-        """Convert the crystal lattice parameters to a matrix.
-
-        Returns:
-            class:`np.ndarray`: Matrix of lattice positions
-
-        """
-        return np.array([self.a1, self.a2, self.a3])
-
-    def get_orientations(self):
+    def get_orientations(self) -> np.ndarray:
         """Return the orientation quaternions of each molecule.
 
         Args:
@@ -111,33 +103,27 @@ class Crystal(object):
         angles = (self._orientations * (math.pi / 180)).astype(np.float32)
         return z2quaternion(angles)
 
-    def get_num_molecules(self):
+    def get_num_molecules(self) -> int:
         """Return the number of molecules."""
         return len(self._orientations)
 
 
-class CrysTrimer(Crystal):
-    """A class for the crystal structures of the 2D Trimer molecule."""
-
-    def __init__(self):
-        super().__init__()
-        self.dimensions = 2
-        self.molecule = Trimer()
-
-
-class TrimerP2(CrysTrimer):
+class TrimerP2(Crystal):
     """Defining the unit cell of the p2 group of the Trimer molecule."""
 
-    def __init__(self):
-        super().__init__()
-        self.a1 = [3.82, 0, 0]
-        self.a2 = [0.63, 2.55, 0]
-        self.a3 = [0, 0, 1]
-        self.positions = [[0.3, 0.32, 0], [0.7, 0.68, 0]]
-        self._orientations = np.array([50, 230])
+    def __init__(self) -> None:
+        cell_matrix = np.array([[3.82, 0, 0], [0.63, 2.55, 0], [0, 0, 1]])
+        positions = np.array([[0.3, 0.32, 0], [0.7, 0.68, 0]])
+        orientations = np.array([50, 230])
+        super().__init__(
+            cell_matrix=cell_matrix,
+            positions=positions,
+            orientations=orientations,
+            molecule=Trimer(),
+        )
 
 
-class TrimerP2gg(CrysTrimer):
+class TrimerP2gg(Crystal):
     """Unit cell of p2gg trimer.
 
     The positions are given in fractional coordinates.
@@ -145,63 +131,49 @@ class TrimerP2gg(CrysTrimer):
     """
 
     def __init__(self):
-        super().__init__()
-        self.a1 = [2.63, 0, 0]
-        self.a2 = [0, 7.38, 0]
-        self.a3 = [0, 0, 1]
-        self.positions = [
-            [0.061, 0.853, 0],
-            [0.561, 0.647, 0],
-            [0.439, 0.353, 0],
-            [0.939, 0.147, 0],
-        ]
-        self._orientations = np.array([24, 156, -24, 204])
+        cell_matrix = np.array([[2.63, 0, 0], [0, 7.38, 0], [0, 0, 1]])
+        positions = np.array(
+            [[0.061, 0.853, 0], [0.561, 0.647, 0], [0.439, 0.353, 0], [0.939, 0.147, 0]]
+        )
+        orientations = np.array([24, 156, -24, 204])
+        super().__init__(
+            cell_matrix=cell_matrix,
+            positions=positions,
+            orientations=orientations,
+            molecule=Trimer(),
+        )
 
 
-class TrimerPg(CrysTrimer):
+class TrimerPg(Crystal):
     """Unit Cell of pg Trimer."""
 
     def __init__(self):
-        super().__init__()
-        self.a1 = [2.71, 0, 0]
-        self.a2 = [0, 3.63, 0]
-        self.a3 = [0, 0, 1]
-        self.positions = [[0.35, 0.45, 0], [0.65, 0.95, 0]]
-        self._orientations = np.array([-21, 21])
+        cell_matrix = np.array([[2.71, 0, 0], [0, 3.63, 0], [0, 0, 1]])
+        positions = np.array([[0.35, 0.45, 0], [0.65, 0.95, 0]])
+        orientations = np.array([-21, 21])
+        super().__init__(
+            cell_matrix=cell_matrix,
+            positions=positions,
+            orientations=orientations,
+            molecule=Trimer(),
+        )
 
 
 class CubicSphere(Crystal):
     """Create a simple cubic lattice."""
 
     def __init__(self):
-        super().__init__()
-        self.a = 2.
-        self.dimensions = 3
-        self.molecule = Sphere()
-
-    def get_unitcell(self):
-        return hoomd.lattice.sc(self.a)
-
-    def get_matrix(self):
-        return np.identity(3) * self.a
+        cell_matrix = 2 * np.identity(3)
+        super().__init__(cell_matrix=cell_matrix, molecule=Sphere())
 
 
 class SquareCircle(Crystal):
     """Create a square latttice."""
 
     def __init__(self):
-        super().__init__()
-        self.a = 2.
-        self.dimensions = 2
-        self.molecule = Disc()
-
-    def get_unitcell(self):
-        return hoomd.lattice.sq(self.a)
-
-    def get_matrix(self):
-        matrix = np.identity(3) * self.a
-        matrix[2, 2] = 1
-        return matrix
+        cell_matrix = 2 * np.identity(3)
+        cell_matrix[2, 2] = 1
+        super().__init__(cell_matrix=cell_matrix, molecule=Disc())
 
 
 CRYSTAL_FUNCS = {

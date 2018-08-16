@@ -14,18 +14,17 @@ import hoomd
 import numpy as np
 import pytest
 
-from sdrun import crystals
+from sdrun.crystals import (
+    Crystal,
+    CubicSphere,
+    SquareCircle,
+    TrimerP2,
+    TrimerP2gg,
+    TrimerPg,
+)
 from sdrun.params import SimulationParams
 
-TEST_CLASSES = [
-    crystals.Crystal,
-    crystals.CrysTrimer,
-    crystals.TrimerP2,
-    crystals.TrimerP2gg,
-    crystals.TrimerPg,
-    crystals.SquareCircle,
-    crystals.CubicSphere,
-]
+TEST_CLASSES = [Crystal, TrimerP2, TrimerP2gg, TrimerPg, SquareCircle, CubicSphere]
 
 
 @pytest.fixture(params=TEST_CLASSES)
@@ -49,7 +48,8 @@ def sim_params(request):
 
 def test_init(crys_class):
     """Check the initialisation of the class."""
-    assert isinstance(crys_class, crystals.Crystal)
+    assert isinstance(crys_class, Crystal)
+    assert crys_class.dimensions in [2, 3]
 
 
 def test_get_orientations(crys_class):
@@ -64,12 +64,26 @@ def test_get_orientations(crys_class):
 
 def test_get_unitcell(crys_class):
     """Test the return type is correct."""
-    assert isinstance(crys_class.get_unitcell(), hoomd.lattice.unitcell)
+    unit_cell = crys_class.get_unitcell()
+    assert isinstance(unit_cell, hoomd.lattice.unitcell)
+    assert np.all(unit_cell.mass == crys_class.molecule.mass)
+    assert unit_cell.dimensions == crys_class.dimensions
+    assert np.all(unit_cell.a1 == crys_class.cell_matrix[0])
+    assert np.all(unit_cell.a2 == crys_class.cell_matrix[1])
+    assert np.all(unit_cell.a3 == crys_class.cell_matrix[2])
+    if crys_class.molecule.num_particles > 1:
+        assert unit_cell.type_name == ["R"] * crys_class.get_num_molecules()
 
 
 def test_compute_volume(crys_class):
     """Test the return type of the volume computation."""
     assert isinstance(crys_class.compute_volume(), float)
+    if type(crys_class) is Crystal:
+        assert crys_class.compute_volume() == 1
+    elif type(crys_class) is CubicSphere:
+        assert crys_class.compute_volume() == 8
+    elif type(crys_class) is CubicSphere:
+        assert crys_class.compute_volume() == 4
 
 
 def test_abs_positions(crys_class):
@@ -78,20 +92,22 @@ def test_abs_positions(crys_class):
 
 
 def test_get_matrix(crys_class):
-    matrix = crys_class.get_matrix()
+    matrix = crys_class.cell_matrix
     assert matrix.shape == (3, 3)
     assert np.all(matrix >= 0)
     for i in range(3):
         assert matrix[i, i] > 0
+    if crys_class.dimensions == 2:
+        assert matrix[2, 2] == 1
 
 
 def test_matrix_values(crys_class):
-    matrix = crys_class.get_matrix()
+    matrix = crys_class.cell_matrix
     if crys_class.dimensions == 2:
         assert np.all(matrix[:2, 2] == 0)
         assert np.all(matrix[2, :2] == 0)
         assert np.all(matrix[2, 2] == 1)
 
-    if isinstance(crys_class, crystals.SquareCircle):
+    if type(crys_class) is SquareCircle:
         assert matrix[0, 0] == 2
         assert matrix[1, 1] == 2
