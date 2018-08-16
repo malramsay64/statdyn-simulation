@@ -20,6 +20,7 @@ import numpy as np
 from hoomd.context import SimulationContext as Context
 from hoomd.data import SnapshotParticleData as Snapshot, system_data as System
 
+from .crystals import Crystal
 from .molecules import Molecule
 from .params import SimulationParams
 from .util import get_num_mols, get_num_particles, randomise_momenta
@@ -54,48 +55,13 @@ def init_from_none(
 
     """
     logger.debug("Hoomd Arguments: %s", sim_params.hoomd_args)
-    num_x, num_y, num_z = sim_params.cell_dimensions
-    molecule = sim_params.molecule
-    mol_size = molecule.compute_size()
-    num_molecules = num_x * num_y * num_z
-    len_x = mol_size * num_x
-    len_y = mol_size * num_y
-    len_z = mol_size * num_z
-    box = hoomd.data.boxdim(
-        Lx=len_x, Ly=len_y, Lz=len_z, dimensions=molecule.dimensions
-    )
-    with hoomd.context.initialize(sim_params.hoomd_args):
-        snapshot = hoomd.data.make_snapshot(
-            N=molecule.num_particles * num_molecules,
-            box=box,
-            particle_types=molecule.get_types(),
-        )
-        # Generate list of positions on grid
-        xpos, ypos, zpos = np.mgrid[
-            -len_x / 2 : len_x / 2 : mol_size,
-            -len_y / 2 : len_y / 2 : mol_size,
-            -len_z / 2 : len_z / 2 : mol_size,
-        ]
-        cell_positions = np.array([xpos.flatten(), ypos.flatten(), zpos.flatten()]).T
-        positions = np.concatenate(
-            [cell_positions + mol_pos for mol_pos in molecule.positions], axis=0
-        )
-        positions += np.array([mol_size / 2, mol_size / 2, mol_size / 2])
-        # Check we are using the master process to update snapshot
-        if hoomd.comm.get_rank() == 0:
-            # Set values in snapshot
-            snapshot.particles.position[:] = positions
-            snapshot.particles.typeid[:] = molecule.identify_particles(num_molecules)
-            snapshot.particles.body[:] = molecule.identify_bodies(num_molecules)
-            snapshot.particles.moment_inertia[:] = np.array(
-                [molecule.moment_inertia] * num_molecules * molecule.num_particles
-            )
-    snapshot = minimize_snapshot(snapshot, sim_params, ensemble="NPH")
-    if equilibration:
-        from .simulation import equilibrate
+    mol_size = sim_params.molecule.compute_size()
 
-        equilibrate(snapshot, sim_params, equil_type="liquid")
-    return snapshot
+    crystal = Crystal(
+        cell_matrix=mol_size * np.identity(3), molecule=sim_params.molecule
+    )
+    with sim_params.temp_context(crystal=crystal):
+        return init_from_crystal(sim_params, equilibration)
 
 
 def initialise_snapshot(
