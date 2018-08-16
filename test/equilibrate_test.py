@@ -7,15 +7,10 @@
 # Distributed under terms of the MIT license.
 """Test the equilibrate module."""
 
-from pathlib import Path
-from tempfile import TemporaryDirectory
-
-import hoomd
 import numpy as np
 import pytest
 
 from sdrun.initialise import init_from_crystal, make_orthorhombic
-from sdrun.params import SimulationParams
 from sdrun.simulation import create_interface, equilibrate, get_group
 
 

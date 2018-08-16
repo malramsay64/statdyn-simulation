@@ -22,7 +22,6 @@ from sdrun.initialise import (
     initialise_snapshot,
     make_orthorhombic,
 )
-from sdrun.params import SimulationParams
 from sdrun.util import get_num_mols
 
 logger = logging.getLogger(__name__)
