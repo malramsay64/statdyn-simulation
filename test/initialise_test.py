@@ -71,14 +71,27 @@ def test_initialise_randomise(mol_params):
     assert velocity_similarity < 5
 
 
+@pytest.mark.parametrize("ensemble", ["NVE", "NPH"])
+def test_minimize_snapshot(crystal_params, ensemble):
+    snap = init_from_crystal(crystal_params, equilibration=False, minimize=False)
+    min_snap = minimize_snapshot(snap, crystal_params, ensemble)
+    rtol = 0.2
+    assert np.allclose(snap.box.Lx, min_snap.box.Lx, rtol=rtol)
+    assert np.allclose(snap.box.Ly, min_snap.box.Ly, rtol=rtol)
+    assert np.allclose(snap.box.Lz, min_snap.box.Lz, rtol=rtol)
+    assert np.allclose(snap.box.xy, min_snap.box.xy, rtol=rtol)
+    assert np.allclose(snap.box.xz, min_snap.box.xz, rtol=rtol)
+    assert np.allclose(snap.box.yz, min_snap.box.yz, rtol=rtol)
+
+
 def test_init_crystal(crystal_params):
     """Test the initialisation of all crystals."""
     snap = init_from_crystal(crystal_params)
     Nx, Ny, _ = crystal_params.cell_dimensions
-    unitcell = crystal_params.crystal.get_matrix()
+    unitcell = crystal_params.crystal.cell_matrix
     logger.debug("Unitcell: %s", unitcell)
-    Lx = np.linalg.norm(np.dot(np.array([1, 0, 0]), unitcell))
-    Ly = np.linalg.norm(np.dot(np.array([0, 1, 0]), unitcell))
+    Lx = np.linalg.norm(np.dot(unitcell, np.array([1, 0, 0])))
+    Ly = np.linalg.norm(np.dot(unitcell, np.array([0, 1, 0])))
 
     assert Lx > 0
     assert Ly > 0

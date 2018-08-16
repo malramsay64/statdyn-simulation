@@ -111,3 +111,12 @@ def test_matrix_values(crys_class):
     if type(crys_class) is SquareCircle:
         assert matrix[0, 0] == 2
         assert matrix[1, 1] == 2
+
+
+def test_get_abs_positions(crys_class):
+    positions = crys_class.get_abs_positions()
+    cell_lengths = np.sum(np.identity(3) @ crys_class.cell_matrix, axis=0)
+
+    assert positions.shape == (crys_class.num_molecules, 3)
+    assert np.all(positions >= 0)
+    assert np.all(positions < cell_lengths)
