@@ -21,6 +21,7 @@ from sdrun.initialise import (
     init_from_none,
     initialise_snapshot,
     make_orthorhombic,
+    minimize_snapshot,
 )
 from sdrun.util import get_num_mols
 

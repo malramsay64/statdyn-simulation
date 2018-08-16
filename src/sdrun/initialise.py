@@ -149,7 +149,7 @@ def minimize_snapshot(
 
 
 def init_from_crystal(
-    sim_params: SimulationParams, equilibration: bool = False
+    sim_params: SimulationParams, equilibration: bool = False, minimize: bool = True
 ) -> Snapshot:
     """Initialise a hoomd simulation from a crystal lattice.
 
@@ -180,7 +180,10 @@ def init_from_crystal(
             rigid.create_bodies()
         snap = sys.take_snapshot(all=True)
         logger.debug("Particle Types: %s", snap.particles.types)
-    snap = minimize_snapshot(snap, sim_params, ensemble="NPH")
+
+    if minimize:
+        snap = minimize_snapshot(snap, sim_params, ensemble="NPH")
+
     if equilibration:
         from .simulation import equilibrate
 
