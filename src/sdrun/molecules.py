@@ -11,15 +11,18 @@
 import logging
 from collections import OrderedDict
 from itertools import combinations_with_replacement
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Mapping, Tuple
 
+import attr
 import hoomd
 import hoomd.md
 import numpy as np
+from hoomd.md.pair import pair as Pair
 
 logger = logging.getLogger(__name__)
 
 
+@attr.s
 class Molecule(object):
     """Molecule class holding information on the molecule for use in hoomd.
 
@@ -33,24 +36,53 @@ class Molecule(object):
 
     """
 
-    def __init__(self) -> None:
-        """Initialise defualt properties."""
-        self.moment_inertia = (0., 0., 0.)  # type: Tuple[float, float, float]
-        self.potential = hoomd.md.pair.lj
-        self.potential_args = dict()  # type: Dict[Any, Any]
-        self.particles = ["A"]
-        self._radii = OrderedDict(A=1.)
-        self.dimensions = 3
-        self.positions = np.array([[0, 0, 0]])
+    dimensions: int = 3
+    moment_inertia_scale: int = 1
+    positions: np.ndarray = np.zeros((1, 3))
+    potential: Pair = hoomd.md.pair.lj
+    particles: List[str] = attr.ib(factory=lambda: ["A"])
+    potential_args: Dict[str, Any] = attr.ib(factory=dict)
+    _radii: Dict[str, float] = attr.ib(factory=OrderedDict)
+
+    def __attrs_post_init__(self) -> None:
+        self.potential_args.setdefault("r_cut", 2.5)
+        self._radii.setdefault("A", 1.0)
         self.positions.flags.writeable = False
 
-    def __eq__(self, other) -> bool:
-        return type(self) == type(other)
+    @property
+    def center_of_mass(self) -> np.ndarray:
+        return np.mean(self.positions, axis=0)
+
+    @property
+    def mass(self) -> float:
+        return float(len(self.particles))
 
     @property
     def num_particles(self) -> int:
         """Count of particles in the molecule."""
         return len(self.particles)
+
+    @property
+    def moment_inertia(self) -> np.ndarray:
+        """The moment of inertia of the particle.
+
+        The moment-of-inertia for the Lx, Ly, and Lz dimensions. This assumes all particles have a
+        mass of 1, with the mass all concentrated at a single point. A 2D molecule will only have
+        a moment of inertia in the Lz dimension.
+
+        """
+        pos = self.positions - self.center_of_mass
+        off_diagonal = 1 - np.identity(3)
+        # The moment of inertia for a dimension is comprised of the squared distance of the other
+        # dimensions. The off diagonal terms are the remaining dimensions.
+        moment_inertia = np.square(pos) @ off_diagonal
+        # Sum over all the particles
+        moment_inertia.sum(axis=0)
+        moment_inertia *= self.moment_inertia_scale
+        # A 2D molecule only has an Lz
+        if self.dimensions == 2:
+            moment_inertia[:2] = 0
+        return moment_inertia
 
     def get_types(self) -> List[str]:
         """Get the types of particles present in a molecule."""
@@ -79,7 +111,6 @@ class Molecule(object):
             class:`hoomd.md.pair`: The interaction potential object class.
 
         """
-        self.potential_args.setdefault("r_cut", 2.5)
         potential = self.potential(**self.potential_args, nlist=hoomd.md.nlist.cell())
         for i, j in combinations_with_replacement(self._radii.keys(), 2):
             potential.pair_coeff.set(
@@ -110,12 +141,14 @@ class Molecule(object):
             logger.info("Not enough particles for a rigid body")
             return
 
-        if not params:
+        if params is None:
             params = dict()
-        params["type_name"] = self.particles[0]
-        params["types"] = self.particles[1:]
+
+        params["type_name"] = "R"
+        params["types"] = self.particles
         params.setdefault(
-            "positions", [tuple(pos) for i, pos in enumerate(self.positions) if i > 0]
+            "positions",
+            [tuple(pos - self.center_of_mass) for i, pos in enumerate(self.positions)],
         )
         rigid = hoomd.md.constrain.rigid()
         rigid.set_param(**params)
@@ -124,10 +157,12 @@ class Molecule(object):
 
     def identify_bodies(self, num_molecules: int) -> np.ndarray:
         """Convert an index of molecules into an index of particles."""
+        raise NotImplementedError
         return np.concatenate([np.arange(num_molecules)] * self.num_particles)
 
     def identify_particles(self, num_molecules: int) -> np.ndarray:
         """Get the particle index for all the particles."""
+        raise NotImplementedError
         return np.concatenate(
             [
                 np.ones(num_molecules) * list(self._radii.keys()).index(particle)
@@ -137,25 +172,6 @@ class Molecule(object):
 
     def __str__(self) -> str:
         return type(self).__name__
-
-    def scale_moment_inertia(self, scale_factor: float) -> None:
-        """Scale the moment of inertia by a constant factor."""
-        i_x, i_y, i_z = self.moment_inertia
-        self.moment_inertia = (
-            i_x * scale_factor,
-            i_y * scale_factor,
-            i_z * scale_factor,
-        )
-
-    def compute_moment_inertia(
-        self, scale_factor: float = 1
-    ) -> Tuple[float, float, float]:
-        """Compute the moment of inertia from the particle paramters."""
-        positions = self.positions
-        center_of_mass = np.sum(positions, axis=0) / positions.shape[0]
-        moment_inertia = np.sum(np.square(positions - center_of_mass))
-        moment_inertia *= scale_factor
-        return (0, 0, moment_inertia)
 
     def get_radii(self) -> np.ndarray:
         """Radii of the particles."""
@@ -200,8 +216,6 @@ class Trimer(Molecule):
     subtended by the type `'A'` particle is the other degree of freedom.
 
 
-    TODO:
-        Compute the moment of inertia
     """
 
     def __init__(
@@ -246,7 +260,6 @@ class Trimer(Molecule):
             ]
         )
         self.positions.flags.writeable = False
-        self.moment_inertia = self.compute_moment_inertia(moment_inertia_scale)
 
     @property
     def rad_angle(self) -> float:
@@ -299,7 +312,6 @@ class Dimer(Molecule):
         self.dimensions = 2
         self.positions = np.array([[0, 0, 0], [0, self.distance, 0]])
         self.positions.flags.writeable = False
-        self.moment_inertia = self.compute_moment_inertia(moment_inertia_scale)
 
 
 class Binary_Mixture(Molecule):
@@ -319,7 +331,6 @@ class Binary_Mixture(Molecule):
         self.dimensions = 2
         self.positions = np.array([[0, 0, 0], [0, self.distance, 0]])
         self.positions.flags.writeable = False
-        self.moment_inertia = self.compute_moment_inertia()
 
     # Overwrite rigid to do nothing
     def define_rigid(self):
