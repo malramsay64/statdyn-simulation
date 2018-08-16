@@ -17,6 +17,13 @@ from sdrun import SimulationParams
 from sdrun.crystals import CRYSTAL_FUNCS
 from sdrun.molecules import MOLECULE_DICT
 from sdrun import init_from_crystal
+import hoomd
+
+
+@pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
+def molecule(request):
+    with hoomd.context.initialize(""):
+        yield request.param()
 
 
 @pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
