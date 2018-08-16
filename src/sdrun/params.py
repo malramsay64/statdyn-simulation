@@ -110,7 +110,7 @@ class SimulationParams(object):
             mol = Trimer()
         # Ensure scale_moment_inertia set on molecule
         if self.moment_inertia_scale is not None:
-            mol.moment_inertia = mol.compute_moment_inertia(self.moment_inertia_scale)
+            mol.moment_inertia_scale = self.moment_inertia_scale
         return mol
 
     @molecule.setter
