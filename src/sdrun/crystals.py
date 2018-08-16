@@ -30,6 +30,11 @@ class Crystal(object):
     def dimensions(self) -> int:
         return self.molecule.dimensions
 
+    @property
+    def num_molecules(self) -> int:
+        """Return the number of molecules."""
+        return len(self._orientations)
+
     def get_cell_len(self) -> Tuple[Tuple[float, ...], ...]:
         """Return the unit cell parameters.
 
@@ -49,13 +54,13 @@ class Crystal(object):
             class:`numpy.ndarray`: Positions of each molecule
 
         """
-        return np.dot(np.array(self.positions), self.cell_matrix)
+        return np.dot(self.positions, self.cell_matrix)
 
     def get_unitcell(self) -> hoomd.lattice.unitcell:
         """Return the hoomd unit cell parameter."""
         a1, a2, a3 = self.get_cell_len()  # pylint: disable=invalid-name
         mass = self.molecule.mass
-        num_mols = self.get_num_molecules()
+        num_mols = self.num_molecules
         type_name = "R" if self.molecule.rigid else "A"
         return hoomd.lattice.unitcell(
             N=num_mols,
