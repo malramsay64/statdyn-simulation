@@ -25,7 +25,7 @@ def molecule_class():
 
 def test_molecule_class(molecule_class):
     assert molecule_class.dimensions == 3
-    assert molecule_class.moment_inertia_scale == 1
+    assert molecule_class.moment_inertia_scale == 1.0
     assert np.all(molecule_class.positions == np.zeros((1, 3)))
     assert molecule_class.particles == ["A"]
     assert molecule_class.potential_args == {"r_cut": 2.5}
@@ -61,9 +61,11 @@ def test_compute_moment_inertia(molecule):
 
 def test_scale_moment_inertia(molecule):
     scale_factor = 10.
-    init_mom_I = np.array(molecule.moment_inertia)
+    init_mom_I = molecule.moment_inertia
+    print(init_mom_I)
     molecule.moment_inertia_scale = scale_factor
-    final_mom_I = np.array(molecule.moment_inertia)
+    final_mom_I = molecule.moment_inertia
+    print(final_mom_I)
     assert np.all(scale_factor * init_mom_I == final_mom_I)
 
 
@@ -78,6 +80,10 @@ def test_read_only_position(molecule):
 
 def test_get_types(molecule):
     molecule.get_types()
+
+
+def test_moment_inertia_shape(molecule):
+    assert molecule.moment_inertia.shape == (3,)
 
 
 def test_moment_inertia_trimer():

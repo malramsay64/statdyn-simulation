@@ -22,7 +22,7 @@ from hoomd.md.pair import pair as Pair
 logger = logging.getLogger(__name__)
 
 
-@attr.s
+@attr.s(auto_attribs=True)
 class Molecule(object):
     """Molecule class holding information on the molecule for use in hoomd.
 
@@ -37,7 +37,7 @@ class Molecule(object):
     """
 
     dimensions: int = 3
-    moment_inertia_scale: int = 1
+    moment_inertia_scale: float = 1
     positions: np.ndarray = np.zeros((1, 3))
     potential: Pair = hoomd.md.pair.lj
     particles: List[str] = attr.ib(factory=lambda: ["A"])
@@ -77,7 +77,7 @@ class Molecule(object):
         # dimensions. The off diagonal terms are the remaining dimensions.
         moment_inertia = np.square(pos) @ off_diagonal
         # Sum over all the particles
-        moment_inertia.sum(axis=0)
+        moment_inertia = moment_inertia.sum(axis=0)
         moment_inertia *= self.moment_inertia_scale
         # A 2D molecule only has an Lz
         if self.dimensions == 2:
@@ -112,6 +112,7 @@ class Molecule(object):
 
         """
         potential = self.potential(**self.potential_args, nlist=hoomd.md.nlist.cell())
+        # Each conbination of two particles requires a pair coefficient to be defined
         for i, j in combinations_with_replacement(self._radii.keys(), 2):
             potential.pair_coeff.set(
                 i, j, epsilon=1, sigma=self._radii[i] + self._radii[j]
@@ -193,8 +194,7 @@ class Disc(Molecule):
 
     def __init__(self) -> None:
         """Initialise 2D disc particle."""
-        super().__init__()
-        self.dimensions = 2
+        super().__init__(dimensions=2)
 
 
 class Sphere(Molecule):
@@ -237,14 +237,12 @@ class Trimer(Molecule):
                 factor.
 
         """
-        super().__init__()
         self.radius = radius
         self.distance = distance
         self.angle = angle
-        self.particles = ["A", "B", "B"]
-        self._radii.update(B=self.radius)
-        self.dimensions = 2
-        self.positions = np.array(
+        particles = ["A", "B", "B"]
+        radii = OrderedDict(A=1.0, B=self.radius)
+        positions = np.array(
             [
                 [0, 0, 0],
                 [
@@ -259,7 +257,13 @@ class Trimer(Molecule):
                 ],
             ]
         )
-        self.positions.flags.writeable = False
+        super().__init__(
+            positions=positions,
+            dimensions=2,
+            radii=radii,
+            particles=particles,
+            moment_inertia_scale=moment_inertia_scale,
+        )
 
     @property
     def rad_angle(self) -> float:
@@ -270,7 +274,7 @@ class Trimer(Molecule):
             return (
                 self.radius == other.radius
                 and self.distance == other.distance
-                and self.moment_inertia == other.moment_inertia
+                and self.angle == other.angle
             )
 
         return False
@@ -304,14 +308,18 @@ class Dimer(Molecule):
                 Default is 120
 
         """
-        super(Dimer, self).__init__()
         self.radius = radius
         self.distance = distance
-        self.particles = ["A", "B"]
-        self._radii.update(B=self.radius)
-        self.dimensions = 2
-        self.positions = np.array([[0, 0, 0], [0, self.distance, 0]])
-        self.positions.flags.writeable = False
+        particles = ["A", "B"]
+        radii = OrderedDict(A=1.0, B=self.radius)
+        positions = np.array([[0, 0, 0], [0, self.distance, 0]])
+        super().__init__(
+            dimensions=2,
+            particles=particles,
+            positions=positions,
+            radii=radii,
+            moment_inertia_scale=moment_inertia_scale,
+        )
 
 
 class Binary_Mixture(Molecule):
@@ -323,24 +331,23 @@ class Binary_Mixture(Molecule):
     """
 
     def __init__(self, radius=0.715):
-        super().__init__()
         self.radius = radius
-        self.distance = 1 + radius
-        self.particles = ["A", "B"]
-        self._radii.update(B=self.radius)
-        self.dimensions = 2
-        self.positions = np.array([[0, 0, 0], [0, self.distance, 0]])
-        self.positions.flags.writeable = False
+        distance = 1 + radius
+        positions = np.array([[0, 0, 0], [0, distance, 0]])
+        particles = ["A", "B"]
+        radii = OrderedDict(A=1.0, B=self.radius)
+        positions = np.array([[0, 0, 0], [0, distance, 0]])
+        super().__init__(
+            dimensions=2, particles=particles, positions=positions, radii=radii
+        )
+
+    @property
+    def moment_inertia(self):
+        return np.zeros(3)
 
     # Overwrite rigid to do nothing
     def define_rigid(self):
         return None
-
-    def compute_moment_inertia(
-        self, scale_factor: float = 1
-    ) -> Tuple[float, float, float]:
-        """Compute the moment of inertia from the particle paramters."""
-        return (0., 0., 0.)
 
     def identify_bodies(self, num_molecules: int) -> np.ndarray:
         return np.arange(num_molecules * self.num_particles)
