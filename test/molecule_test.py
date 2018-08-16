@@ -8,75 +8,106 @@
 
 """Test the molecule class."""
 
-import hoomd
+from collections import OrderedDict
+
 import numpy as np
 import pytest
 from hypothesis import given
 from hypothesis.strategies import floats
 
-from sdrun.molecules import MOLECULE_DICT, Dimer, Trimer
+from sdrun.molecules import Dimer, Molecule, Trimer
 
 
-@pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
-def mol(request):
-    with hoomd.context.initialize(""):
-        yield request.param()
+@pytest.fixture
+def molecule_class():
+    return Molecule()
 
 
-def test_compute_moment_inertia(mol):
-    mom_I = np.array(mol.moment_inertia)
+def test_molecule_class(molecule_class):
+    assert molecule_class.dimensions == 3
+    assert molecule_class.moment_inertia_scale == 1
+    assert np.all(molecule_class.positions == np.zeros((1, 3)))
+    assert molecule_class.particles == ["A"]
+    assert molecule_class.potential_args == {"r_cut": 2.5}
+    assert molecule_class._radii["A"] == 1.0
+    assert molecule_class.positions.flags.writeable == False
+
+
+def test_molecule_class_mutability(molecule_class):
+    """This ensures that new dicts/lists are created on class initialisation."""
+    assert molecule_class.particles == ["A"]
+    molecule_class.particles.append("B")
+    assert molecule_class.particles == ["A", "B"]
+    mol2 = Molecule()
+    assert mol2.particles == ["A"]
+
+    assert molecule_class._radii == OrderedDict(A=1.0)
+    molecule_class._radii["B"] = 2.0
+    assert molecule_class._radii == OrderedDict(A=1.0, B=2.0)
+    mol2 = Molecule()
+    assert mol2._radii == OrderedDict(A=1.0)
+
+    assert molecule_class.potential_args == {"r_cut": 2.5}
+    molecule_class.potential_args["B"] = 2.0
+    assert molecule_class.potential_args == {"r_cut": 2.5, "B": 2.0}
+    mol2 = Molecule()
+    assert mol2.potential_args == {"r_cut": 2.5}
+
+
+def test_compute_moment_inertia(molecule):
+    mom_I = np.array(molecule.moment_inertia)
     assert np.all(mom_I[:2] == 0)
 
 
-def test_scale_moment_inertia(mol):
+def test_scale_moment_inertia(molecule):
     scale_factor = 10.
-    init_mom_I = np.array(mol.moment_inertia)
-    mol.scale_moment_inertia(scale_factor)
-    final_mom_I = np.array(mol.moment_inertia)
+    init_mom_I = np.array(molecule.moment_inertia)
+    molecule.moment_inertia_scale = scale_factor
+    final_mom_I = np.array(molecule.moment_inertia)
     assert np.all(scale_factor * init_mom_I == final_mom_I)
 
 
-def test_get_radii(mol):
-    radii = mol.get_radii()
+def test_get_radii(molecule):
+    radii = molecule.get_radii()
     assert radii[0] == 1.
 
 
-def test_read_only_position(mol):
-    assert mol.positions.flags.writeable == False
+def test_read_only_position(molecule):
+    assert molecule.positions.flags.writeable == False
 
 
-def test_get_types(mol):
-    mol.get_types()
+def test_get_types(molecule):
+    molecule.get_types()
 
 
 def test_moment_inertia_trimer():
     """Ensure calculation of moment of inertia is working properly."""
-    mol = Trimer()
-    assert mol.moment_inertia == (0, 0, 1.6666666666666665)
-    mol = Trimer(distance=0.8)
-    assert mol.moment_inertia[0] == 0
-    assert mol.moment_inertia[1] == 0
-    assert mol.moment_inertia[2] < 1.6666666666666665
-    mol = Trimer(distance=1.2)
-    assert mol.moment_inertia[0] == 0
-    assert mol.moment_inertia[1] == 0
-    assert mol.moment_inertia[2] > 1.6666666666666665
+    molecule = Trimer()
+    assert np.allclose(molecule.moment_inertia, np.array([0, 0, 1.6666666666666665]))
+    molecule = Trimer(distance=0.8)
+    assert molecule.moment_inertia[0] == 0
+    assert molecule.moment_inertia[1] == 0
+    assert molecule.moment_inertia[2] < 1.6666666666666665
+    molecule = Trimer(distance=1.2)
+    assert molecule.moment_inertia[0] == 0
+    assert molecule.moment_inertia[1] == 0
+    assert molecule.moment_inertia[2] > 1.6666666666666665
 
 
 def test_moment_inertia_dimer():
     """Ensure calculation of moment of inertia is working properly."""
-    mol = Dimer()
-    assert mol.moment_inertia[0] == 0
-    assert mol.moment_inertia[1] == 0
-    assert np.isclose(mol.moment_inertia[2], 0.5)
-    mol = Dimer(distance=0.8)
-    assert mol.moment_inertia[0] == 0
-    assert mol.moment_inertia[1] == 0
-    assert np.isclose(mol.moment_inertia[2], 0.32)
-    mol = Dimer(distance=1.2)
-    assert mol.moment_inertia[0] == 0
-    assert mol.moment_inertia[1] == 0
-    assert np.isclose(mol.moment_inertia[2], 0.72)
+    molecule = Dimer()
+    assert molecule.moment_inertia[0] == 0
+    assert molecule.moment_inertia[1] == 0
+    assert np.isclose(molecule.moment_inertia[2], 0.5)
+    molecule = Dimer(distance=0.8)
+    assert molecule.moment_inertia[0] == 0
+    assert molecule.moment_inertia[1] == 0
+    assert np.isclose(molecule.moment_inertia[2], 0.32)
+    molecule = Dimer(distance=1.2)
+    assert molecule.moment_inertia[0] == 0
+    assert molecule.moment_inertia[1] == 0
+    assert np.isclose(molecule.moment_inertia[2], 0.72)
 
 
 @given(floats(min_value=0, allow_infinity=False, allow_nan=False))
@@ -92,6 +123,6 @@ def test_moment_inertia_scaling(scaling_factor):
         )
 
 
-def test_compute_size(mol):
-    size = mol.compute_size()
+def test_compute_size(molecule):
+    size = molecule.compute_size()
     assert size >= 2.
