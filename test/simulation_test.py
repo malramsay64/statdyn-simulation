@@ -39,7 +39,7 @@ def test_orthorhombic_sims(cell_dimensions, crystal_params):
     """
     # Multiple of 6 works nicely with the p2 cyrstal
     cell_dimensions = cell_dimensions * 6
-    with mol_params.temp_context(cell_dimensions=cell_dimensions):
+    with crystal_params.temp_context(cell_dimensions=cell_dimensions):
         snapshot = init_from_crystal(crystal_params)
         snapshot = equilibrate(snapshot, crystal_params, equil_type="crystal")
     snapshot = make_orthorhombic(snapshot)

@@ -17,12 +17,18 @@ from hypothesis.strategies import integers, tuples
 
 from sdrun.crystals import TrimerP2
 from sdrun.initialise import (
+    _generate_energies,
+    _generate_vectors,
+    _scale_velocity,
     init_from_crystal,
     init_from_none,
     initialise_snapshot,
     make_orthorhombic,
+    thermalise,
 )
+from sdrun.molecules import Disc
 from sdrun.params import SimulationParams
+from sdrun.simulation import equilibrate
 from sdrun.util import get_num_mols
 
 logger = logging.getLogger(__name__)
@@ -166,5 +172,58 @@ def test_moment_inertia(mol_params, scaling_factor):
         assert np.allclose(diff, 0, atol=1e-1)
 
 
-def test_thermalise(snapshot):
-    pass
+def test_generate_energies():
+    energies = _generate_energies(10000)
+    assert np.isclose(energies.mean(), 1, atol=2e-3)
+    assert np.isclose(energies.std(), 0.1, atol=5e-3)
+
+
+@pytest.mark.parametrize("dimensions", range(1, 5))
+def test_generate_vectors(dimensions):
+    vecs = _generate_vectors(1000, dimensions)
+    assert np.allclose(np.linalg.norm(vecs, axis=1), 1)
+
+
+def test_scale_velocity():
+    sim_params = SimulationParams(temperature=1.0, molecule=Disc())
+    vels = _scale_velocity(10000, sim_params)
+    theoretical_vel = np.sqrt(
+        2 * sim_params.temperature / sim_params.molecule.num_particles
+    )
+    assert np.isclose(np.linalg.norm(vels, axis=1).mean(), theoretical_vel, atol=5e-3)
+
+
+def test_thermalise(create_snapshot):
+    if create_snapshot["sim_params"].molecule.dimensions == 3:
+        with pytest.raises(NotImplementedError):
+            thermal_snapshot = thermalise(**create_snapshot)
+        return
+
+    num_mols = get_num_mols(create_snapshot["snapshot"])
+    thermal_snapshot = thermalise(**create_snapshot)
+
+    # Ensure hoomd equivalent
+    def hoomd_thermalise(snapshot, sim_params):
+        context = hoomd.context.initialize(sim_params.hoomd_args)
+        with sim_params.temp_context(num_steps=10000):
+            snap = equilibrate(snapshot, sim_params)
+        sys = initialise_snapshot(snap, context, sim_params)
+        hoomd.md.update.rescale_temp(sim_params.temperature, period=1, phase=-1)
+        hoomd.run(2)
+        return sys.take_snapshot(all=True)
+
+    hoomd_snap = hoomd_thermalise(**create_snapshot)
+
+    thermal_angmom = np.mean(
+        np.linalg.norm(thermal_snapshot.particles.angmom[:num_mols], axis=1)
+    )
+    assert thermal_angmom >= 0
+
+    hoomd_vel = np.mean(
+        np.linalg.norm(hoomd_snap.particles.velocity[:num_mols], axis=1)
+    )
+    thermal_vel = np.mean(
+        np.linalg.norm(thermal_snapshot.particles.velocity[:num_mols], axis=1)
+    )
+    assert thermal_vel >= 0
+    assert hoomd_vel == thermal_vel

@@ -18,6 +18,7 @@ from typing import Tuple
 import hoomd
 import hoomd.md
 import numpy as np
+import rowan
 from hoomd.context import SimulationContext as Context
 from hoomd.data import SnapshotParticleData as Snapshot, system_data as System
 from scipy.stats import maxwell, norm
@@ -256,27 +257,47 @@ def thermalise(snapshot: Snapshot, sim_params: SimulationParams) -> Snapshot:
     """Set the momentum of the particles to the temperature distribution."""
     size = get_num_mols(snapshot)
 
-    snapshot.particles.velocity[:] = _scale_velocity(size, sim_params)
-    snapshot.particles.angmom[:] = _scale_angmom(size, sim_params)
+    snapshot.particles.velocity[:size] = _scale_velocity(size, sim_params)
+    snapshot.particles.angmom[:size] = _scale_angmom(size, sim_params, snapshot)
 
     return snapshot
 
 
-def _scale_angmom(size: int, sim_params: SimulationParams) -> np.ndarray:
+def _calc_orient_energy(snapshot: Snapshot):
+    num_mols = get_num_mols(snapshot)
+    momentum = rowan.multiply(
+        0.5 * rowan.conjugate(snapshot.particles.orientation[:num_mols]),
+        snapshot.particles.angmom[:num_mols],
+    )
+    return np.nansum(
+        0.5 * np.square(momentum)[:, 1:] / snapshot.particles.moment_inertia[:num_mols]
+    )
+
+
+def _scale_angmom(
+    size: int, sim_params: SimulationParams, snapshot: Snapshot
+) -> np.ndarray:
     energy_distribution = _generate_energies(size)
     if sim_params.molecule.dimensions == 2:
-        direction_distribution = _generate_vectors(size, 1)[:, 0]
+        direction_distribution = _generate_vectors(size, 1)[:, 0].reshape((-1, 1))
     elif sim_params.molecule.dimensions == 3:
         raise NotImplementedError(
             "Scaling angular momentum for 3d molecules is not yet implemented"
         )
 
-    temperature = sim_params.temperature
-    velocity_magnitude = np.sqrt(2 * temperature)
+    target_energy = 0.5 * sim_params.temperature
 
-    return z2quaternion(
-        energy_distribution * direction_distribution * velocity_magnitude
+    def required_scaling(E):
+        """Curve obtained from experiment."""
+        return (np.sqrt(E) + -5) / 4.9
+
+    num_mols = get_num_mols(snapshot)
+    angmom = np.ones_like(snapshot.particles.orientation[:num_mols])
+    angmom[:, 3] = _generate_energies(num_mols).reshape(-1) * required_scaling(
+        target_energy
     )
+
+    return angmom
 
 
 def _scale_velocity(size: int, sim_params: SimulationParams) -> np.ndarray:
@@ -284,10 +305,15 @@ def _scale_velocity(size: int, sim_params: SimulationParams) -> np.ndarray:
     direction_distribution = _generate_vectors(size, sim_params.molecule.dimensions)
 
     temperature = sim_params.temperature
-    mass = sim_params.molecule.num_particles
+    mass = 1
     velocity_magnitude = np.sqrt(2 * temperature / mass)
+    logger.debug("Velocity: %s", velocity_magnitude)
 
-    return energy_distribution * direction_distribution * velocity_magnitude
+    velocities = energy_distribution * direction_distribution * velocity_magnitude
+    # zero net velocity
+    velocities -= np.mean(velocities, axis=0)
+
+    return velocities
 
 
 def _generate_energies(size: int) -> np.ndarray:
@@ -300,7 +326,7 @@ def _generate_energies(size: int) -> np.ndarray:
 
     """
     energy = maxwell.rvs(1, 0.2, size=size) / maxwell.mean(1, 0.2)
-    return energy
+    return energy.reshape((-1, 1))
 
 
 def _generate_vectors(size: int, dimensions: int = 2) -> np.ndarray:
@@ -309,12 +335,12 @@ def _generate_vectors(size: int, dimensions: int = 2) -> np.ndarray:
     # values like quaternions.
     vec_dim = max(3, dimensions)
 
-    vec = norm.rvs(size=(size, dimensions))
+    vec = norm.rvs(size=(size, vec_dim))
 
     # Set values of dimensions larger than shpae to 0
     if vec.shape[1] > dimensions:
         vec[:, dimensions:] = 0
-    vec /= np.linalg.norm(vec, axis=1)
+    vec /= np.linalg.norm(vec, axis=1).reshape((-1, 1))
     return vec
 
 
