@@ -13,8 +13,10 @@ from typing import Tuple
 import attr
 import hoomd
 import numpy as np
+import rowan
 
 from .molecules import Disc, Molecule, Sphere, Trimer
+from .util import z2quaternion
 
 
 @attr.s(auto_attribs=True)
@@ -106,7 +108,7 @@ class Crystal(object):
 
         """
         # Convert from degrees to radians
-        angles = (self._orientations * (math.pi / 180)).astype(np.float32)
+        angles = np.deg2rad(self._orientations).astype(np.float32)
         return z2quaternion(angles)
 
     def get_num_molecules(self) -> int:
@@ -189,13 +191,3 @@ CRYSTAL_FUNCS = {
     "SquareCircle": SquareCircle,
     "CubicSphere": CubicSphere,
 }
-
-
-def z2quaternion(theta: np.ndarray) -> np.ndarray:
-    """Compute quaternion for a given rotation in the z direction."""
-    result = np.zeros((theta.shape[0], 4), dtype=np.float32)
-    q_angle = theta / 2
-    q_angle[np.isclose(q_angle, 0, atol=2 * np.finfo(np.float32).eps)] = 0
-    result[:, 0] = np.cos(q_angle)
-    result[:, 3] = np.sin(q_angle)
-    return result

@@ -15,6 +15,7 @@ from typing import List, NamedTuple
 import hoomd
 import hoomd.md as md
 import numpy as np
+import rowan
 from hoomd.data import SnapshotParticleData as Snapshot
 from hoomd.group import group as Group
 
@@ -230,3 +231,7 @@ def get_num_mols(snapshot: Snapshot) -> int:
 def get_num_particles(snapshot: Snapshot) -> int:
     num_bodies = _get_num_bodies(snapshot)
     return num_bodies.particles
+
+
+def z2quaternion(theta: np.ndarray) -> np.ndarray:
+    return rowan.from_euler(theta, 0, 0)

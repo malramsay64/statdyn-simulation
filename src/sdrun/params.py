@@ -10,13 +10,15 @@
 import logging
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Optional, Tuple, Union
+from typing import TYPE_CHECKING, Optional, Tuple, Union
 
 import attr
 import hoomd
 
-from .crystals import Crystal
 from .molecules import Molecule, Trimer
+
+if TYPE_CHECKING:
+    from .crystals import Crystal
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +46,7 @@ class SimulationParams(object):
     harmonic_force: Optional[float] = None
 
     # Crystal Params
-    crystal: Optional[Crystal] = None
+    crystal: Optional["Crystal"] = None
     _cell_dimensions: Tuple[int, ...] = (30, 42, 30)
     space_group: str = None
 
