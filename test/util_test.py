@@ -20,6 +20,7 @@ from sdrun.util import (
     get_num_mols,
     get_num_particles,
     randomise_momenta,
+    z2quaternion,
 )
 
 
@@ -109,3 +110,12 @@ def test_randomise_seed_different(snapshot):
     )
     assert angmom_similarity < 5
     assert velocity_similarity < 5
+
+
+def test_z2quaternion():
+    angles = np.arange(360)
+    quats = z2quaternion(angles)
+
+    assert quats.dtype == np.float32
+    assert np.allclose(np.linalg.norm(quats, axis=1), 1.)
+    assert np.all(quats[:, 1:3] == 0.)
