@@ -11,13 +11,12 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import hoomd
 import pytest
 
-from sdrun import SimulationParams
+from sdrun import SimulationParams, init_from_crystal
 from sdrun.crystals import CRYSTAL_FUNCS
 from sdrun.molecules import MOLECULE_DICT
-from sdrun import init_from_crystal
-import hoomd
 
 
 @pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
