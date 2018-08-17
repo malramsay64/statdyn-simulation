@@ -71,6 +71,43 @@ def test_initialise_randomise(mol_params):
     assert velocity_similarity < 5
 
 
+def test_init_crystal_position(crystal_params):
+    with crystal_params.temp_context(cell_dimensions=1):
+        snap = init_from_crystal(crystal_params, equilibration=False, minimize=False)
+
+        crys = crystal_params.crystal
+        if type(crys) == TrimerP2:
+            manual = np.array(
+                [
+                    [-1.0885514, 1.0257734, -0.5],
+                    [1.0885514, -1.0257734, -0.5],
+                    [-1.3476, 0.81600004, -0.5],
+                    [-0.8740344, -0.74631166, -0.5],
+                    [-0.4140196, 0.45763204, -0.5],
+                    [1.3476, -0.8159999, -0.5],
+                    [0.87403464, 0.7463118, -0.5],
+                    [0.41401944, -0.45763224, -0.5],
+                ],
+                dtype=np.float32,
+            )
+            assert np.allclose(snap.particles.position, manual)
+
+        else:
+            num_mols = get_num_mols(snap)
+            mol_positions = crystal_params.molecule.get_relative_positions()
+            positions = np.concatenate(
+                [
+                    pos + rowan.rotate(orient, mol_positions)
+                    for pos, orient in zip(crys.positions, crys.get_orientations())
+                ]
+            )
+            mask = positions > np.array([snap.box.Lx, snap.box.Ly, snap.box.Lz]) / 2
+            positions[mask] -= np.array(
+                [[snap.box.Lx, snap.box.Ly, snap.box.Lz]] * len(positions)
+            )[mask]
+            assert np.allclose(snap.particles.position[num_mols:], positions)
+
+
 @pytest.mark.parametrize("ensemble", ["NVE", "NPH"])
 def test_minimize_snapshot(crystal_params, ensemble):
     snap = init_from_crystal(crystal_params, equilibration=False, minimize=False)

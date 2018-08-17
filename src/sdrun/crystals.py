@@ -138,12 +138,15 @@ class TrimerP2(Crystal):
 
     def __init__(self) -> None:
         molecule = Trimer()
-        cell_matrix = np.array([[3.82, 0, 0], [0.63, 2.55, 0], [0, 0, 1]])
+        pos = np.array([[0.70, 0.32, 0.5]])
+        orientation = 309
+
+        cell_matrix = np.array([[3.82, 0, 0], [-0.63, 2.55, 0], [0, 0, 1]])
         # These are the relative positions within the unit cell
-        positions = np.array([[0.3, 0.32, 0], [0.7, 0.68, 0]]) @ cell_matrix
-        orientations = np.array([50, 230])
+        positions = np.concatenate([pos, 1 - pos]) @ cell_matrix
+        orientations = np.array([orientation, orientation + 180])
         # Divide (matrix inverse) by unit cell lengths to get relative positions
-        positions += _calc_shift(orientations, molecule)
+        positions -= _calc_shift(orientations, molecule)
         super().__init__(
             cell_matrix=cell_matrix,
             positions=positions,
@@ -175,7 +178,7 @@ class TrimerP2gg(Crystal):
         ) @ cell_matrix
         orientations = np.array([24, 156, -24, 204])
         # Divide (matrix inverse) by unit cell lengths to get relative positions
-        positions += _calc_shift(orientations, molecule)
+        positions -= _calc_shift(orientations, molecule)
         super().__init__(
             cell_matrix=cell_matrix,
             positions=positions,
@@ -194,7 +197,7 @@ class TrimerPg(Crystal):
         positions = np.array([[0.35, 0.45, 0], [0.65, 0.95, 0]]) @ cell_matrix
         orientations = np.array([-21, 21])
         # Divide (matrix inverse) by unit cell lengths to get relative positions
-        positions += _calc_shift(orientations, molecule)
+        positions -= _calc_shift(orientations, molecule)
         super().__init__(
             cell_matrix=cell_matrix,
             positions=positions,
