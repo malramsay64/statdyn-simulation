@@ -9,15 +9,11 @@
 
 import subprocess
 from pathlib import Path
-from tempfile import TemporaryDirectory
 
 import hoomd
 import pytest
 
-from sdrun.crystals import CRYSTAL_FUNCS
 from sdrun.initialise import init_from_crystal, init_from_none
-from sdrun.molecules import MOLECULE_DICT
-from sdrun.params import SimulationParams
 from sdrun.simulation import equilibrate, make_orthorhombic, production
 
 
@@ -39,7 +35,7 @@ def test_orthorhombic_sims(cell_dimensions, crystal_params):
     """
     # Multiple of 6 works nicely with the p2 crystal
     cell_dimensions = cell_dimensions * 6
-    with mol_params.temp_context(cell_dimensions=cell_dimensions):
+    with crystal_params.temp_context(cell_dimensions=cell_dimensions):
         snapshot = init_from_crystal(crystal_params)
         snapshot = equilibrate(snapshot, crystal_params, equil_type="crystal")
     snapshot = make_orthorhombic(snapshot)
