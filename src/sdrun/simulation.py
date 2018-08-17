@@ -31,17 +31,17 @@ def equilibrate(
     """Run an equilibration simulation.
 
     This will configure and run an equilibration simulation of the type specified in equil_type.
-    Each of these equilibration types has some slight variations althought they all follow the
+    Each of these equilibration types has some slight variations although they all follow the
     same premise of running a simulation with the goal of reaching an equilibrated state.
 
     Args:
         snapshot: The initial snapshot to start the simulation.
-        sim_params: The simulation paramters
+        sim_params: The simulation parameters
         equil_type: The type of equilibration to undertake. This is one of `["liquid", "crystal",
         "interface", "harmonic"]`.
 
     """
-    # Check for required paramters, faililng early if missing
+    # Check for required parameters, failing early if missing
     assert equil_type in ["liquid", "crystal", "interface", "harmonic"]
     assert sim_params.hoomd_args is not None
     assert sim_params.output_interval is not None
@@ -104,7 +104,7 @@ def equilibrate(
         logger.debug("Equilibration completed")
 
         # TODO run a check for equilibration and emit a warning if the simulation is not
-        # equilibrated properly. This will be through monitoing the thermodynamics.
+        # equilibrated properly. This will be through monitoring the thermodynamics.
 
         dump_frame(group, sim_params.outfile, extension=False)
 

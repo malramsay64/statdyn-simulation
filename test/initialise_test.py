@@ -201,20 +201,20 @@ def test_orthorhombic_init(crystal_params, cell_dimensions):
 
 @pytest.mark.parametrize("scaling_factor", [0.1, 1, 10, 100])
 def test_moment_inertia(mol_params, scaling_factor):
-    """Ensure moment of intertia is set correctly in setup."""
+    """Ensure moment of inertia is set correctly in setup."""
     init_mol = np.array(mol_params.molecule.moment_inertia)
-    logger.debug("Moment Intertia before scaling: %s", init_mol)
+    logger.debug("Moment Inertia before scaling: %s", init_mol)
     init_mol *= scaling_factor
-    logger.debug("Moment Intertia after scaling: %s", init_mol)
+    logger.debug("Moment Inertia after scaling: %s", init_mol)
     with mol_params.temp_context(moment_inertia_scale=scaling_factor):
         snapshot = init_from_none(mol_params)
         context = hoomd.context.initialize(mol_params.hoomd_args)
         snapshot = initialise_snapshot(snapshot, context, mol_params).take_snapshot()
         num_mols = get_num_mols(snapshot)
         logger.debug(
-            "Simulation Moment Intertia: %s", snapshot.particles.moment_inertia[0]
+            "Simulation Moment Inertia: %s", snapshot.particles.moment_inertia[0]
         )
-        logger.debug("Intended Moment Intertia: %s", init_mol)
+        logger.debug("Intended Moment Inertia: %s", init_mol)
         diff = snapshot.particles.moment_inertia[:num_mols] - init_mol
         assert np.allclose(diff, 0, atol=1e-1)
 

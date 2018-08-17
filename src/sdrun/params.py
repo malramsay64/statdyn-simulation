@@ -190,7 +190,7 @@ class SimulationParams(object):
         logger.debug("filename base string: %s", base_string)
         logger.debug("Temperature: %.2f", self._temperature)
 
-        # Default extension, required as with_suffix replaces existsing extension
+        # Default extension, required as with_suffix replaces existing extension
         # which is mistaken for the final decimal points.
         base_string += ".gsd"
 

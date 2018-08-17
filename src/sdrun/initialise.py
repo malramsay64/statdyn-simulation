@@ -92,7 +92,7 @@ def initialise_snapshot(
 
     if sim_params.iteration_id is not None:
         interface = False
-        # Interface simulations require the space_group paramter to be set
+        # Interface simulations require the space_group parameter to be set
         if sim_params.space_group is not None:
             interface = True
         snapshot = randomise_momenta(
@@ -201,7 +201,7 @@ def make_orthorhombic(snapshot: Snapshot) -> Snapshot:
 
     Todo:
         This function doesn't yet account for particles within a molecule
-        which are accross a simulation boundary. This needs to be fixed before
+        which are across a simulation boundary. This needs to be fixed before
         this function is truly general, otherwise it only works with special
         cells.
 

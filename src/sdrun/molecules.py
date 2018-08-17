@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class Molecule(object):
     """Molecule class holding information on the molecule for use in hoomd.
 
-    This class contains all the paramters required to initialise the molecule
+    This class contains all the parameters required to initialise the molecule
     in a hoomd simulation. This includes all interaction potentials, the rigid
     body interactions and the moments of inertia.
 
@@ -98,7 +98,7 @@ class Molecule(object):
     def define_dimensions(self) -> None:
         """Set the number of dimensions for the simulation.
 
-        This takes into accout the number of dimensions of the molecule,
+        This takes into account the number of dimensions of the molecule,
         a 2D molecule can only be a 2D molecule, since there will be no
         rotations in that 3rd dimension anyway.
         """
@@ -108,7 +108,7 @@ class Molecule(object):
     def define_potential(self) -> hoomd.md.pair.pair:
         r"""Define the potential in the simulation context.
 
-        A helper function that defines the potential to be used by the  hoomd
+        A helper function that defines the potential to be used by the hoomd
         simulation context. The default values for the potential are a
         Lennard-Jones potential with a cutoff of :math:`2.5\sigma` and
         interaction parameters of :math:`\epsilon = 1.0` and
@@ -193,14 +193,14 @@ class Molecule(object):
     def get_relative_positions(self) -> np.ndarray:
         """The positions of the particles relative to the COM.
 
-        This computes the positions relative to the center-of-mass, i.e using the center-of-mass as
+        This computes the positions relative to the center-of-mass, i.e. using the center-of-mass as
         the origin.
 
         """
         return self.positions - self.center_of_mass
 
     def compute_size(self):
-        """Compute the maximum possible size of the moleucule.
+        """Compute the maximum possible size of the molecule.
 
         This is a rough estimate of the size of the molecule for the creation
         of a lattice that contains no overlaps.
@@ -267,7 +267,7 @@ class Trimer(Molecule):
                 one. Default is 1.0
             angle (float): Angle between the two outer particles in degrees.
                 Default is 120
-            moment_inertia_scale(float): Scale the moment of intertia by this
+            moment_inertia_scale(float): Scale the moment of inertia by this
                 factor.
 
         """
@@ -335,7 +335,7 @@ class Dimer(Molecule):
         distance: float = 1.0,
         moment_inertia_scale: float = 1.,
     ) -> None:
-        """Intialise Dimer molecule.
+        """Initialise Dimer molecule.
 
         Args:
             radius (float): Radius of the small particles. Default is 0.637556

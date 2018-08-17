@@ -66,7 +66,7 @@ def _verbosity(ctx, param, value) -> None:
 @click.option(
     "--molecule",
     type=click.Choice(MOLECULE_OPTIONS),
-    help="Molecule to use for simnulation",
+    help="Molecule to use for simulation",
 )
 @click.option(
     "--moment-inertia-scale",
@@ -121,7 +121,7 @@ def sdrun(ctx, **kwargs) -> None:
     "--no-dynamics/--dynamics",
     "dynamics",
     is_flag=True,
-    help="Use exponential steps to cpature dynamics properties",
+    help="Use exponential steps to capture dynamics properties",
 )
 @click.argument("infile", type=click.Path(exists=True, file_okay=True, dir_okay=False))
 def prod(sim_params: SimulationParams, dynamics: bool, infile: Path) -> None:
@@ -151,13 +151,13 @@ def prod(sim_params: SimulationParams, dynamics: bool, infile: Path) -> None:
     "--equil-type",
     type=click.Choice(["liquid", "crystal", "interface", "harmonic"]),
     default="liquid",
-    help="""The type of equilibration the simulation will undergo. 
+    help="""The type of equilibration the simulation will undergo.
         - liquid -> A standard NPT simulation ensuring an orthorhombic simulation cell
-        - crystal -> An NPT simulation with decoupled pressure tensors and allowing the 
+        - crystal -> An NPT simulation with decoupled pressure tensors and allowing the
             cell to tilt
-        - interface -> A NPT simulation which only intergrates the partices in the outer 
+        - interface -> A NPT simulation which only integrates the particles in the outer
             1/3 of the simulation cell creating a liquid--crystal interface.
-        - harmonic -> A NVT simulation which addds a harmonic pinning potential centered
+        - harmonic -> A NVT simulation which adds a harmonic pinning potential centered
             on the local minimum.
         """,
 )
