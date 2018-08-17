@@ -234,4 +234,10 @@ def get_num_particles(snapshot: Snapshot) -> int:
 
 
 def z2quaternion(theta: np.ndarray) -> np.ndarray:
+    """Convert a rotation about the z axis to a quaternion.
+
+    This is a helper for 2D simulations, taking the rotation of a particle about the z axis and
+    converting it to a quaternion. The input angle `theta` is assumed to be in radians.
+
+    """
     return rowan.from_euler(theta, 0, 0).astype(np.float32)

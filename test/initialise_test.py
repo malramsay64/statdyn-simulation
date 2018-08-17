@@ -12,6 +12,7 @@ import logging
 import hoomd
 import numpy as np
 import pytest
+import rowan
 from hypothesis import given, settings
 from hypothesis.strategies import integers, tuples
 
@@ -112,7 +113,10 @@ def test_init_crystal_position(crystal_params):
 def test_minimize_snapshot(crystal_params, ensemble):
     snap = init_from_crystal(crystal_params, equilibration=False, minimize=False)
     min_snap = minimize_snapshot(snap, crystal_params, ensemble)
-    rtol = 0.2
+    if ensemble == "NPH":
+        rtol = 0.2
+    else:
+        rtol = 0
     assert np.allclose(snap.box.Lx, min_snap.box.Lx, rtol=rtol)
     assert np.allclose(snap.box.Ly, min_snap.box.Ly, rtol=rtol)
     assert np.allclose(snap.box.Lz, min_snap.box.Lz, rtol=rtol)

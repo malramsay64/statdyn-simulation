@@ -135,6 +135,10 @@ def test_compute_size(molecule):
     assert size >= 2.
 
 
+def test_dimensions(molecule):
+    assert molecule.dimensions in [2, 3]
+
+
 def test_rigid(molecule):
     if not molecule.rigid:
         return

@@ -113,7 +113,7 @@ def test_randomise_seed_different(snapshot):
 
 
 def test_z2quaternion():
-    angles = np.arange(360)
+    angles = np.deg2rad(np.arange(360))
     quats = z2quaternion(angles)
 
     assert quats.dtype == np.float32
