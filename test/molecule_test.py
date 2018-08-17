@@ -87,6 +87,14 @@ def test_moment_inertia_shape(molecule):
     assert molecule.moment_inertia.shape == (3,)
 
 
+def test_mass_trimer():
+    assert Trimer().mass == 3
+
+
+def test_mass_dimer():
+    assert Dimer().mass == 2
+
+
 def test_moment_inertia_trimer():
     """Ensure calculation of moment of inertia is working properly."""
     molecule = Trimer()
