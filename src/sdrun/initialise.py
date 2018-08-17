@@ -230,11 +230,12 @@ def _check_properties(snapshot: Snapshot, molecule: Molecule) -> Snapshot:
         snapshot.particles.moment_inertia[:num_molecules] = np.array(
             [molecule.moment_inertia] * num_molecules
         )
-    else:
-        logger.debug("num_atoms: %d", num_particles)
-        assert num_particles > 0
-        snapshot.particles.types = molecule.get_types()
-        snapshot.particles.moment_inertia[:] = np.array(
-            [molecule.moment_inertia] * num_particles
-        )
+        return snapshot
+
+    logger.debug("num_atoms: %d", num_particles)
+    assert num_particles > 0
+    snapshot.particles.types = molecule.get_types()
+    snapshot.particles.moment_inertia[:] = np.array(
+        [molecule.moment_inertia] * num_particles
+    )
     return snapshot
