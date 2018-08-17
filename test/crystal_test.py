@@ -22,6 +22,7 @@ from sdrun.crystals import (
     TrimerP2gg,
     TrimerPg,
 )
+from sdrun.molecules import Trimer
 from sdrun.params import SimulationParams
 
 TEST_CLASSES = [Crystal, TrimerP2, TrimerP2gg, TrimerPg, SquareCircle, CubicSphere]
@@ -120,3 +121,8 @@ def test_get_abs_positions(crys_class):
     assert positions.shape == (crys_class.num_molecules, 3)
     assert np.all(positions >= 0)
     assert np.all(positions < cell_lengths)
+
+    if type(crys_class) == TrimerP2:
+        # Check against manually computed positions
+        manual_positions = np.array([[1.3476, 0.816, 0.], [3.1024, 1.734, 0.]])
+        assert np.allclose(manual_positions, positions)

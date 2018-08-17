@@ -75,11 +75,10 @@ class Molecule(object):
         a moment of inertia in the Lz dimension.
 
         """
-        pos = self.positions - self.center_of_mass
         off_diagonal = 1 - np.identity(3)
         # The moment of inertia for a dimension is comprised of the squared distance of the other
         # dimensions. The off diagonal terms are the remaining dimensions.
-        moment_inertia = np.square(pos) @ off_diagonal
+        moment_inertia = np.square(self.get_relative_positions()) @ off_diagonal
         # Sum over all the particles
         moment_inertia = moment_inertia.sum(axis=0)
         moment_inertia *= self.moment_inertia_scale
@@ -161,7 +160,7 @@ class Molecule(object):
 
         params["type_name"] = "R"
         params["types"] = self.particles
-        params.setdefault("positions", list(self.positions - self.center_of_mass))
+        params.setdefault("positions", list(self.get_relative_positions()))
         rigid = hoomd.md.constrain.rigid()
         rigid.set_param(**params)
         logger.debug("Rigid: %s", rigid)
@@ -188,6 +187,15 @@ class Molecule(object):
     def get_radii(self) -> np.ndarray:
         """Radii of the particles."""
         return np.array([self._radii[p] for p in self.particles])
+
+    def get_relative_positions(self) -> np.ndarray:
+        """The positions of the particles relative to the COM.
+
+        This computes the positions relative to the center-of-mass, i.e using the center-of-mass as
+        the origin.
+
+        """
+        return self.positions - self.center_of_mass
 
     def compute_size(self):
         """Compute the maximum possible size of the moleucule.

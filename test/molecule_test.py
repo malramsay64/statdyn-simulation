@@ -143,3 +143,9 @@ def test_rigid(molecule):
         for particle_type in molecule.get_types():
             sys.particles.types.add(particle_type)
         molecule.define_rigid()
+
+
+def test_get_relative_positions(molecule):
+    """Test that the center of mass of the relative positions is the origin (0, 0, 0)."""
+    center_of_mass = molecule.get_relative_positions()
+    assert np.allclose(np.mean(center_of_mass, axis=0), np.zeros(3))
