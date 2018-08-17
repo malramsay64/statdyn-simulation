@@ -24,7 +24,7 @@ class Crystal(object):
     """Defines the base class of a crystal lattice."""
 
     cell_matrix: np.ndarray = np.identity(3)
-    molecule: Molecule = attr.ib(factory=Molecule)
+    molecule: Molecule = attr.ib(default=attr.Factory(Molecule))
     positions: np.ndarray = 0.5 * np.ones((1, 3))
     _orientations: np.ndarray = np.zeros(1)
 
