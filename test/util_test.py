@@ -37,6 +37,18 @@ def create_snapshot():
         }
 
 
+@pytest.mark.parametrize(
+    "type_conv", [int, float, np.float32, np.int32, np.uint32, np.int64]
+)
+def test_num_bodies_types(type_conv):
+    num_particles, num_mols = 300, 100
+    n_bodies = NumBodies(type_conv(num_particles), type_conv(num_mols))
+    assert type(n_bodies.particles) is int
+    assert n_bodies.particles == num_particles
+    assert type(n_bodies.molecules) is int
+    assert n_bodies.molecules == num_mols
+
+
 def test_num_bodies(create_snapshot):
     test_bodies = _get_num_bodies(create_snapshot["snapshot"])
     assert test_bodies == create_snapshot["num_bodies"]
@@ -44,11 +56,13 @@ def test_num_bodies(create_snapshot):
 
 def test_get_num_particles(create_snapshot):
     num_particles = get_num_particles(create_snapshot["snapshot"])
+    assert type(num_particles) is int
     assert num_particles == create_snapshot["num_bodies"].particles
 
 
 def test_get_num_mols(create_snapshot):
     num_bodies = get_num_mols(create_snapshot["snapshot"])
+    assert type(num_bodies) is int
     assert num_bodies == create_snapshot["num_bodies"].molecules
 
 

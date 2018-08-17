@@ -10,8 +10,9 @@
 
 import logging
 from pathlib import Path
-from typing import List, NamedTuple
+from typing import List
 
+import attr
 import hoomd
 import hoomd.md as md
 import numpy as np
@@ -200,9 +201,10 @@ def randomise_momenta(
     return snapshot
 
 
-class NumBodies(NamedTuple):
-    particles: int
-    molecules: int
+@attr.s(auto_attribs=True)
+class NumBodies(object):
+    particles: int = attr.ib(converter=int)
+    molecules: int = attr.ib(converter=int)
 
 
 def _get_num_bodies(snapshot: Snapshot) -> NumBodies:
@@ -224,6 +226,7 @@ def _get_num_bodies(snapshot: Snapshot) -> NumBodies:
 
 
 def get_num_mols(snapshot: Snapshot) -> int:
+    """The number of molecules (rigid bodies) in the snapshot."""
     num_bodies = _get_num_bodies(snapshot)
     return num_bodies.molecules
 
