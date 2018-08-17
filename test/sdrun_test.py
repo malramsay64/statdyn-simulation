@@ -102,11 +102,11 @@ def test_commands(arguments):
 
 @pytest.mark.skipif(sys.platform == "darwin", reason="No MPI support on macOS")
 def test_commands_mpi(arguments):
-    """Ensure sdrun command line interface works with mpi.
+    """Ensure sdrun command line interface works with MPI.
 
     This ensures that running commands with MPI doesn't break things unexpectedly. The test is only
-    run on linux systems since macOS doesn't have simple support for MPI. The tests run here are
-    exactly the same as the test_commands tests, apart from running with mpi.
+    run on Linux systems since macOS doesn't have simple support for MPI. The tests run here are
+    exactly the same as the test_commands tests, apart from running with MPI.
 
     """
     command = ["mpirun", "-np", "4", "sdrun"] + arguments

@@ -37,7 +37,7 @@ def test_orthorhombic_sims(cell_dimensions, crystal_params):
     This also ensures there is no unusual things going on with the calculation
     of the orthorhombic unit cell.
     """
-    # Multiple of 6 works nicely with the p2 cyrstal
+    # Multiple of 6 works nicely with the p2 crystal
     cell_dimensions = cell_dimensions * 6
     with mol_params.temp_context(cell_dimensions=cell_dimensions):
         snapshot = init_from_crystal(crystal_params)

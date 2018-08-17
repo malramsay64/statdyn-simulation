@@ -94,7 +94,7 @@ def test_get_orientations(crys_class):
     assert orient.dtype == np.float32
     # Output is in quaternions
     assert orient.shape[1] == 4
-    # Quaterninons as normalised
+    # Quaternions as normalised
     assert np.allclose(np.linalg.norm(orient, axis=1), 1)
 
 
