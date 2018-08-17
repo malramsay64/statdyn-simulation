@@ -7,6 +7,7 @@
 # Distributed under terms of the MIT license.
 """Test the equilibrate module."""
 
+import hoomd
 import numpy as np
 import pytest
 
