@@ -172,7 +172,7 @@ def init_from_crystal(
         sys = hoomd.init.create_lattice(
             unitcell=sim_params.crystal.get_unitcell(), n=cell_dimensions
         )
-        for p_type in sim_params.molecule.get_types():
+        for p_type in sim_params.molecule.get_types()[1:]:
             sys.particles.pdata.addType(p_type)
         logger.debug("Particle Types: %s", sys.particles.types)
         if sim_params.molecule.rigid:
