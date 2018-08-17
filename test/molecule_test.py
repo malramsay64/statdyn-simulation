@@ -15,8 +15,11 @@ import numpy as np
 import pytest
 from hypothesis import given
 from hypothesis.strategies import floats
+from numpy.testing import assert_allclose
 
 from sdrun.molecules import Dimer, Disc, Molecule, Sphere, Trimer
+
+ABS_TOLERANCE = 1e-12
 
 
 @pytest.fixture
@@ -98,7 +101,7 @@ def test_mass_dimer():
 def test_moment_inertia_trimer():
     """Ensure calculation of moment of inertia is working properly."""
     molecule = Trimer()
-    assert np.allclose(molecule.moment_inertia, np.array([0, 0, 1.6666666666666665]))
+    assert_allclose(molecule.moment_inertia, np.array([0, 0, 1.6666666666666665]))
     molecule = Trimer(distance=0.8)
     assert molecule.moment_inertia[0] == 0
     assert molecule.moment_inertia[1] == 0
@@ -132,7 +135,7 @@ def test_moment_inertia_scaling(scaling_factor):
     with np.errstate(over="ignore"):
         scaled = Trimer(moment_inertia_scale=scaling_factor)
         assert len(reference.moment_inertia) == len(scaled.moment_inertia)
-        assert np.allclose(
+        assert_allclose(
             np.array(reference.moment_inertia) * scaling_factor,
             np.array(scaled.moment_inertia),
         )
@@ -160,7 +163,7 @@ def test_rigid(molecule):
 def test_get_relative_positions(molecule):
     """Test that the center of mass of the relative positions is the origin (0, 0, 0)."""
     center_of_mass = molecule.get_relative_positions()
-    assert np.allclose(np.mean(center_of_mass, axis=0), np.zeros(3))
+    assert_allclose(np.mean(center_of_mass, axis=0), np.zeros(3), atol=ABS_TOLERANCE)
 
 
 @pytest.mark.parametrize("mol", [Molecule, Dimer, Trimer, Disc, Sphere])

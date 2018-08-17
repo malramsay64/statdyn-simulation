@@ -15,6 +15,7 @@ import pytest
 import rowan
 from hypothesis import given, settings
 from hypothesis.strategies import integers, tuples
+from numpy.testing import assert_allclose
 
 from sdrun import SimulationParams
 from sdrun.crystals import TrimerP2, TrimerPg
@@ -89,7 +90,7 @@ def test_trimerP2_init_position():
         ],
         dtype=np.float32,
     )
-    assert np.allclose(snap.particles.position, manual)
+    assert_allclose(snap.particles.position, manual)
 
 
 @pytest.mark.xfail()
@@ -109,7 +110,7 @@ def test_trimerPg_init_position():
         ],
         dtype=np.float32,
     )
-    assert np.allclose(snap.particles.position, manual)
+    assert_allclose(snap.particles.position, manual)
 
 
 def test_init_crystal_position(crystal_params):
@@ -145,12 +146,12 @@ def test_minimize_snapshot(crystal_params, ensemble):
         rtol = 0.2
     else:
         rtol = 0
-    assert np.allclose(snap.box.Lx, min_snap.box.Lx, rtol=rtol)
-    assert np.allclose(snap.box.Ly, min_snap.box.Ly, rtol=rtol)
-    assert np.allclose(snap.box.Lz, min_snap.box.Lz, rtol=rtol)
-    assert np.allclose(snap.box.xy, min_snap.box.xy, rtol=rtol)
-    assert np.allclose(snap.box.xz, min_snap.box.xz, rtol=rtol)
-    assert np.allclose(snap.box.yz, min_snap.box.yz, rtol=rtol)
+    assert_allclose(snap.box.Lx, min_snap.box.Lx, rtol=rtol)
+    assert_allclose(snap.box.Ly, min_snap.box.Ly, rtol=rtol)
+    assert_allclose(snap.box.Lz, min_snap.box.Lz, rtol=rtol)
+    assert_allclose(snap.box.xy, min_snap.box.xy, rtol=rtol)
+    assert_allclose(snap.box.xz, min_snap.box.xz, rtol=rtol)
+    assert_allclose(snap.box.yz, min_snap.box.yz, rtol=rtol)
 
 
 def test_init_crystal(crystal_params):
@@ -168,8 +169,8 @@ def test_init_crystal(crystal_params):
     assert Ny > 0
 
     # Simulation box within 20% of initialisation
-    assert np.allclose(snap.box.Lx, Lx * Nx, rtol=0.2)
-    assert np.allclose(snap.box.Ly, Ly * Ny, rtol=0.2)
+    assert_allclose(snap.box.Lx, Lx * Nx, rtol=0.2)
+    assert_allclose(snap.box.Ly, Ly * Ny, rtol=0.2)
 
 
 def test_orthorhombic_null(mol_params):
@@ -244,7 +245,7 @@ def test_moment_inertia(mol_params, scaling_factor):
         )
         logger.debug("Intended Moment Inertia: %s", init_mol)
         diff = snapshot.particles.moment_inertia[:num_mols] - init_mol
-        assert np.allclose(diff, 0, atol=1e-1)
+        assert_allclose(diff, 0, atol=1e-1)
 
 
 def test_thermalise(snapshot):

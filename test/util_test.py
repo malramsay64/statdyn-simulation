@@ -12,6 +12,7 @@ import hoomd
 import numpy as np
 import pytest
 from hoomd.data import boxdim, make_snapshot
+from numpy.testing import assert_allclose
 
 # TODO set_integrator, set_debug, set_dump, dump_frame, set_thermo, set_harmonic_force
 from sdrun.util import (
@@ -131,5 +132,5 @@ def test_z2quaternion():
     quats = z2quaternion(angles)
 
     assert quats.dtype == np.float32
-    assert np.allclose(np.linalg.norm(quats, axis=1), 1.)
+    assert_allclose(np.linalg.norm(quats, axis=1), 1.)
     assert np.all(quats[:, 1:3] == 0.)

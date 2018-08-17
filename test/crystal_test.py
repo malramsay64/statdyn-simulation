@@ -13,6 +13,7 @@ from tempfile import TemporaryDirectory
 import hoomd
 import numpy as np
 import pytest
+from numpy.testing import assert_allclose
 
 from sdrun.crystals import (
     Crystal,
@@ -94,7 +95,9 @@ def test_get_orientations(crys_class):
     assert orient.dtype == np.float32
     # Output is in quaternions
     assert orient.shape[1] == 4
-    # Quaternions as normalised
+    # Quaternions are normalised
+    # This uses the np.allclose function since I am comparing to a
+    # value instead of an array
     assert np.allclose(np.linalg.norm(orient, axis=1), 1)
 
 
@@ -163,4 +166,4 @@ def test_positions(crys_class):
     if type(crys_class) == TrimerP2:
         # Check against manually computed positions
         manual_large_positions = np.array([[1.3476, 0.816, 0.], [3.1024, 1.734, 0.]])
-        assert np.allclose(manual_large_positions, positions)
+        assert_allclose(manual_large_positions, positions)
