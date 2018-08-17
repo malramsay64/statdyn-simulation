@@ -164,6 +164,9 @@ class TrimerP2(Crystal):
             molecule=molecule,
         )
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
+
 
 class TrimerP2gg(Crystal):
     """Unit cell of p2gg trimer.
@@ -196,6 +199,9 @@ class TrimerP2gg(Crystal):
             molecule=molecule,
         )
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
+
 
 class TrimerPg(Crystal):
     """Unit Cell of pg Trimer."""
@@ -222,6 +228,9 @@ class TrimerPg(Crystal):
             molecule=molecule,
         )
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
+
 
 class CubicSphere(Crystal):
     """Create a simple cubic lattice."""
@@ -229,6 +238,9 @@ class CubicSphere(Crystal):
     def __init__(self):
         cell_matrix = 2 * np.identity(3)
         super().__init__(cell_matrix=cell_matrix, molecule=Sphere())
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
 
 
 class SquareCircle(Crystal):
@@ -238,6 +250,9 @@ class SquareCircle(Crystal):
         cell_matrix = 2 * np.identity(3)
         cell_matrix[2, 2] = 1
         super().__init__(cell_matrix=cell_matrix, molecule=Disc())
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
 
 
 CRYSTAL_FUNCS = {
