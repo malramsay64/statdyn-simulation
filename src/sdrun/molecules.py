@@ -22,7 +22,7 @@ from hoomd.md.pair import pair as Pair
 logger = logging.getLogger(__name__)
 
 
-@attr.s(auto_attribs=True)
+@attr.s(auto_attribs=True, cmp=False)
 class Molecule(object):
     """Molecule class holding information on the molecule for use in hoomd.
 
@@ -38,10 +38,12 @@ class Molecule(object):
 
     dimensions: int = 3
     moment_inertia_scale: float = 1
-    positions: np.ndarray = np.zeros((1, 3))
-    potential: Pair = hoomd.md.pair.slj
+    positions: np.ndarray = attr.ib(
+        default=attr.Factory(lambda: np.zeros((1, 3))), repr=False, cmp=False
+    )
+    potential: Pair = attr.ib(hoomd.md.pair.slj, repr=False)
     particles: List[str] = attr.ib(default=attr.Factory(lambda: ["A"]))
-    potential_args: Dict[str, Any] = attr.ib(default=attr.Factory(dict))
+    potential_args: Dict[str, Any] = attr.ib(default=attr.Factory(dict), repr=False)
     _radii: Dict[str, float] = attr.ib(default=attr.Factory(OrderedDict))
     rigid: bool = False
 
@@ -207,6 +209,19 @@ class Molecule(object):
         length = np.max(np.max(self.positions, axis=1) - np.min(self.positions, axis=1))
         return length + 2 * self.get_radii().max()
 
+    def __eq__(self, other) -> bool:
+        if self.__class__ is other.__class__:
+            return (
+                self.dimensions == other.dimensions
+                and self.moment_inertia_scale == other.moment_inertia_scale
+                and np.allclose(self.positions, other.positions)
+                and self.particles == other.particles
+                and self.potential_args == other.potential_args
+                and self._radii == other._radii
+                and self.rigid == other.rigid
+            )
+        return False
+
 
 class Disc(Molecule):
     """Defines a 2D particle."""
@@ -256,24 +271,20 @@ class Trimer(Molecule):
                 factor.
 
         """
+        assert isinstance(radius, (float, int))
+        assert isinstance(distance, (float, int))
+        assert isinstance(angle, (float, int))
         self.radius = radius
         self.distance = distance
         self.angle = angle
+        rad_ang = np.deg2rad(angle)
         particles = ["A", "B", "B"]
         radii = OrderedDict(A=1.0, B=self.radius)
         positions = np.array(
             [
                 [0, 0, 0],
-                [
-                    -self.distance * np.sin(self.rad_angle / 2),
-                    self.distance * np.cos(self.rad_angle / 2),
-                    0,
-                ],
-                [
-                    self.distance * np.sin(self.rad_angle / 2),
-                    self.distance * np.cos(self.rad_angle / 2),
-                    0,
-                ],
+                [-distance * np.sin(rad_ang / 2), distance * np.cos(rad_ang / 2), 0],
+                [distance * np.sin(rad_ang / 2), distance * np.cos(rad_ang / 2), 0],
             ]
         )
         super().__init__(
@@ -288,6 +299,12 @@ class Trimer(Molecule):
     @property
     def rad_angle(self) -> float:
         return np.radians(self.angle)
+
+    def __repr__(self) -> str:
+        return (
+            f"{type(self).__name__}(radius={self.radius}, distance={self.distance}, "
+            f"angle={self.angle}, moment_inertia_scale={self.moment_inertia_scale})"
+        )
 
     def __eq__(self, other) -> bool:
         if super().__eq__(other):
@@ -324,8 +341,6 @@ class Dimer(Molecule):
             radius (float): Radius of the small particles. Default is 0.637556
             distance (float): Distance of the outer particles from the central
                 one. Default is 1.0
-            angle (float): Angle between the two outer particles in degrees.
-                Default is 120
 
         """
         self.radius = radius
@@ -341,6 +356,18 @@ class Dimer(Molecule):
             moment_inertia_scale=moment_inertia_scale,
             rigid=True,
         )
+
+    def __repr__(self) -> str:
+        return (
+            f"{type(self).__name__}(radius={self.radius}, distance={self.distance},"
+            f" moment_inertia_scale={self.moment_inertia_scale})"
+        )
+
+    def __eq__(self, other) -> bool:
+        if super().__eq__(other):
+            return self.radius == other.radius and self.distance == other.distance
+
+        return False
 
 
 MOLECULE_DICT = {"trimer": Trimer, "dimer": Dimer, "disc": Disc}

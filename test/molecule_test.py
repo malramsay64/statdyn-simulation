@@ -16,7 +16,7 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import floats
 
-from sdrun.molecules import Dimer, Molecule, Trimer
+from sdrun.molecules import Dimer, Disc, Molecule, Sphere, Trimer
 
 
 @pytest.fixture
@@ -153,3 +153,22 @@ def test_get_relative_positions(molecule):
     """Test that the center of mass of the relative positions is the origin (0, 0, 0)."""
     center_of_mass = molecule.get_relative_positions()
     assert np.allclose(np.mean(center_of_mass, axis=0), np.zeros(3))
+
+
+@pytest.mark.parametrize("mol", [Molecule, Dimer, Trimer, Disc, Sphere])
+def test_equality(mol):
+    molecule = mol()
+    assert molecule == molecule
+    mol_copy = mol()
+    assert mol_copy == molecule
+
+    mol_copy.particles.append("test")
+    assert mol_copy != molecule
+
+    class mol_sub(mol):
+        def __init__(self):
+            super().__init__()
+
+    subclass = mol_sub()
+
+    assert molecule != subclass
