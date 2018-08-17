@@ -116,18 +116,39 @@ class Crystal(object):
         return len(self._orientations)
 
 
+def _calc_shift(orientations: np.ndarray, molecule: Molecule) -> np.ndarray:
+    """A function to calculate the shift of large particle positions to COM positions.
+
+    The positions defined in the Trimer classes are for the center of the 'large' particle since
+    this was the output from the packing algorithm. This offsets these values to be on the center of
+    mass, taking into account the orientation of the molecule.
+
+    Args:
+        orientations: Orientation of particles in degrees
+        molecule: The molecule for which the shift is occurring.
+
+    """
+    pos_shift = molecule.get_relative_positions()[0]
+    orient_quat = rowan.from_euler(np.deg2rad(orientations), 0, 0)
+    return rowan.rotate(orient_quat, pos_shift)
+
+
 class TrimerP2(Crystal):
     """Defining the unit cell of the p2 group of the Trimer molecule."""
 
     def __init__(self) -> None:
+        molecule = Trimer()
         cell_matrix = np.array([[3.82, 0, 0], [0.63, 2.55, 0], [0, 0, 1]])
+        # These are the relative positions within the unit cell
         positions = np.array([[0.3, 0.32, 0], [0.7, 0.68, 0]])
         orientations = np.array([50, 230])
+        # Divide (matrix inverse) by unit cell lengths to get relative positions
+        positions += _calc_shift(orientations, molecule) @ np.linalg.inv(cell_matrix)
         super().__init__(
             cell_matrix=cell_matrix,
             positions=positions,
             orientations=orientations,
-            molecule=Trimer(),
+            molecule=molecule,
         )
 
 
@@ -139,16 +160,20 @@ class TrimerP2gg(Crystal):
     """
 
     def __init__(self):
+        molecule = Trimer()
         cell_matrix = np.array([[2.63, 0, 0], [0, 7.38, 0], [0, 0, 1]])
+        # These are the relative positions within the unit cell
         positions = np.array(
             [[0.061, 0.853, 0], [0.561, 0.647, 0], [0.439, 0.353, 0], [0.939, 0.147, 0]]
         )
         orientations = np.array([24, 156, -24, 204])
+        # Divide (matrix inverse) by unit cell lengths to get relative positions
+        positions += _calc_shift(orientations, molecule) @ np.linalg.inv(cell_matrix)
         super().__init__(
             cell_matrix=cell_matrix,
             positions=positions,
             orientations=orientations,
-            molecule=Trimer(),
+            molecule=molecule,
         )
 
 
@@ -156,14 +181,18 @@ class TrimerPg(Crystal):
     """Unit Cell of pg Trimer."""
 
     def __init__(self):
+        molecule = Trimer()
         cell_matrix = np.array([[2.71, 0, 0], [0, 3.63, 0], [0, 0, 1]])
+        # These are the relative positions within the unit cell
         positions = np.array([[0.35, 0.45, 0], [0.65, 0.95, 0]])
         orientations = np.array([-21, 21])
+        # Divide (matrix inverse) by unit cell lengths to get relative positions
+        positions += _calc_shift(orientations, molecule) @ np.linalg.inv(cell_matrix)
         super().__init__(
             cell_matrix=cell_matrix,
             positions=positions,
             orientations=orientations,
-            molecule=Trimer(),
+            molecule=Molecule,
         )
 
 

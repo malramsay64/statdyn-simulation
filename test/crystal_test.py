@@ -21,8 +21,8 @@ from sdrun.crystals import (
     TrimerP2,
     TrimerP2gg,
     TrimerPg,
+    _calc_shift,
 )
-from sdrun.molecules import Trimer
 from sdrun.params import SimulationParams
 
 TEST_CLASSES = [Crystal, TrimerP2, TrimerP2gg, TrimerPg, SquareCircle, CubicSphere]
@@ -45,6 +45,13 @@ def sim_params(request):
             crystal=request.param(),
             cell_dimensions=(32, 40),
         )
+
+
+def test_shift_position(molecule):
+    orientations = np.zeros(1)
+
+    shift = _calc_shift(orientations, molecule)
+    assert np.all(shift == molecule.get_relative_positions()[0])
 
 
 def test_init(crys_class):
