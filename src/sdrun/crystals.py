@@ -19,14 +19,14 @@ from .molecules import Disc, Molecule, Sphere, Trimer
 from .util import z2quaternion
 
 
-@attr.s(auto_attribs=True)
+@attr.s(auto_attribs=True, cmp=False)
 class Crystal(object):
     """Defines the base class of a crystal lattice."""
 
-    cell_matrix: np.ndarray = np.identity(3)
+    cell_matrix: np.ndarray = attr.ib(default=attr.Factory(lambda: np.identity(3)))
     molecule: Molecule = attr.ib(default=attr.Factory(Molecule))
-    positions: np.ndarray = np.zeros((1, 3))
-    _orientations: np.ndarray = np.zeros(1)
+    positions: np.ndarray = attr.ib(default=attr.Factory(lambda: np.zeros((1, 3))))
+    _orientations: np.ndarray = attr.ib(default=attr.Factory(lambda: np.zeros(1)))
 
     @property
     def dimensions(self) -> int:
@@ -115,6 +115,16 @@ class Crystal(object):
         """Return the number of molecules."""
         return len(self._orientations)
 
+    def __eq__(self, other) -> bool:
+        if self.__class__ is other.__class__:
+            return (
+                np.allclose(self.cell_matrix, other.cell_matrix)
+                and self.molecule == other.molecule
+                and np.allclose(self.positions, other.positions)
+                and np.allclose(self._orientations, other._orientations)
+            )
+        return False
+
 
 def _calc_shift(orientations: np.ndarray, molecule: Molecule) -> np.ndarray:
     """A function to calculate the shift of large particle positions to COM positions.
@@ -190,12 +200,19 @@ class TrimerP2gg(Crystal):
 class TrimerPg(Crystal):
     """Unit Cell of pg Trimer."""
 
+    @staticmethod
+    def glide(position: np.ndarray) -> np.ndarray:
+        return position * np.array([-1, 1, 1]) + np.array([1, 0.5, 0])
+
     def __init__(self):
         molecule = Trimer()
+        position = np.array([[0.65, 0.45, 0.5]])
+        angle = 21.4
+
         cell_matrix = np.array([[2.71, 0, 0], [0, 3.63, 0], [0, 0, 1]])
         # These are the relative positions within the unit cell
-        positions = np.array([[0.35, 0.45, 0], [0.65, 0.95, 0]]) @ cell_matrix
-        orientations = np.array([-21, 21])
+        positions = np.concatenate([position, self.glide(position)]) @ cell_matrix
+        orientations = np.array([180 - angle, 180 + angle])
         # Divide (matrix inverse) by unit cell lengths to get relative positions
         positions -= _calc_shift(orientations, molecule)
         super().__init__(
