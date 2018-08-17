@@ -25,7 +25,7 @@ class Crystal(object):
 
     cell_matrix: np.ndarray = np.identity(3)
     molecule: Molecule = attr.ib(default=attr.Factory(Molecule))
-    positions: np.ndarray = 0.5 * np.ones((1, 3))
+    positions: np.ndarray = np.zeros((1, 3))
     _orientations: np.ndarray = np.zeros(1)
 
     @property
@@ -211,20 +211,16 @@ class CubicSphere(Crystal):
 
     def __init__(self):
         cell_matrix = 2 * np.identity(3)
-        positions = np.ones((1, 3))
-        super().__init__(
-            cell_matrix=cell_matrix, positions=positions, molecule=Sphere()
-        )
+        super().__init__(cell_matrix=cell_matrix, molecule=Sphere())
 
 
 class SquareCircle(Crystal):
-    """Create a square latttice."""
+    """Create a square lattice."""
 
     def __init__(self):
         cell_matrix = 2 * np.identity(3)
-        positions = np.ones((1, 3))
         cell_matrix[2, 2] = 1
-        super().__init__(cell_matrix=cell_matrix, positions=positions, molecule=Disc())
+        super().__init__(cell_matrix=cell_matrix, molecule=Disc())
 
 
 CRYSTAL_FUNCS = {
