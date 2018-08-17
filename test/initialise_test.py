@@ -113,7 +113,7 @@ def test_trimerPg_init_position():
 
 
 def test_init_crystal_position(crystal_params):
-    if isinstance(crystal_params.crystal, (TrimerP2, TrimerPg)):
+    if isinstance(crystal_params.crystal, (TrimerP2)):
         return
     with crystal_params.temp_context(cell_dimensions=1):
         snap = init_from_crystal(crystal_params, equilibration=False, minimize=False)
@@ -128,11 +128,13 @@ def test_init_crystal_position(crystal_params):
                 for pos, orient in zip(crys.positions, crys.get_orientations())
             ]
         )
-        mask = positions > np.array([snap.box.Lx, snap.box.Ly, snap.box.Lz]) / 2
-        positions[mask] -= np.array(
-            [[snap.box.Lx, snap.box.Ly, snap.box.Lz]] * len(positions)
-        )[mask]
-        assert np.allclose(snap.particles.position[num_mols:], positions)
+        box = np.array([snap.box.Lx, snap.box.Ly, snap.box.Lz])
+        if crys.molecule.rigid:
+            sim_pos = snap.particles.position[num_mols:] % box
+        else:
+            sim_pos = snap.particles.position % box
+        init_pos = positions % box
+        assert_allclose(sim_pos, init_pos)
 
 
 @pytest.mark.parametrize("ensemble", ["NVE", "NPH"])
