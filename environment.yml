@@ -18,6 +18,7 @@ dependencies:
     - ipykernel
     - black=18.6b2
     - mypy
+    - rowan
     - attrs
     - click
     - pip=10.*

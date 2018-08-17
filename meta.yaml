@@ -28,6 +28,7 @@ requirements:
         - setuptools *
         - attrs
         - click
+        - rowan
 
 build:
     entry_points:
