@@ -40,9 +40,9 @@ class Molecule(object):
     moment_inertia_scale: float = 1
     positions: np.ndarray = np.zeros((1, 3))
     potential: Pair = hoomd.md.pair.slj
-    particles: List[str] = attr.ib(factory=lambda: ["A"])
-    potential_args: Dict[str, Any] = attr.ib(factory=dict)
-    _radii: Dict[str, float] = attr.ib(factory=OrderedDict)
+    particles: List[str] = attr.ib(default=attr.Factory(lambda: ["A"]))
+    potential_args: Dict[str, Any] = attr.ib(default=attr.Factory(dict))
+    _radii: Dict[str, float] = attr.ib(default=attr.Factory(OrderedDict))
     rigid: bool = False
 
     def __attrs_post_init__(self) -> None:
