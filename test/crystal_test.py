@@ -94,9 +94,12 @@ def test_compute_volume(crys_class):
         assert crys_class.compute_volume() == 4
 
 
-def test_abs_positions(crys_class):
-    """Check the absolute positions function return corectly shaped matrix."""
-    assert crys_class.get_abs_positions().shape == np.array(crys_class.positions).shape
+def test_relative_positions(crys_class):
+    """Check the relative positions function return correctly shaped matrix."""
+    rel_pos = crys_class.get_relative_positions()
+    assert rel_pos.shape == np.array(crys_class.positions).shape
+    assert np.all(0 <= rel_pos)
+    assert np.all(rel_pos <= 1)
 
 
 def test_get_matrix(crys_class):
@@ -121,8 +124,8 @@ def test_matrix_values(crys_class):
         assert matrix[1, 1] == 2
 
 
-def test_get_abs_positions(crys_class):
-    positions = crys_class.get_abs_positions()
+def test_positions(crys_class):
+    positions = crys_class.positions
     cell_lengths = np.sum(np.identity(3) @ crys_class.cell_matrix, axis=0)
 
     assert positions.shape == (crys_class.num_molecules, 3)
@@ -131,5 +134,5 @@ def test_get_abs_positions(crys_class):
 
     if type(crys_class) == TrimerP2:
         # Check against manually computed positions
-        manual_positions = np.array([[1.3476, 0.816, 0.], [3.1024, 1.734, 0.]])
+        manual_large_positions = np.array([[1.3476, 0.816, 0.], [3.1024, 1.734, 0.]])
         assert np.allclose(manual_positions, positions)

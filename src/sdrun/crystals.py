@@ -46,17 +46,17 @@ class Crystal(object):
         """
         return tuple(tuple(i) for i in self.cell_matrix)
 
-    def get_abs_positions(self) -> np.ndarray:
-        """Return the absolute positions of the molecules.
+    def get_relative_positions(self) -> np.ndarray:
+        """Return the relative positions of the molecules.
 
-        This converts the relative positions that the positions are stored in
-        with the absolute positions and returns.
+        This converts the absolute positions that the positions are stored in with the relative
+        positions and returns.
 
         Returns:
             class:`numpy.ndarray`: Positions of each molecule
 
         """
-        return np.dot(self.positions, self.cell_matrix)
+        return self.positions @ np.linalg.inv(self.cell_matrix)
 
     def get_unitcell(self) -> hoomd.lattice.unitcell:
         """Return the hoomd unit cell parameter."""
@@ -69,7 +69,7 @@ class Crystal(object):
             a1=a1,
             a2=a2,
             a3=a3,
-            position=self.get_abs_positions(),
+            position=self.positions,
             dimensions=self.dimensions,
             orientation=self.get_orientations(),
             type_name=[type_name] * num_mols,
@@ -140,10 +140,10 @@ class TrimerP2(Crystal):
         molecule = Trimer()
         cell_matrix = np.array([[3.82, 0, 0], [0.63, 2.55, 0], [0, 0, 1]])
         # These are the relative positions within the unit cell
-        positions = np.array([[0.3, 0.32, 0], [0.7, 0.68, 0]])
+        positions = np.array([[0.3, 0.32, 0], [0.7, 0.68, 0]]) @ cell_matrix
         orientations = np.array([50, 230])
         # Divide (matrix inverse) by unit cell lengths to get relative positions
-        positions += _calc_shift(orientations, molecule) @ np.linalg.inv(cell_matrix)
+        positions += _calc_shift(orientations, molecule)
         super().__init__(
             cell_matrix=cell_matrix,
             positions=positions,
@@ -163,12 +163,19 @@ class TrimerP2gg(Crystal):
         molecule = Trimer()
         cell_matrix = np.array([[2.63, 0, 0], [0, 7.38, 0], [0, 0, 1]])
         # These are the relative positions within the unit cell
-        positions = np.array(
-            [[0.061, 0.853, 0], [0.561, 0.647, 0], [0.439, 0.353, 0], [0.939, 0.147, 0]]
-        )
+        positions = (
+            np.array(
+                [
+                    [0.061, 0.853, 0],
+                    [0.561, 0.647, 0],
+                    [0.439, 0.353, 0],
+                    [0.939, 0.147, 0],
+                ]
+            )
+        ) @ cell_matrix
         orientations = np.array([24, 156, -24, 204])
         # Divide (matrix inverse) by unit cell lengths to get relative positions
-        positions += _calc_shift(orientations, molecule) @ np.linalg.inv(cell_matrix)
+        positions += _calc_shift(orientations, molecule)
         super().__init__(
             cell_matrix=cell_matrix,
             positions=positions,
@@ -184,15 +191,15 @@ class TrimerPg(Crystal):
         molecule = Trimer()
         cell_matrix = np.array([[2.71, 0, 0], [0, 3.63, 0], [0, 0, 1]])
         # These are the relative positions within the unit cell
-        positions = np.array([[0.35, 0.45, 0], [0.65, 0.95, 0]])
+        positions = np.array([[0.35, 0.45, 0], [0.65, 0.95, 0]]) @ cell_matrix
         orientations = np.array([-21, 21])
         # Divide (matrix inverse) by unit cell lengths to get relative positions
-        positions += _calc_shift(orientations, molecule) @ np.linalg.inv(cell_matrix)
+        positions += _calc_shift(orientations, molecule)
         super().__init__(
             cell_matrix=cell_matrix,
             positions=positions,
             orientations=orientations,
-            molecule=Molecule,
+            molecule=molecule,
         )
 
 
@@ -201,7 +208,10 @@ class CubicSphere(Crystal):
 
     def __init__(self):
         cell_matrix = 2 * np.identity(3)
-        super().__init__(cell_matrix=cell_matrix, molecule=Sphere())
+        positions = np.ones((1, 3))
+        super().__init__(
+            cell_matrix=cell_matrix, positions=positions, molecule=Sphere()
+        )
 
 
 class SquareCircle(Crystal):
@@ -209,8 +219,9 @@ class SquareCircle(Crystal):
 
     def __init__(self):
         cell_matrix = 2 * np.identity(3)
+        positions = np.ones((1, 3))
         cell_matrix[2, 2] = 1
-        super().__init__(cell_matrix=cell_matrix, molecule=Disc())
+        super().__init__(cell_matrix=cell_matrix, positions=positions, molecule=Disc())
 
 
 CRYSTAL_FUNCS = {
