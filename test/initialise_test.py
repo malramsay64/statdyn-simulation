@@ -21,12 +21,13 @@ from sdrun import SimulationParams
 from sdrun.crystals import TrimerP2, TrimerPg
 from sdrun.initialise import (
     init_from_crystal,
+    init_from_file,
     init_from_none,
     initialise_snapshot,
     make_orthorhombic,
     minimize_snapshot,
 )
-from sdrun.util import get_num_mols
+from sdrun.util import dump_frame, get_num_mols
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -54,6 +55,13 @@ def test_initialise_snapshot(mol_params):
     num_mols = np.prod(np.array(mol_params.cell_dimensions))
     num_particles = num_mols * mol_params.molecule.num_particles
     assert snap_init.particles.N == num_particles
+
+
+def test_molecule_masses(snapshot_from_none):
+    snap = snapshot_from_none["snapshot"]
+    molecule = snapshot_from_none["sim_params"].molecule
+    num_mols = get_num_mols(snap)
+    assert np.all(snap.particles.mass[:num_mols] == molecule.mass)
 
 
 def test_initialise_randomise(mol_params):
