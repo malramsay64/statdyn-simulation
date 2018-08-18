@@ -11,10 +11,17 @@ import subprocess
 from pathlib import Path
 
 import hoomd
+import numpy as np
 import pytest
 
-from sdrun.initialise import init_from_crystal, init_from_none
+from sdrun.initialise import (
+    init_from_crystal,
+    init_from_file,
+    init_from_none,
+    initialise_snapshot,
+)
 from sdrun.simulation import equilibrate, make_orthorhombic, production
+from sdrun.util import dump_frame, get_num_mols
 
 
 @pytest.mark.simulation
@@ -134,3 +141,26 @@ def test_interface(mol_params, pressure, temperature):
     # Run melting simulation
     melt = subprocess.run(melt_command)
     assert melt.returncode == 0
+
+
+def test_simulation_from_file(snapshot_params):
+    sim_params = snapshot_params["sim_params"]
+    snapshot = snapshot_params["snapshot"]
+    filename = sim_params.output / "testfile.gsd"
+    num_mols = get_num_mols(snapshot)
+
+    context = hoomd.context.initialize(args=sim_params.hoomd_args)
+    initialise_snapshot(snapshot, context, sim_params)
+    with context:
+        if sim_params.molecule.rigid:
+            group = hoomd.group.rigid_center()
+        else:
+            group = hoomd.group.all()
+        dump_frame(group, filename)
+
+    snap_file = init_from_file(filename, sim_params.molecule, sim_params.hoomd_args)
+    snap_equil = equilibrate(snap_file, sim_params)
+
+    assert snap_equil.particles.types == sim_params.molecule.get_types()
+    assert snap_equil.particles.N == snapshot.particles.N
+    assert np.all(snap_equil.particles.mass[:num_mols] == sim_params.molecule.mass)
