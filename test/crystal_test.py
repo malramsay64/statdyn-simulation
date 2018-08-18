@@ -154,7 +154,6 @@ def test_matrix_values(crys_class):
         assert matrix[1, 1] == 2
 
 
-@pytest.mark.xfail()
 def test_positions(crys_class):
     positions = crys_class.positions
     cell_lengths = np.sum(np.identity(3) @ crys_class.cell_matrix, axis=0)
@@ -163,7 +162,12 @@ def test_positions(crys_class):
     assert np.all(positions >= 0)
     assert np.all(positions < cell_lengths)
 
-    if type(crys_class) == TrimerP2:
-        # Check against manually computed positions
-        manual_large_positions = np.array([[1.3476, 0.816, 0.], [3.1024, 1.734, 0.]])
-        assert_allclose(manual_large_positions, positions)
+
+@pytest.mark.xfail()
+def test_trimerp2_positions():
+    positions = TrimerP2().positions
+    cell_lengths = np.sum(np.identity(3) @ crys_class.cell_matrix, axis=0)
+
+    # Check against manually computed positions
+    manual_large_positions = np.array([[1.3476, 0.816, 0.], [3.1024, 1.734, 0.]])
+    assert_allclose(manual_large_positions, positions)
