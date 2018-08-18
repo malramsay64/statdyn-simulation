@@ -256,5 +256,29 @@ def test_moment_inertia(mol_params, scaling_factor):
         assert_allclose(diff, 0, atol=1e-1)
 
 
+def test_init_from_file(snapshot_params):
+    sim_params = snapshot_params["sim_params"]
+    snapshot = snapshot_params["snapshot"]
+    filename = sim_params.output / "testfile.gsd"
+    num_mols = get_num_mols(snapshot)
+
+    context = hoomd.context.initialize(args=sim_params.hoomd_args)
+    initialise_snapshot(snapshot, context, sim_params)
+    with context:
+        if sim_params.molecule.rigid:
+            group = hoomd.group.rigid_center()
+        else:
+            group = hoomd.group.all()
+        dump_frame(group, filename)
+
+    snap_file = init_from_file(filename, sim_params.molecule, sim_params.hoomd_args)
+    assert snap_file.particles.types == sim_params.molecule.get_types()
+    assert snap_file.particles.N == snapshot.particles.N
+    assert np.all(snap_file.particles.mass[:num_mols] == sim_params.molecule.mass)
+    assert_allclose(
+        snap_file.particles.position[:num_mols], snapshot.particles.position[:num_mols]
+    )
+
+
 def test_thermalise(snapshot):
     pass
