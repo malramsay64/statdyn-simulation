@@ -232,6 +232,7 @@ def get_num_mols(snapshot: Snapshot) -> int:
 
 
 def get_num_particles(snapshot: Snapshot) -> int:
+    """The number of particles in the snapshot."""
     num_bodies = _get_num_bodies(snapshot)
     return num_bodies.particles
 
