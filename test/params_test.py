@@ -16,7 +16,7 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import floats
 
-from sdrun.crystals import CRYSTAL_FUNCS, CubicSphere, SquareCircle, TrimerP2
+from sdrun.crystals import CubicSphere, SquareCircle, TrimerP2
 from sdrun.molecules import MOLECULE_DICT, Dimer, Disc, Molecule, Sphere, Trimer
 from sdrun.params import SimulationParams
 
@@ -34,34 +34,6 @@ def sim_params():
 @pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
 def molecules(request):
     return request.param
-
-
-@pytest.fixture(params=CRYSTAL_FUNCS.values(), ids=CRYSTAL_FUNCS.keys())
-def crystal_params(request):
-    with TemporaryDirectory() as tmp_dir:
-        output_dir = Path(tmp_dir) / "output"
-        output_dir.mkdir(exist_ok=True)
-        yield SimulationParams(
-            temperature=1.0,
-            pressure=13.5,
-            num_steps=1000,
-            crystal=request.param(),
-            output=output_dir,
-        )
-
-
-@pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
-def mol_params(request):
-    with TemporaryDirectory() as tmp_dir:
-        output_dir = Path(tmp_dir) / "output"
-        output_dir.mkdir(exist_ok=True)
-        yield SimulationParams(
-            temperature=1.0,
-            pressure=13.5,
-            num_steps=1000,
-            output=output_dir,
-            molecule=request.param(),
-        )
 
 
 def test_molecule(sim_params, molecules):
