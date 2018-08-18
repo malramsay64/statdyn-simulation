@@ -14,7 +14,7 @@ from tempfile import TemporaryDirectory
 import hoomd
 import pytest
 
-from sdrun import SimulationParams, init_from_crystal
+from sdrun import SimulationParams, init_from_crystal, init_from_none
 from sdrun.crystals import CRYSTAL_FUNCS
 from sdrun.molecules import MOLECULE_DICT
 
@@ -78,6 +78,25 @@ def snapshot(request):
         yield init_from_crystal(sim_params)
 
 
+@pytest.fixture(params=CRYSTAL_FUNCS.values(), ids=CRYSTAL_FUNCS.keys())
+def snapshot_params(request):
+    """Test the initialisation of all crystals."""
+    with TemporaryDirectory() as tmp_dir:
+        output_dir = Path(tmp_dir) / "output"
+        output_dir.mkdir(exist_ok=True)
+        sim_params = SimulationParams(
+            temperature=0.4,
+            pressure=1.0,
+            num_steps=100,
+            crystal=request.param(),
+            output=output_dir,
+            cell_dimensions=(10, 12, 10),
+            outfile=output_dir / "test.gsd",
+            hoomd_args="--mode=cpu --notice-level=0",
+        )
+        yield {"snapshot": init_from_crystal(sim_params), "sim_params": sim_params}
+
+
 @pytest.fixture(params=MOLECULE_DICT.values(), ids=MOLECULE_DICT.keys())
 def snapshot_from_none(request):
     """Test the initialisation of all crystals."""
@@ -94,4 +113,4 @@ def snapshot_from_none(request):
             outfile=output_dir / "test.gsd",
             hoomd_args="--mode=cpu --notice-level=0",
         )
-        yield init_from_none(sim_params)
+        yield {"snapshot": init_from_none(sim_params), "sim_params": sim_params}
