@@ -51,7 +51,7 @@ class SimulationParams(object):
     space_group: str = None
 
     # Step Params
-    num_steps: Optional[int] = None
+    num_steps: int = 0
     step_size: float = 0.005
     max_gen: int = attr.ib(default=500, repr=False)
     gen_steps: int = attr.ib(default=20_000, repr=False)
