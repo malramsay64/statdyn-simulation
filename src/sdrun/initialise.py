@@ -20,6 +20,7 @@ import hoomd.md
 import numpy as np
 from hoomd.context import SimulationContext as Context
 from hoomd.data import SnapshotParticleData as Snapshot, system_data as System
+from mpi4py import MPI
 
 from .crystals import Crystal
 from .molecules import Molecule
@@ -34,6 +35,8 @@ from .util import (
 
 logger = logging.getLogger(__name__)
 
+comm = MPI.COMM_WORLD
+
 
 def init_from_file(fname: Path, molecule: Molecule, hoomd_args: str = "") -> Snapshot:
     """Initialise a hoomd simulation from an input file."""
@@ -45,8 +48,8 @@ def init_from_file(fname: Path, molecule: Molecule, hoomd_args: str = "") -> Sna
         logger.debug("Reading snapshot: %s", fname)
         snapshot = hoomd.data.gsd_snapshot(str(fname), frame=0)
         sys = hoomd.init.read_snapshot(snapshot)
-        if molecule.rigid:
-            rigid = molecule.define_rigid()
+        rigid = molecule.define_rigid()
+        if rigid:
             rigid.create_bodies()
         init_snapshot = sys.take_snapshot()
     return init_snapshot
@@ -107,14 +110,18 @@ def initialise_snapshot(
             snapshot, sim_params, interface, random_seed=sim_params.iteration_id
         )
 
-    # Thermalise where the velocity of the particle is well away from the desired temperature
-    if thermalisation is None:
-        temperature = (
-            sim_params.init_temp if sim_params.init_temp else sim_params.temperature
-        )
-        thermalisation = (
-            compute_translational_KE(snapshot) > 0.5 * num_molecules * temperature
-        )
+    if hoomd.comm.get_rank() == 0:
+        # Thermalise where the velocity of the particle is well away from the desired temperature
+        if thermalisation is None:
+            temperature = (
+                sim_params.init_temp if sim_params.init_temp else sim_params.temperature
+            )
+            thermalisation = (
+                compute_translational_KE(snapshot) > 0.5 * num_molecules * temperature
+            )
+
+    thermalisation = comm.bcast(thermalisation, root=0)
+
     if thermalisation:
         snapshot = thermalise(snapshot, sim_params)
 
@@ -240,24 +247,25 @@ def make_orthorhombic(snapshot: Snapshot) -> Snapshot:
 
 
 def _check_properties(snapshot: Snapshot, molecule: Molecule) -> Snapshot:
-    num_molecules = get_num_mols(snapshot)
-    num_particles = get_num_particles(snapshot)
+    if hoomd.comm.get_rank() == 0:
+        num_molecules = get_num_mols(snapshot)
+        num_particles = get_num_particles(snapshot)
 
-    if num_molecules < num_particles:
-        logger.debug("number of rigid bodies: %d", num_molecules)
+        if num_molecules < num_particles:
+            logger.debug("number of rigid bodies: %d", num_molecules)
+            snapshot.particles.types = molecule.get_types()
+            snapshot.particles.moment_inertia[:num_molecules] = np.array(
+                [molecule.moment_inertia] * num_molecules
+            )
+            return snapshot
+
+        logger.debug("num_atoms: %d", num_particles)
+        assert num_particles > 0
         snapshot.particles.types = molecule.get_types()
-        snapshot.particles.moment_inertia[:num_molecules] = np.array(
-            [molecule.moment_inertia] * num_molecules
+        snapshot.particles.moment_inertia[:] = np.array(
+            [molecule.moment_inertia] * num_particles
         )
         return snapshot
-
-    logger.debug("num_atoms: %d", num_particles)
-    assert num_particles > 0
-    snapshot.particles.types = molecule.get_types()
-    snapshot.particles.moment_inertia[:] = np.array(
-        [molecule.moment_inertia] * num_particles
-    )
-    return snapshot
 
 
 def randomise_momenta(
@@ -281,7 +289,8 @@ def randomise_momenta(
         hoomd.run(0)
         integrator.disable()
 
-        return sys.take_snapshot()
+        snapshot = sys.take_snapshot()
+    return snapshot
 
 
 def thermalise(snapshot: Snapshot, sim_params: SimulationParams) -> Snapshot:
