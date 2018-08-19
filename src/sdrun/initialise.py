@@ -13,6 +13,7 @@ config.
 """
 import logging
 from pathlib import Path
+from typing import Optional
 
 import hoomd
 import hoomd.md
@@ -75,6 +76,7 @@ def initialise_snapshot(
     context: Context,
     sim_params: SimulationParams,
     minimize: bool = False,
+    thermalisation: Optional[bool] = None,
 ) -> System:
     """Initialise the configuration from a snapshot.
 
