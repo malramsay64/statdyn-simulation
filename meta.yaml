@@ -29,6 +29,7 @@ requirements:
         - attrs
         - click
         - rowan
+        - mpi4py
 
 build:
     entry_points:

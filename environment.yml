@@ -21,7 +21,8 @@ dependencies:
     - rowan
     - attrs
     - click
-    - pip=10.*
+    - mpi4py
+    - pip>=10
     - pip:
         - pytest-mypy
         - pytest-pylint
