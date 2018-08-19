@@ -165,6 +165,39 @@ def set_harmonic_force(
     )
 
 
+def get_group(
+    sys: System, sim_params: SimulationParams, interface: bool = False
+) -> Group:
+    if sim_params.molecule.rigid:
+        group = hoomd.group.rigid_center()
+    else:
+        group = hoomd.group.all()
+    if interface is True:
+        return _interface_group(sys, group)
+    return group
+
+
+def _interface_group(sys: System, base_group: Group, stationary: bool = False):
+    assert base_group is not None
+    stationary_group = hoomd.group.cuboid(
+        name="stationary",
+        xmin=-sys.box.Lx / 3,
+        xmax=sys.box.Lx / 3,
+        ymin=-sys.box.Ly / 3,
+        ymax=sys.box.Ly / 3,
+    )
+    if stationary:
+        return hoomd.group.intersection(
+            "rigid_stationary", stationary_group, base_group
+        )
+
+    return hoomd.group.intersection(
+        "rigid_mobile",
+        hoomd.group.difference("mobile", hoomd.group.all(), stationary_group),
+        base_group,
+    )
+
+
 @attr.s(auto_attribs=True)
 class NumBodies(object):
     particles: int = attr.ib(converter=int)

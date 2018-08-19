@@ -141,39 +141,6 @@ def create_interface(sim_params: SimulationParams) -> Snapshot:
     return snapshot
 
 
-def get_group(
-    sys: System, sim_params: SimulationParams, interface: bool = False
-) -> Group:
-    if sim_params.molecule.num_particles > 1:
-        group = hoomd.group.rigid_center()
-    else:
-        group = hoomd.group.all()
-    if interface is True:
-        return _interface_group(sys, group)
-    return group
-
-
-def _interface_group(sys: System, base_group: Group, stationary: bool = False):
-    assert base_group is not None
-    stationary_group = hoomd.group.cuboid(
-        name="stationary",
-        xmin=-sys.box.Lx / 3,
-        xmax=sys.box.Lx / 3,
-        ymin=-sys.box.Ly / 3,
-        ymax=sys.box.Ly / 3,
-    )
-    if stationary:
-        return hoomd.group.intersection(
-            "rigid_stationary", stationary_group, base_group
-        )
-
-    return hoomd.group.intersection(
-        "rigid_mobile",
-        hoomd.group.difference("mobile", hoomd.group.all(), stationary_group),
-        base_group,
-    )
-
-
 def production(
     snapshot: Snapshot,
     context: hoomd.context.SimulationContext,
