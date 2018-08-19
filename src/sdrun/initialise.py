@@ -41,7 +41,7 @@ def init_from_file(fname: Path, molecule: Molecule, hoomd_args: str = "") -> Sna
         if molecule.rigid:
             rigid = molecule.define_rigid()
             rigid.create_bodies()
-        init_snapshot = sys.take_snapshot(all=True)
+        init_snapshot = sys.take_snapshot()
     return init_snapshot
 
 
@@ -96,8 +96,19 @@ def initialise_snapshot(
         if sim_params.space_group is not None:
             interface = True
         snapshot = randomise_momenta(
-            snapshot, interface, random_seed=sim_params.iteration_id
+            snapshot, sim_params, interface, random_seed=sim_params.iteration_id
         )
+
+    # Thermalise where the velocity of the particle is well away from the desired temperature
+    if thermalisation is None:
+        temperature = (
+            sim_params.init_temp if sim_params.init_temp else sim_params.temperature
+        )
+        thermalisation = (
+            compute_translational_KE(snapshot) > 0.5 * num_molecules * temperature
+        )
+    if thermalisation:
+        snapshot = thermalise(snapshot, sim_params)
 
     with context:
         sys = hoomd.init.read_snapshot(snapshot)
@@ -105,7 +116,7 @@ def initialise_snapshot(
         sim_params.molecule.define_dimensions()
         if sim_params.molecule.rigid:
             rigid = sim_params.molecule.define_rigid()
-            rigid.check_initialization()
+            rigid.create_bodies()
         return sys
 
 
@@ -144,7 +155,7 @@ def minimize_snapshot(
 
         ensemble_integrator.disable()
         logger.debug("Energy Minimized in %s steps", num_steps)
-        equil_snapshot = sys.take_snapshot(all=True)
+        equil_snapshot = sys.take_snapshot()
     return equil_snapshot
 
 
@@ -178,7 +189,7 @@ def init_from_crystal(
         if sim_params.molecule.rigid:
             rigid = sim_params.molecule.define_rigid()
             rigid.create_bodies()
-        snap = sys.take_snapshot(all=True)
+        snap = sys.take_snapshot()
         logger.debug("Particle Types: %s", snap.particles.types)
 
     if minimize:

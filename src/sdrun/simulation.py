@@ -108,7 +108,7 @@ def equilibrate(
 
         dump_frame(group, sim_params.outfile, extension=False)
 
-        equil_snapshot = sys.take_snapshot(all=True)
+        equil_snapshot = sys.take_snapshot()
     return equil_snapshot
 
 
