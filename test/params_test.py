@@ -10,7 +10,6 @@
 import logging
 from itertools import product
 from pathlib import Path
-from tempfile import TemporaryDirectory
 
 import pytest
 from hypothesis import given
