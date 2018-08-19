@@ -20,8 +20,14 @@ from sdrun.initialise import (
     init_from_none,
     initialise_snapshot,
 )
-from sdrun.simulation import equilibrate, make_orthorhombic, production
-from sdrun.util import dump_frame, get_num_mols
+from sdrun.simulation import equilibrate, get_group, make_orthorhombic, production
+from sdrun.util import (
+    compute_rotational_KE,
+    compute_translational_KE,
+    dump_frame,
+    get_num_mols,
+    set_integrator,
+)
 
 
 @pytest.mark.simulation
@@ -164,3 +170,61 @@ def test_simulation_from_file(snapshot_params):
     assert snap_equil.particles.types == sim_params.molecule.get_types()
     assert snap_equil.particles.N == snapshot.particles.N
     assert np.all(snap_equil.particles.mass[:num_mols] == sim_params.molecule.mass)
+
+
+class Thermodynamics(object):
+    def __init__(snapshot_params):
+        self.sim_params = snapshot_params["sim_params"]
+        self.context = hoomd.context.initialize(args=sim_params.hoomd_args)
+        sys = initialise_snapshot(
+            context=context, **snapshot_params, thermalisation=True
+        )
+        with self.context:
+            group = get_group(sys, self.sim_params)
+            set_integrator(self.sim_params, group)
+            self.thermo_log = hoomd.analyze.log(
+                None,
+                quantities=[
+                    "translational_kinetic_energy",
+                    "rotational_kinetic_energy",
+                    "temperature",
+                ],
+                period=1,
+            )
+
+            hoomd.run(1)
+            self.snap = sys.take_snapshot()
+            self.num_mols = get_num_mols(snap)
+
+    def test_mass(self):
+        assert np.allclose(
+            self.snap.particles.mass[:num_mols], self.sim_params.molecule.mass
+        )
+
+    def test_temperature(self):
+        with self.context:
+            assert np.isclose(
+                self.thermo_log.query("temperature"), self.sim_params.temperature
+            )
+
+    def test_translational_KE(self):
+        with self.context:
+            trans_dimensions = self.sim_params.molecule.dimensions
+
+            computed_trans_KE = compute_translational_KE(self.snap)
+            thermodynamic_KE = trans_dimensions * 0.5 * self.sim_params.temperature
+            logged_KE = self.thermo_log.query("translational_kinetic_energy")
+
+            assert np.isclose(computed_trans_KE, logged_KE, rtol=0.2)
+            assert np.isclose(computed_trans_KE, thermodynamic_KE)
+
+    def test_rotational_KE(self):
+        with self.context:
+            rot_dimensions = np.sum(self.sim_params.molecule.moment_inertia > 0.)
+
+            computed_rot_KE = compute_rotational_KE(self.snap)
+            thermodynamic_KE = rot_dimensions * 0.5 * self.sim_params.temperature
+            logged_KE = self.thermo_log.query("rotational_kinetic_energy")
+
+            assert np.isclose(computed_rot_KE, logged_KE, rtol=0.2)
+            assert np.isclose(computed_rot_KE, thermodynamic_KE)
