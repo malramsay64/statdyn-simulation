@@ -245,3 +245,38 @@ def z2quaternion(theta: np.ndarray) -> np.ndarray:
 
     """
     return rowan.from_euler(theta, 0, 0).astype(np.float32)
+
+
+def compute_translational_KE(snapshot: Snapshot) -> float:
+    """Compute the kinetic energy of the translational degrees of freedom.
+
+    Args:
+        snapshot: (Snapshot): Simulation snapshot from which to compute the kinetic energy
+
+    Returns: The total translational kinetic energy of the snapshot.
+
+    """
+    num_mols = get_num_mols(snapshot)
+    return 0.5 * np.sum(
+        snapshot.particles.mass[:num_mols].reshape((-1, 1))
+        * np.square(snapshot.particles.velocity[:num_mols])
+    )
+
+
+def compute_rotational_KE(snapshot: Snapshot) -> float:
+    """Compute the kinetic energy of the rotational degrees of freedom.
+
+    Args:
+        snapshot: (Snapshot): Simulation snapshot from which to compute the kinetic energy
+
+    Returns: The total rotational kinetic energy of the snapshot.
+
+    """
+    num_mols = get_num_mols(snapshot)
+    angmom = snapshot.particles.angmom[:num_mols]
+    moment_inertia = snapshot.particles.moment_inertia[:num_mols]
+    momentum = rowan.multiply(
+        0.5 * rowan.conjugate(snapshot.particles.orientation[:num_mols]), angmom
+    )[:, 1:]
+    mask = moment_inertia > 0
+    return np.sum(0.5 * np.square(momentum[mask]) / moment_inertia[mask])
