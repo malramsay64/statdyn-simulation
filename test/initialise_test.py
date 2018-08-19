@@ -26,6 +26,8 @@ from sdrun.initialise import (
     initialise_snapshot,
     make_orthorhombic,
     minimize_snapshot,
+    randomise_momenta,
+    thermalise,
 )
 from sdrun.util import dump_frame, get_num_mols
 
@@ -68,18 +70,54 @@ def test_initialise_randomise(mol_params):
     snapshot = hoomd.data.gsd_snapshot("test/data/Trimer-13.50-3.00.gsd")
     context = hoomd.context.initialize(mol_params.hoomd_args)
     num_mols = get_num_mols(snapshot)
-    with mol_params.temp_context(iteration_id=0):
+    with mol_params.temp_context(iteration_id=1):
         sys = initialise_snapshot(snapshot, context, mol_params)
         assert isinstance(sys, hoomd.data.system_data)
         snap = sys.take_snapshot()
     angmom_similarity = np.sum(
-        snap.particles.angmom[:num_mols] != snapshot.particles.angmom[:num_mols]
+        np.square(
+            snap.particles.angmom[:num_mols] - snapshot.particles.angmom[:num_mols]
+        ),
+        axis=1,
     )
     velocity_similarity = np.sum(
-        snap.particles.velocity[:num_mols] != snapshot.particles.velocity[:num_mols]
+        np.square(
+            snap.particles.velocity[:num_mols] - snapshot.particles.velocity[:num_mols]
+        ),
+        axis=1,
     )
-    assert angmom_similarity < 5
-    assert velocity_similarity < 5
+    if np.any(mol_params.molecule.moment_inertia != 0):
+        assert np.all(angmom_similarity > 0)
+    assert np.all(velocity_similarity > 0)
+
+
+@pytest.mark.parametrize("seed", [0, 1, 10])
+def test_randomise_seed_same(snapshot_params, seed):
+    snap1 = randomise_momenta(**snapshot_params, random_seed=seed)
+    snap2 = randomise_momenta(**snapshot_params, random_seed=seed)
+    assert np.all(snap1.particles.velocity == snap2.particles.velocity)
+    assert np.all(snap1.particles.angmom == snap2.particles.angmom)
+
+
+def test_randomise_seed_different(snapshot_params):
+    num_mols = get_num_mols(snapshot_params["snapshot"])
+    snap1 = randomise_momenta(**snapshot_params, random_seed=0)
+    snap2 = randomise_momenta(**snapshot_params, random_seed=1)
+    angmom_similarity = np.sum(
+        np.square(
+            snap1.particles.angmom[:num_mols] - snap2.particles.angmom[:num_mols]
+        ),
+        axis=1,
+    )
+    velocity_similarity = np.sum(
+        np.square(
+            snap1.particles.velocity[:num_mols] - snap2.particles.velocity[:num_mols]
+        ),
+        axis=1,
+    )
+    if np.any(snapshot_params["sim_params"].molecule.moment_inertia != 0):
+        assert np.all(angmom_similarity > 0)
+    assert np.all(velocity_similarity > 0)
 
 
 def test_trimerP2_init_position():
@@ -280,5 +318,15 @@ def test_init_from_file(snapshot_params):
     )
 
 
-def test_thermalise(snapshot):
-    pass
+def test_thermalise(snapshot_from_none):
+    sim_params = snapshot_from_none["sim_params"]
+    snapshot = snapshot_from_none["snapshot"]
+    thermal_snap = thermalise(snapshot, sim_params)
+
+    num_mols = get_num_mols(thermal_snap)
+    mass = sim_params.molecule.mass
+    computed_trans_KE = (
+        0.5 * mass * np.sum(np.square(thermal_snap.particles.velocity[:num_mols]))
+    ) / num_mols
+    thermodynamic_KE = sim_params.molecule.dimensions * 0.5 * sim_params.temperature
+    assert np.isclose(computed_trans_KE, thermodynamic_KE, rtol=0.2)
