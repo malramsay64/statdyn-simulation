@@ -14,13 +14,19 @@ import logging
 import hoomd
 import hoomd.md
 import numpy as np
-from hoomd.data import SnapshotParticleData as Snapshot, system_data as System
-from hoomd.group import group as Group
+from hoomd.data import SnapshotParticleData as Snapshot
 
 from .initialise import init_from_crystal, initialise_snapshot, make_orthorhombic
 from .params import SimulationParams
 from .StepSize import GenerateStepSeries
-from .util import dump_frame, set_dump, set_harmonic_force, set_integrator, set_thermo
+from .util import (
+    dump_frame,
+    get_group,
+    set_dump,
+    set_harmonic_force,
+    set_integrator,
+    set_thermo,
+)
 
 logger = logging.getLogger(__name__)
 

@@ -20,7 +20,6 @@ from sdrun.util import (
     _get_num_bodies,
     get_num_mols,
     get_num_particles,
-    randomise_momenta,
     z2quaternion,
 )
 

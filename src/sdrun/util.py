@@ -17,7 +17,7 @@ import hoomd
 import hoomd.md as md
 import numpy as np
 import rowan
-from hoomd.data import SnapshotParticleData as Snapshot
+from hoomd.data import SnapshotParticleData as Snapshot, system_data as System
 from hoomd.group import group as Group
 
 from .params import SimulationParams
