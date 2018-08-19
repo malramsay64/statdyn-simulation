@@ -279,6 +279,7 @@ def randomise_momenta(
         integrator.randomize_velocities(random_seed)
         logger.debug("Randomising momenta at kT=%.2f", sim_params.temperature)
         hoomd.run(0)
+        integrator.disable()
 
         return sys.take_snapshot()
 
