@@ -23,7 +23,13 @@ from hoomd.data import SnapshotParticleData as Snapshot, system_data as System
 from .crystals import Crystal
 from .molecules import Molecule
 from .params import SimulationParams
-from .util import get_num_mols, get_num_particles, randomise_momenta
+from .util import (
+    compute_translational_KE,
+    get_group,
+    get_num_mols,
+    get_num_particles,
+    set_integrator,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -250,3 +256,30 @@ def _check_properties(snapshot: Snapshot, molecule: Molecule) -> Snapshot:
         [molecule.moment_inertia] * num_particles
     )
     return snapshot
+
+
+def randomise_momenta(
+    snapshot: Snapshot,
+    sim_params: SimulationParams,
+    interface: bool = False,
+    random_seed=None,
+) -> Snapshot:
+    """Randomise the momenta of particles in a snapshot."""
+    if random_seed is None:
+        random_seed = 42
+        logger.debug("No random seed provided using %s", random_seed)
+    context = hoomd.context.initialize(sim_params.hoomd_args)
+    with sim_params.temp_context(iteration_id=None):
+        sys = initialise_snapshot(snapshot, context, sim_params, thermalisation=False)
+    with context:
+        group = get_group(sys, sim_params, interface)
+        integrator = set_integrator(sim_params, group)
+        integrator.randomize_velocities(random_seed)
+        logger.debug("Randomising momenta at kT=%.2f", sim_params.temperature)
+        hoomd.run(0)
+
+        return sys.take_snapshot()
+
+
+def thermalise(snapshot: Snapshot, sim_params: SimulationParams) -> Snapshot:
+    return randomise_momenta(snapshot, sim_params)
