@@ -18,4 +18,5 @@ statdyn/**/*.cpp
 statdyn/**/*.html
 statdyn/**/*.so
 
-
+# Ignore python cache files
+__pycache__
