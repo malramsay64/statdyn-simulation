@@ -5,22 +5,25 @@ channels:
   - malramsay
 
 dependencies:
+  # Python/setup dependencies
   - python=3.6
+  - setuptools
+  - pip>=10
+  # Package Dependencies
   - numpy
   - glotzer::hoomd=2.3.0
   - hoomd-harmonic-force=0.1.9
   - cudatoolkit=8
-  - pytest
-  - pytest-cov
-  - pylint
-  - setuptools
-  - hypothesis
-  - coverage
-  - ipykernel
-  - black=18.6b2
-  - mypy
   - rowan
   - attrs
   - click
   - mpi4py
-  - pip>=10
+  # Testing and development
+  - pylint=2.1.1
+  - black=18.6b2
+  - mypy=0.620
+  - pytest
+  - pytest-cov
+  - coverage
+  - hypothesis
+  - ipykernel
