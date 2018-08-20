@@ -26,7 +26,7 @@ from .crystals import Crystal
 from .molecules import Molecule
 from .params import SimulationParams
 from .util import (
-    compute_translational_KE,
+    compute_translational_ke,
     get_group,
     get_num_mols,
     get_num_particles,
@@ -117,7 +117,7 @@ def initialise_snapshot(
                 sim_params.init_temp if sim_params.init_temp else sim_params.temperature
             )
             thermalisation = (
-                compute_translational_KE(snapshot) > 0.5 * num_molecules * temperature
+                compute_translational_ke(snapshot) > 0.5 * num_molecules * temperature
             )
 
     thermalisation = COMM.bcast(thermalisation, root=0)

@@ -325,8 +325,8 @@ def test_thermalise(snapshot_from_none):
 
     num_mols = get_num_mols(thermal_snap)
     mass = sim_params.molecule.mass
-    computed_trans_KE = (
+    computed_trans_ke = (
         0.5 * mass * np.sum(np.square(thermal_snap.particles.velocity[:num_mols]))
     ) / num_mols
-    thermodynamic_KE = sim_params.molecule.dimensions * 0.5 * sim_params.temperature
-    assert np.isclose(computed_trans_KE, thermodynamic_KE, rtol=0.2)
+    thermodynamic_ke = sim_params.molecule.dimensions * 0.5 * sim_params.temperature
+    assert np.isclose(computed_trans_ke, thermodynamic_ke, rtol=0.2)

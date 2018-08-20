@@ -14,9 +14,9 @@ from typing import List, Optional
 
 import attr
 import hoomd
-import hoomd.md as md
 import numpy as np
 import rowan
+from hoomd import md
 from hoomd.data import SnapshotParticleData as Snapshot, system_data as System
 from hoomd.group import group as Group
 
@@ -199,7 +199,7 @@ def _interface_group(sys: System, base_group: Group, stationary: bool = False):
 
 
 @attr.s(auto_attribs=True)
-class NumBodies(object):
+class NumBodies:
     particles: int = attr.ib(converter=int)
     molecules: int = attr.ib(converter=int)
 
@@ -244,7 +244,7 @@ def z2quaternion(theta: np.ndarray) -> np.ndarray:
     return rowan.from_euler(theta, 0, 0).astype(np.float32)
 
 
-def compute_translational_KE(snapshot: Snapshot) -> float:  # pylint: disable=invalid-name
+def compute_translational_ke(snapshot: Snapshot) -> float:
     """Compute the kinetic energy of the translational degrees of freedom.
 
     Args:
@@ -260,7 +260,7 @@ def compute_translational_KE(snapshot: Snapshot) -> float:  # pylint: disable=in
     )
 
 
-def compute_rotational_KE(snapshot: Snapshot) -> float:  # pylint: disable=invalid-name
+def compute_rotational_ke(snapshot: Snapshot) -> float:
     """Compute the kinetic energy of the rotational degrees of freedom.
 
     Args:

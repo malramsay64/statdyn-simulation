@@ -21,8 +21,8 @@ from sdrun.initialise import init_from_crystal, initialise_snapshot
 from sdrun.params import SimulationParams
 from sdrun.simulation import get_group
 from sdrun.util import (
-    compute_rotational_KE,
-    compute_translational_KE,
+    compute_rotational_ke,
+    compute_translational_ke,
     get_num_mols,
     set_integrator,
 )
@@ -106,27 +106,27 @@ def test_temperature(setup_thermo):
         assert np.isclose(logged_T, intended_T, rtol=rel_tolerance)
 
 
-def test_translational_KE(setup_thermo):
+def test_translational_ke(setup_thermo):
     with setup_thermo.context:
         trans_dimensions = setup_thermo.sim_params.molecule.dimensions
 
-        computed_trans_KE = compute_translational_KE(setup_thermo.snapshot)
-        thermodynamic_KE = trans_dimensions * 0.5 * setup_thermo.sim_params.temperature
-        thermodynamic_KE *= setup_thermo.num_mols
-        logged_KE = setup_thermo.logger.query("translational_kinetic_energy")
+        computed_trans_ke = compute_translational_ke(setup_thermo.snapshot)
+        thermodynamic_ke = trans_dimensions * 0.5 * setup_thermo.sim_params.temperature
+        thermodynamic_ke *= setup_thermo.num_mols
+        logged_ke = setup_thermo.logger.query("translational_kinetic_energy")
 
-        assert np.isclose(computed_trans_KE, logged_KE, rtol=rel_tolerance)
-        assert np.isclose(computed_trans_KE, thermodynamic_KE, rtol=rel_tolerance)
+        assert np.isclose(computed_trans_ke, logged_ke, rtol=rel_tolerance)
+        assert np.isclose(computed_trans_ke, thermodynamic_ke, rtol=rel_tolerance)
 
 
-def test_rotational_KE(setup_thermo):
+def test_rotational_ke(setup_thermo):
     with setup_thermo.context:
         rot_dimensions = np.sum(setup_thermo.sim_params.molecule.moment_inertia > 0.)
 
-        computed_rot_KE = compute_rotational_KE(setup_thermo.snapshot)
-        thermodynamic_KE = rot_dimensions * 0.5 * setup_thermo.sim_params.temperature
-        thermodynamic_KE *= setup_thermo.num_mols
-        logged_KE = setup_thermo.logger.query("rotational_kinetic_energy")
+        computed_rot_ke = compute_rotational_ke(setup_thermo.snapshot)
+        thermodynamic_ke = rot_dimensions * 0.5 * setup_thermo.sim_params.temperature
+        thermodynamic_ke *= setup_thermo.num_mols
+        logged_ke = setup_thermo.logger.query("rotational_kinetic_energy")
 
-        assert np.isclose(computed_rot_KE, logged_KE, rtol=rel_tolerance)
-        assert np.isclose(computed_rot_KE, thermodynamic_KE, rtol=rel_tolerance)
+        assert np.isclose(computed_rot_ke, logged_ke, rtol=rel_tolerance)
+        assert np.isclose(computed_rot_ke, thermodynamic_ke, rtol=rel_tolerance)

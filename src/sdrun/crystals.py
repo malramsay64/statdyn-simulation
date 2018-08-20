@@ -19,7 +19,7 @@ from .util import z2quaternion
 
 
 @attr.s(auto_attribs=True, cmp=False)
-class Crystal(object):
+class Crystal:
     """Defines the base class of a crystal lattice."""
 
     cell_matrix: np.ndarray = attr.ib(default=attr.Factory(lambda: np.identity(3)))
@@ -90,11 +90,10 @@ class Crystal(object):
         if self.dimensions == 3:
             return np.linalg.norm(np.dot(a1, np.cross(a2, a3)))
 
-        elif self.dimensions == 2:
+        if self.dimensions == 2:
             return np.linalg.norm(np.cross(a1, a2))
 
-        else:
-            raise ValueError("Dimensions needs to be either 2 or 3")
+        raise ValueError("Dimensions needs to be either 2 or 3")
 
     def get_orientations(self) -> np.ndarray:
         """Return the orientation quaternions of each molecule.

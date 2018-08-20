@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 @attr.s(auto_attribs=True, cmp=False)
-class Molecule(object):
+class Molecule:
     """Molecule class holding information on the molecule for use in hoomd.
 
     This class contains all the parameters required to initialise the molecule
