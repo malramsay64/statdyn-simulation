@@ -8,4 +8,4 @@
 
 conda config --set anaconda_upload yes
 source activate base
-conda build . --token "$CONDA_UPLOAD_TOKEN" --user "$CONDA_USER"
+conda build conda_recipe --token "$CONDA_UPLOAD_TOKEN" --user "$CONDA_USER"
