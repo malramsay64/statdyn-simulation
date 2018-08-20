@@ -141,7 +141,6 @@ def set_thermo(outfile: Path, thermo_period: int = 10000, rigid=True) -> None:
             "translational_ndof_rigid_center",
             "rotational_ndof_rigid_center",
         ]
-    # TODO Set logger to hdf5 file
     outfile = outfile.with_suffix(".log")
     hoomd.analyze.log(
         str(outfile), quantities=default + rigid_thermo, period=thermo_period
@@ -245,7 +244,7 @@ def z2quaternion(theta: np.ndarray) -> np.ndarray:
     return rowan.from_euler(theta, 0, 0).astype(np.float32)
 
 
-def compute_translational_KE(snapshot: Snapshot) -> float:
+def compute_translational_KE(snapshot: Snapshot) -> float:  # pylint: disable=invalid-name
     """Compute the kinetic energy of the translational degrees of freedom.
 
     Args:
@@ -261,7 +260,7 @@ def compute_translational_KE(snapshot: Snapshot) -> float:
     )
 
 
-def compute_rotational_KE(snapshot: Snapshot) -> float:
+def compute_rotational_KE(snapshot: Snapshot) -> float:  # pylint: disable=invalid-name
     """Compute the kinetic energy of the rotational degrees of freedom.
 
     Args:

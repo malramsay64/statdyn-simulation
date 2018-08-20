@@ -84,7 +84,8 @@ def _verbosity(ctx, param, value) -> None:  # pylint: disable=unused-argument
 @click.option(
     "--space-group",
     type=str,
-    help="Crystal to use for initialisation. This is also the space group to label output file.",
+    help=("Crystal to use for initialisation. This is also the space group "
+          "to label output file."),
 )
 @click.option(
     "--lattice-lengths",
@@ -97,7 +98,8 @@ def _verbosity(ctx, param, value) -> None:  # pylint: disable=unused-argument
 @click.option(
     "--hoomd-args",
     type=str,
-    help="Arguments to pass to hoomd on context.initialise. This needs to be quoted to send options, i.e. '--mode=cpu' ",
+    help=("Arguments to pass to hoomd on context.initialise."
+          "This needs to be quoted to send options, i.e. '--mode=cpu' "),
 )
 @click.pass_context
 def sdrun(ctx, **kwargs) -> None:

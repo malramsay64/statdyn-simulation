@@ -118,7 +118,7 @@ class Molecule(object):
 
         """
         potential = self.potential(**self.potential_args, nlist=hoomd.md.nlist.cell())
-        # Each conbination of two particles requires a pair coefficient to be defined
+        # Each combination of two particles requires a pair coefficient to be defined
         sites = list(self._radii.keys())
         if self.rigid:
             sites.append("R")
@@ -166,21 +166,6 @@ class Molecule(object):
         rigid.set_param(**params)
         logger.debug("Rigid: %s", rigid)
         return rigid
-
-    def identify_bodies(self, num_molecules: int) -> np.ndarray:
-        """Convert an index of molecules into an index of particles."""
-        raise NotImplementedError
-        return np.concatenate([np.arange(num_molecules)] * self.num_particles)
-
-    def identify_particles(self, num_molecules: int) -> np.ndarray:
-        """Get the particle index for all the particles."""
-        raise NotImplementedError
-        return np.concatenate(
-            [
-                np.ones(num_molecules) * list(self._radii.keys()).index(particle)
-                for particle in self.particles
-            ]
-        )
 
     def __str__(self) -> str:
         return type(self).__name__

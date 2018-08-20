@@ -35,7 +35,7 @@ from .util import (
 
 logger = logging.getLogger(__name__)
 
-comm = MPI.COMM_WORLD
+COMM = MPI.COMM_WORLD
 
 
 def init_from_file(fname: Path, molecule: Molecule, hoomd_args: str = "") -> Snapshot:
@@ -120,7 +120,7 @@ def initialise_snapshot(
                 compute_translational_KE(snapshot) > 0.5 * num_molecules * temperature
             )
 
-    thermalisation = comm.bcast(thermalisation, root=0)
+    thermalisation = COMM.bcast(thermalisation, root=0)
 
     if thermalisation:
         snapshot = thermalise(snapshot, sim_params)
@@ -248,25 +248,26 @@ def make_orthorhombic(snapshot: Snapshot) -> Snapshot:
 
 
 def _check_properties(snapshot: Snapshot, molecule: Molecule) -> Snapshot:
-    if hoomd.comm.get_rank() == 0:
-        num_molecules = get_num_mols(snapshot)
-        num_particles = get_num_particles(snapshot)
+    if hoomd.comm.get_rank() != 0:
+        return snapshot
+    num_molecules = get_num_mols(snapshot)
+    num_particles = get_num_particles(snapshot)
 
-        if num_molecules < num_particles:
-            logger.debug("number of rigid bodies: %d", num_molecules)
-            snapshot.particles.types = molecule.get_types()
-            snapshot.particles.moment_inertia[:num_molecules] = np.array(
-                [molecule.moment_inertia] * num_molecules
-            )
-            return snapshot
-
-        logger.debug("num_atoms: %d", num_particles)
-        assert num_particles > 0
+    if num_molecules < num_particles:
+        logger.debug("number of rigid bodies: %d", num_molecules)
         snapshot.particles.types = molecule.get_types()
-        snapshot.particles.moment_inertia[:] = np.array(
-            [molecule.moment_inertia] * num_particles
+        snapshot.particles.moment_inertia[:num_molecules] = np.array(
+            [molecule.moment_inertia] * num_molecules
         )
         return snapshot
+
+    logger.debug("num_atoms: %d", num_particles)
+    assert num_particles > 0
+    snapshot.particles.types = molecule.get_types()
+    snapshot.particles.moment_inertia[:] = np.array(
+        [molecule.moment_inertia] * num_particles
+    )
+    return snapshot
 
 
 def randomise_momenta(

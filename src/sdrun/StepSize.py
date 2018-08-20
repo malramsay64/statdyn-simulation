@@ -11,8 +11,8 @@ from typing import Dict, Iterable, Iterator, List
 
 logger = logging.getLogger(__name__)
 
-iterindex = namedtuple("iterindex", ["index", "iterator"])
-stepiterindex = namedtuple("stepiterindex", ["step", "index", "iterator"])
+IterIndex = namedtuple("IterIndex", ["index", "iterator"])
+StepIterIndex = namedtuple("StepIterIndex", ["step", "index", "iterator"])
 
 
 def generate_steps(
@@ -102,6 +102,7 @@ class GenerateStepSeries(Iterable):
         max_gen: int = 500,
     ) -> None:
         """"""
+        super().__init__()
         self.total_steps = total_steps
         self.num_linear = num_linear
         self.gen_steps = gen_steps
@@ -109,12 +110,12 @@ class GenerateStepSeries(Iterable):
         self.curr_step = 0
         self._num_generators = 0
 
-        self.values: Dict[int, List[iterindex]] = {}
+        self.values: Dict[int, List[IterIndex]] = {}
         self._queue: PriorityQueue = PriorityQueue()
 
         self._add_generator()
 
-    def _enqueue(self, iindex: iterindex) -> None:
+    def _enqueue(self, iindex: IterIndex) -> None:
         try:
             step = next(iindex.iterator)
         except StopIteration:
@@ -128,7 +129,7 @@ class GenerateStepSeries(Iterable):
 
     def _add_generator(self) -> None:
         new_gen = generate_steps(self.total_steps, self.num_linear, self.curr_step)
-        self._enqueue(iterindex(self._num_generators, new_gen))
+        self._enqueue(IterIndex(self._num_generators, new_gen))
         logger.debug("Generator added with index %d", self._num_generators)
         self._num_generators += 1
 

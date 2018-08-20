@@ -110,9 +110,6 @@ def equilibrate(
         hoomd.run(sim_params.num_steps)
         logger.debug("Equilibration completed")
 
-        # TODO run a check for equilibration and emit a warning if the simulation is not
-        # equilibrated properly. This will be through monitoring the thermodynamics.
-
         dump_frame(group, sim_params.outfile, extension=False)
 
         equil_snapshot = sys.take_snapshot()
