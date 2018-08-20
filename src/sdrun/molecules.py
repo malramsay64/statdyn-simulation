@@ -9,7 +9,6 @@
 """Module to define a molecule to use for simulation."""
 
 import logging
-from collections import OrderedDict
 from itertools import combinations_with_replacement
 from typing import Any, Dict, List, Optional
 
@@ -44,7 +43,7 @@ class Molecule(object):
     potential: Pair = attr.ib(hoomd.md.pair.slj, repr=False)
     particles: List[str] = attr.ib(default=attr.Factory(lambda: ["A"]))
     potential_args: Dict[str, Any] = attr.ib(default=attr.Factory(dict), repr=False)
-    _radii: Dict[str, float] = attr.ib(default=attr.Factory(OrderedDict))
+    _radii: Dict[str, float] = attr.ib(default=attr.Factory(dict))
     rigid: bool = False
 
     def __attrs_post_init__(self) -> None:
@@ -279,7 +278,7 @@ class Trimer(Molecule):
         self.angle = angle
         rad_ang = np.deg2rad(angle)
         particles = ["A", "B", "B"]
-        radii = OrderedDict(A=1.0, B=self.radius)
+        radii = {"A": 1.0, "B": self.radius}
         positions = np.array(
             [
                 [0, 0, 0],
@@ -346,7 +345,7 @@ class Dimer(Molecule):
         self.radius = radius
         self.distance = distance
         particles = ["A", "B"]
-        radii = OrderedDict(A=1.0, B=self.radius)
+        radii = {"A": 1.0, "B": self.radius}
         positions = np.array([[0, 0, 0], [0, self.distance, 0]])
         super().__init__(
             dimensions=2,
