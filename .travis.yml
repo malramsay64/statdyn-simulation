@@ -17,22 +17,22 @@ install:
   - conda install -c conda-forge codecov
 
 script:
-    - pylint src/
-    - mypy src/
-    - pytest
+  - pylint src/
+  - mypy src/
+  - pytest
 
 after_success:
-    - codecov
+  - codecov
 
 before_deploy:
-    - conda install -n root anaconda-client conda-build
-    - conda config --append channels moble
-    - conda config --append channels glotzer
-    - conda config --append channels malramsay
-    - chmod +x scripts/deploy_anaconda.sh
+  - conda install -n root anaconda-client conda-build
+  - conda config --append channels moble
+  - conda config --append channels glotzer
+  - conda config --append channels malramsay
+  - chmod +x scripts/deploy_anaconda.sh
 
 deploy:
-    provider: script
-    script: ./scripts/deploy_anaconda.sh
-    on:
-        tags: true
+  provider: script
+  script: ./scripts/deploy_anaconda.sh
+  on:
+    tags: true

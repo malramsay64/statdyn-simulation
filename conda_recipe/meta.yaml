@@ -42,10 +42,14 @@ build:
 test:
     requires:
         - pytest
+        - mypy
+        - pylint
         - hypothesis
         - quaternion 2018.02.*
     source_files:
         - test/*
     commands:
         - python -c "import sdrun"
+        - mypy src/
+        - pylint src/
         - pytest -v

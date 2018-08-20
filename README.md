@@ -1,12 +1,10 @@
-statdyn-simulation
-==================
+# statdyn-simulation
 
 [![Build Status](https://travis-ci.org/malramsay64/statdyn-simulation.svg?branch=master)](https://travis-ci.org/malramsay64/statdyn-simulation)
 [![codecov](https://codecov.io/gh/malramsay64/statdyn-simulation/branch/master/graph/badge.svg)](https://codecov.io/gh/malramsay64/statdyn-simulation)
 [![Anaconda-Server Badge](https://anaconda.org/malramsay/sdrun/badges/installer/conda.svg)](https://conda.anaconda.org/malramsay)
 [![Anaconda-Server Badge](https://anaconda.org/malramsay/sdrun/badges/version.svg)](https://anaconda.org/malramsay/sdrun)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
-
 
 This is a set of scripts that use
 [Hoomd](https://bitbucket.org/glotzer/hoomd-blue) to perform the Molecular
@@ -16,8 +14,7 @@ focus on understanding the dynamic properties of these molecules.
 Note that this is still very early alpha software and there are likely to be
 large breaking changes that occur.
 
-Installation
-------------
+## Installation
 
 The simplest method of installation is using `conda`. To install
 
@@ -36,12 +33,11 @@ Once the environment is setup the tests can be run with
 
     pytest
 
-Running Simulations
--------------------
+## Running Simulations
 
 Interaction with the program is currently through the command line, using the
 command line arguments to specify the various parameters. There are two types
-of parameters that can be specified. 
+of parameters that can be specified.
 
 The simulation options, which map to the internal SimulationParams class, which
 are the general properties of the simulation. These idea is that these options
@@ -64,7 +60,7 @@ $ sdrun --temperature 0.4 --pressure 13.5 --num-steps 1000 --molecule trimer \
 There is documentation on each of the options and arguments that can be
 specified in the help of the command.
 
-To create a crystal structure for a simulation, the command 
+To create a crystal structure for a simulation, the command
 
 ```bash
 $ sdrun --space-group p2 --num-steps 1000 --temperature 0.4 create test.gsd
@@ -95,7 +91,7 @@ $ sdrun --space-group p2 --num-steps 1000 --temperature 1.2 --init-temp 0.4 \
 
 This has a different series of options including outputting a series of
 timesteps optimised for the analysis of dynamics quantities in a file
-prefixed with `trajectory-`. 
+prefixed with `trajectory-`.
 
 Another tool I have written, [sdanalysis][sdanalyis] can be used to easily
 analyse the resulting trajectories.
