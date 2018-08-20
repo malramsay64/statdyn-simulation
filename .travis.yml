@@ -17,6 +17,8 @@ install:
   - conda install -c conda-forge codecov
 
 script:
+    - pylint src/
+    - mypy src/
     - pytest
 
 after_success:
