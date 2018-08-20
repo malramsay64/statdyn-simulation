@@ -129,8 +129,8 @@ def initialise_snapshot(
         sys = hoomd.init.read_snapshot(snapshot)
         sim_params.molecule.define_potential()
         sim_params.molecule.define_dimensions()
-        if sim_params.molecule.rigid:
-            rigid = sim_params.molecule.define_rigid()
+        rigid = sim_params.molecule.define_rigid()
+        if rigid:
             rigid.create_bodies()
         return sys
 
@@ -144,9 +144,10 @@ def minimize_snapshot(
         sys = hoomd.init.read_snapshot(snapshot)
         sim_params.molecule.define_potential()
         sim_params.molecule.define_dimensions()
-        if sim_params.molecule.rigid:
-            rigid = sim_params.molecule.define_rigid()
+        rigid = sim_params.molecule.define_rigid()
+        if rigid:
             rigid.check_initialization()
+        if sim_params.molecule.rigid:
             group = hoomd.group.rigid_center()
         else:
             group = hoomd.group.all()
@@ -201,8 +202,8 @@ def init_from_crystal(
         for p_type in sim_params.molecule.get_types()[1:]:
             sys.particles.pdata.addType(p_type)
         logger.debug("Particle Types: %s", sys.particles.types)
-        if sim_params.molecule.rigid:
-            rigid = sim_params.molecule.define_rigid()
+        rigid = sim_params.molecule.define_rigid()
+        if rigid:
             rigid.create_bodies()
         snap = sys.take_snapshot()
         logger.debug("Particle Types: %s", snap.particles.types)

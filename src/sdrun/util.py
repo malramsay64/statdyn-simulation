@@ -10,7 +10,7 @@
 
 import logging
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import attr
 import hoomd
@@ -84,7 +84,7 @@ def set_integrator(
 def set_dump(
     group: Group,
     outfile: Path,
-    dump_period: int = 10000,
+    dump_period: Optional[int] = 10000,
     timestep: int = 0,
     extension: bool = True,
 ) -> hoomd.dump.gsd:
@@ -104,6 +104,7 @@ def set_dump(
 def dump_frame(
     group: Group, outfile: Path, timestep: int = 0, extension: bool = True
 ) -> hoomd.dump.gsd:
+    """Dump a single frame to an output frame now."""
     return set_dump(
         group, outfile=outfile, dump_period=None, extension=extension, timestep=timestep
     )

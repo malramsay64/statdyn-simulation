@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 MOLECULE_OPTIONS = {"trimer": Trimer, "disc": Disc, "sphere": Sphere, "dimer": Dimer}
 
 
-def _verbosity(ctx, param, value) -> None:
+def _verbosity(ctx, param, value) -> None:  # pylint: disable=unused-argument
     root_logger = logging.getLogger("statdyn")
     levels = {0: "WARNING", 1: "INFO", 2: "DEBUG"}
     log_level = levels.get(value, "DEBUG")
@@ -105,7 +105,11 @@ def sdrun(ctx, **kwargs) -> None:
     logging.debug("Running main function")
     space_group = kwargs.get("space_group")
     if space_group is not None:
-        kwargs["crystal"] = CRYSTAL_FUNCS.get(space_group)()
+        if space_group not in CRYSTAL_FUNCS:
+            raise ValueError(f"The value of 'space_group': {space_group} is not valid.")
+        crystal = CRYSTAL_FUNCS.get(space_group)
+        assert crystal is not None
+        kwargs["crystal"] = crystal()
     logging.debug("Creating SimulationParams with values:\n%s", pformat(kwargs))
     ctx.obj = SimulationParams(
         **{key: val for key, val in kwargs.items() if val is not None}
@@ -162,7 +166,7 @@ def prod(sim_params: SimulationParams, dynamics: bool, infile: Path) -> None:
         """,
 )
 @click.argument("infile", type=click.Path(exists=True, file_okay=True, dir_okay=False))
-@click.argument("outfile", type=click.Path(exists=None, file_okay=True, dir_okay=False))
+@click.argument("outfile", type=click.Path(file_okay=True, dir_okay=False))
 def equil(
     sim_params: SimulationParams, equil_type: str, infile: Path, outfile: Path
 ) -> None:
@@ -182,7 +186,7 @@ def equil(
 @sdrun.command()
 @click.pass_obj
 @click.option("--interface", is_flag=True, help="Whether to create an interface")
-@click.argument("outfile", type=click.Path(exists=None, file_okay=True, dir_okay=False))
+@click.argument("outfile", type=click.Path(file_okay=True, dir_okay=False))
 def create(sim_params, interface: bool, outfile: Path) -> None:
     """Create things."""
     logger.debug("Running create.")

@@ -7,7 +7,6 @@
 # Distributed under terms of the MIT license.
 """Crystals module for generating unit cells for use in hoomd."""
 
-import math
 from typing import Tuple
 
 import attr
@@ -87,7 +86,7 @@ class Crystal(object):
             float: Volume or area in unitless quantity
 
         """
-        a1, a2, a3 = self.cell_matrix  # pylint: disable=invalid-name
+        a1, a2, a3 = tuple(self.cell_matrix)  # pylint: disable=invalid-name
         if self.dimensions == 3:
             return np.linalg.norm(np.dot(a1, np.cross(a2, a3)))
 

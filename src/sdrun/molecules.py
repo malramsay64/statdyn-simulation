@@ -155,7 +155,7 @@ class Molecule(object):
         """
         if not self.rigid:
             logger.info("Not a rigid body")
-            return
+            return None
 
         if params is None:
             params = dict()

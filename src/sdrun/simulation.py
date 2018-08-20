@@ -53,6 +53,7 @@ def equilibrate(
     assert sim_params.output_interval is not None
     assert sim_params.num_steps is not None
     assert sim_params.num_steps > 0
+    assert sim_params.outfile is not None
 
     # Ensure orthorhombic liquid and interface
     if equil_type in ["liquid", "interface"]:
