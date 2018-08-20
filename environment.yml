@@ -11,6 +11,7 @@ dependencies:
     - hoomd-harmonic-force=0.1.9
     - cudatoolkit=8
     - pytest
+    - pytest-cov
     - pylint
     - setuptools
     - hypothesis
@@ -23,7 +24,3 @@ dependencies:
     - click
     - mpi4py
     - pip>=10
-    - pip:
-        - pytest-mypy
-        - pytest-pylint
-        - pytest-cov
