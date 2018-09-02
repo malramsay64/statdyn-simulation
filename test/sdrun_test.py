@@ -115,6 +115,11 @@ def test_commands_mpi(arguments):
     command = ["mpirun", "-np", "4", "sdrun"] + arguments
     end_time = datetime.now() + timedelta(seconds=50)
     ret = subprocess.run(
-        command, env=dict(os.environ, HOOMD_WALLTIME_STOP=str(end_time.timestamp()))
+        command,
+        env=dict(os.environ, HOOMD_WALLTIME_STOP=str(end_time.timestamp())),
+        stderr=subprocess.PIPE,
     )
-    assert ret.returncode == 0
+    walltime_alert = b"hoomd._hoomd.WalltimeLimitReached: HOOMD_WALLTIME_STOP reached"
+    assert ret.returncode == 0 or (
+        ret.returncode == 15 and walltime_alert in ret.stderr
+    )
