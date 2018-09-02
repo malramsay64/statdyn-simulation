@@ -17,9 +17,12 @@ ENV LANG=en_AU.utf8
 
 ARG PYTHON=/usr/bin/python36
 
-ADD ./ /srv/sdrun/
+ADD ./Pipfile /srv/sdrun/Pipfile
+ADD ./Pipfile.lock /srv/sdrun/Pipfile.lock
 WORKDIR /srv/sdrun
 
-RUN pipenv install --system --ignore-pipfile --python $PYTHON
+RUN pipenv install --system --ignore-pipfile --python $PYTHON --dev
 
-RUN pip install .
+ADD ./ /srv/sdrun/
+
+RUN pip install -e .

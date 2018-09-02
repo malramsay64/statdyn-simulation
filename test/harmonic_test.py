@@ -8,8 +8,8 @@
 
 """Test harmonic module."""
 
-
 import hoomd
+import pytest
 
 from sdrun.initialise import init_from_crystal, minimize_snapshot
 from sdrun.simulation import equilibrate, production
@@ -27,6 +27,7 @@ def test_minimize_box(crystal_params):
     assert snap_init.box.yz == snap_final.box.yz
 
 
+@pytest.mark.skip
 def test_run_harmonic(crystal_params):
     with crystal_params.temp_context(harmonic_force=0.1):
         snap_init = init_from_crystal(crystal_params)

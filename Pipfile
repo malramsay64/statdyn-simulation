@@ -18,6 +18,7 @@ pytest = "*"
 coverage = "*"
 pytest-cov = "*"
 hypothesis = "*"
+codecov = "*"
 
 [requires]
 python_version = "3.6"

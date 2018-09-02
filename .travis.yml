@@ -1,38 +1,21 @@
-language: python
+language: minimal
+
+services:
+  - docker
 
 install:
-  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-  - bash miniconda.sh -b -u -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
-  - conda install conda-env
-  # Useful for debugging any issues with conda
-  - conda info -a
-
-  - conda env update
-  - source activate sdrun-dev
-  - pip install -e .
-  - conda install -c conda-forge codecov
+  - docker build -t malramsay/sdrun .
 
 script:
-  - pylint src/
-  - mypy src/
-  - pytest
+  - docker run malramsay/sdrun pylint src/
+  - docker run malramsay/sdrun mypy src/
+  - docker run malramsay/sdrun pytest
 
 after_success:
-  - codecov
-
-before_deploy:
-  - conda install -n root anaconda-client conda-build
-  - conda config --append channels glotzer
-  - conda config --append channels conda-forge
-  - conda config --append channels malramsay
-  - chmod +x scripts/deploy_anaconda.sh
+  - docker run malramsay/sdrun codecov
 
 deploy:
   provider: script
-  script: ./scripts/deploy_anaconda.sh
+  script: ./scripts/deploy_docker
   on:
-    tags: true
+    branch: master
