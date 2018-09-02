@@ -5,7 +5,7 @@ services:
 
 install:
   - docker pull malramsay/sdrun:latest
-  - docker build -t --cache-from malramsay/sdrun:latest malramsay/sdrun .
+  - docker build --cache-from malramsay/sdrun:latest -t malramsay/sdrun .
 
 script:
   - docker run malramsay/sdrun pylint src/
