@@ -100,6 +100,7 @@ def test_commands(arguments):
     assert ret.returncode == 0
 
 
+@pytest.mark.timeout(60)
 @pytest.mark.skipif(sys.platform == "darwin", reason="No MPI support on macOS")
 def test_commands_mpi(arguments):
     """Ensure sdrun command line interface works with MPI.

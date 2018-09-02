@@ -17,6 +17,7 @@ mypy = "==0.620"
 pytest = "*"
 coverage = "*"
 pytest-cov = "*"
+pytest-timeout = "*"
 hypothesis = "*"
 codecov = "*"
 
