@@ -20,3 +20,4 @@ deploy:
   script: ./scripts/deploy_docker
   on:
     branch: master
+    branch: docker
