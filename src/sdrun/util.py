@@ -147,24 +147,6 @@ def set_thermo(outfile: Path, thermo_period: int = 10000, rigid=True) -> None:
     )
 
 
-def set_harmonic_force(
-    snapshot: Snapshot, sim_params: SimulationParams, group: Group
-) -> None:
-    from hoomd.harmonic_force import HarmonicForceCompute
-
-    assert sim_params.harmonic_force is not None
-    if sim_params.harmonic_force == 0:
-        return
-    num_mols = get_num_mols(snapshot)
-    HarmonicForceCompute(
-        group,
-        snapshot.particles.position[:num_mols],
-        snapshot.particles.orientation[:num_mols],
-        sim_params.harmonic_force,
-        sim_params.harmonic_force,
-    )
-
-
 def get_group(
     sys: System, sim_params: SimulationParams, interface: bool = False
 ) -> Group:

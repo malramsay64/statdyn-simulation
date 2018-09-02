@@ -74,11 +74,6 @@ def _verbosity(ctx, param, value) -> None:  # pylint: disable=unused-argument
     help="Scaling factor for the moment of inertia of the molecules",
 )
 @click.option(
-    "--harmonic-force",
-    type=float,
-    help="Harmonic force constant for simulations with harmonic pinning potentials.",
-)
-@click.option(
     "--iteration-id", type=int, help="Identifier for isoconfigurational simulation run."
 )
 @click.option(
@@ -143,10 +138,7 @@ def prod(sim_params: SimulationParams, dynamics: bool, infile: Path) -> None:
 
     sim_context = hoomd.context.initialize(sim_params.hoomd_args)
 
-    if sim_params.harmonic_force is not None:
-        simulation_type = "harmonic"
-    else:
-        simulation_type = "liquid"
+    simulation_type = "liquid"
 
     production(snapshot, sim_context, sim_params, dynamics, simulation_type)
 
@@ -155,7 +147,7 @@ def prod(sim_params: SimulationParams, dynamics: bool, infile: Path) -> None:
 @click.pass_obj
 @click.option(
     "--equil-type",
-    type=click.Choice(["liquid", "crystal", "interface", "harmonic"]),
+    type=click.Choice(["liquid", "crystal", "interface"]),
     default="liquid",
     help="""The type of equilibration the simulation will undergo.
         - liquid -> A standard NPT simulation ensuring an orthorhombic simulation cell
@@ -163,8 +155,6 @@ def prod(sim_params: SimulationParams, dynamics: bool, infile: Path) -> None:
             cell to tilt
         - interface -> A NPT simulation which only integrates the particles in the outer
             1/3 of the simulation cell creating a liquid--crystal interface.
-        - harmonic -> A NVT simulation which adds a harmonic pinning potential centered
-            on the local minimum.
         """,
 )
 @click.argument("infile", type=click.Path(exists=True, file_okay=True, dir_okay=False))

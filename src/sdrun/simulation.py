@@ -23,7 +23,6 @@ from .util import (
     dump_frame,
     get_group,
     set_dump,
-    set_harmonic_force,
     set_integrator,
     set_thermo,
 )
@@ -44,11 +43,11 @@ def equilibrate(
         snapshot: The initial snapshot to start the simulation.
         sim_params: The simulation parameters
         equil_type: The type of equilibration to undertake. This is one of `["liquid", "crystal",
-        "interface", "harmonic"]`.
+        "interface"]`.
 
     """
     # Check for required parameters, failing early if missing
-    assert equil_type in ["liquid", "crystal", "interface", "harmonic"]
+    assert equil_type in ["liquid", "crystal", "interface"]
     assert sim_params.hoomd_args is not None
     assert sim_params.output_interval is not None
     assert sim_params.num_steps is not None
@@ -71,10 +70,6 @@ def equilibrate(
         assert group is not None
         integration_method = "NPT"
 
-        if equil_type == "harmonic":
-            assert sim_params.harmonic_force is not None
-            simulation_type = "liquid"
-            integration_method = "NVT"
         if equil_type == "crystal":
             prime_interval = 307
         if equil_type == "interface":
@@ -164,7 +159,7 @@ def production(
     assert sim_params.num_steps is not None
     assert sim_params.output_interval is not None
     assert isinstance(context, hoomd.context.SimulationContext)
-    assert simulation_type in ["liquid", "harmonic"]
+    assert simulation_type in ["liquid"]
 
     with context:
         sys = initialise_snapshot(snapshot, context, sim_params)
@@ -172,13 +167,7 @@ def production(
 
         group = get_group(sys, sim_params)
 
-        if simulation_type == "harmonic":
-            set_integrator(
-                sim_params, group, simulation_type="crystal", integration_method="NVT"
-            )
-            set_harmonic_force(snapshot, sim_params, group)
-        else:
-            set_integrator(sim_params, group, simulation_type="liquid")
+        set_integrator(sim_params, group, simulation_type="liquid")
 
         set_thermo(
             sim_params.filename(prefix="thermo"),

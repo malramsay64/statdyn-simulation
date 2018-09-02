@@ -14,7 +14,7 @@ import pytest
 from hoomd.data import boxdim, make_snapshot
 from numpy.testing import assert_allclose
 
-# TODO set_integrator, set_debug, set_dump, dump_frame, set_thermo, set_harmonic_force
+# TODO set_integrator, set_debug, set_dump, dump_frame, set_thermo
 from sdrun.util import (
     NumBodies,
     _get_num_bodies,
