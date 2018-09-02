@@ -24,7 +24,6 @@ requirements:
         - {{ pin_compatible('numpy', max_pin='x.x.x') }}
         - cudatoolkit 8.*
         - hoomd 2.3.0
-        - hoomd-harmonic-force >=0.1.9
         - setuptools *
         - attrs
         - click

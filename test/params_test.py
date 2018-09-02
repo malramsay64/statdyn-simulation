@@ -151,7 +151,6 @@ def filename_params():
         "pressure",
         "temperature",
         "moment_inertia_scale",
-        "harmonic_force",
         "space_group",
         "iteration_id",
     ]
@@ -182,7 +181,6 @@ def get_filename_prefix(key):
         "temperature": "T",
         "pressure": "P",
         "moment_inertia_scale": "I",
-        "harmonic_force": "K",
         "iteration_id": "ID",
     }
     return prefixes.get(key, "")

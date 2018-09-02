@@ -82,7 +82,6 @@ def create_params():
         "--molecule",
         "--iteration-id",
         "--space-group",
-        "--harmonic-force",
         "--moment-inertia-scale",
     ]:
         value = None

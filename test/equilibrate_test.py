@@ -39,15 +39,14 @@ def test_create_interface(crystal_params):
     assert snapshot.box.yz == 0
 
 
-@pytest.mark.parametrize("equil_type", ["liquid", "crystal", "interface", "harmonic"])
+@pytest.mark.parametrize("equil_type", ["liquid", "crystal", "interface"])
 def test_equilibrate(crystal_params, equil_type):
     """Ensure the equilibration is close to initialisation."""
     # Initialisation of snapshot
     snap_min = init_from_crystal(crystal_params)
 
     # Equilibration
-    with crystal_params.temp_context(harmonic_force=1):
-        snapshot = equilibrate(snap_min, crystal_params, equil_type)
+    snapshot = equilibrate(snap_min, crystal_params, equil_type)
 
     # Simulation box within 10% of initialisation
     for attribute in ["Lx", "Ly", "Lz", "xy", "xz", "yz"]:
