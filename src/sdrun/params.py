@@ -43,7 +43,6 @@ class SimulationParams:
     # Molecule params
     _molecule: Optional[Molecule] = None
     moment_inertia_scale: Optional[float] = None
-    harmonic_force: Optional[float] = None
 
     # Crystal Params
     crystal: Optional["Crystal"] = None
@@ -187,8 +186,6 @@ class SimulationParams:
             base_string = "{prefix}-" + base_string
         if self.moment_inertia_scale is not None:
             base_string += "-I{mom_inertia:.2f}"
-        if self.harmonic_force is not None:
-            base_string += "-K{harmonic_force:.2f}"
 
         if self.space_group is not None:
             base_string += "-{space_group}"
@@ -210,7 +207,6 @@ class SimulationParams:
             temperature=self._temperature,
             mom_inertia=self.moment_inertia_scale,
             space_group=self.space_group,
-            harmonic_force=self.harmonic_force,
             iteration_id=self.iteration_id,
         )
         return self.output / fname

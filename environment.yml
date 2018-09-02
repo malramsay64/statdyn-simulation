@@ -12,7 +12,6 @@ dependencies:
   # Package Dependencies
   - numpy
   - glotzer::hoomd=2.3.0
-  - hoomd-harmonic-force=0.1.9
   - cudatoolkit=8
   - rowan
   - attrs
