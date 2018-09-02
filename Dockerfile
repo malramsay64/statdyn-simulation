@@ -17,6 +17,12 @@ ENV LANG=en_AU.utf8
 
 ARG PYTHON=/usr/bin/python36
 
+# No caching of files setting this to a falsy value.
+# This helps keep the image smaller
+ENV PIP_NO_CACHE_DIR=false
+
+# Just add the Pipfiles which means we only need to rerun the pipenv install when
+# these files change.
 ADD ./Pipfile /srv/sdrun/Pipfile
 ADD ./Pipfile.lock /srv/sdrun/Pipfile.lock
 WORKDIR /srv/sdrun
