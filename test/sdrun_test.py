@@ -14,6 +14,8 @@ import sys
 from itertools import product
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from click.testing import CliRunner
+from sdanalysis.main import prod
 
 import pytest
 
@@ -87,6 +89,16 @@ def arguments(request):
 
         yield common_args + args
 
+def test_default_dynamics(monkeypatch):
+    def production(snapshot, sim_context, sim_params, dynamics, simulation_type):
+        assert dynamics == True
+
+    monkeypatch.setattr("sdanalysis.simulation.production", production)
+
+    runner = CliRunner()
+    result = runner(prod)
+
+
 
 def test_commands(arguments):
     """Ensure sdrun command line interface works.
@@ -98,6 +110,7 @@ def test_commands(arguments):
     logger.debug("Running command: sdrun %s", " ".join(arguments))
     ret = subprocess.run(["sdrun"] + arguments)
     assert ret.returncode == 0
+
 
 
 @pytest.mark.skipif(sys.platform == "darwin", reason="No MPI support on macOS")

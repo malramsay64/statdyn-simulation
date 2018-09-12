@@ -127,6 +127,7 @@ def sdrun(ctx, **kwargs) -> None:
     "--no-dynamics/--dynamics",
     "dynamics",
     is_flag=True,
+    default=True,
     help="Use exponential steps to capture dynamics properties",
 )
 @click.argument("infile", type=click.Path(exists=True, file_okay=True, dir_okay=False))
