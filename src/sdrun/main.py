@@ -124,8 +124,7 @@ def sdrun(ctx, **kwargs) -> None:
 @sdrun.command()
 @click.pass_obj
 @click.option(
-    "--no-dynamics/--dynamics",
-    "dynamics",
+    "--dynamics/--no-dynamics",
     is_flag=True,
     default=True,
     help="Use exponential steps to capture dynamics properties",

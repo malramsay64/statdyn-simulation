@@ -10,24 +10,54 @@
 
 """
 
+from pathlib import Path
+
 import pytest
 from click.testing import CliRunner
+
+from sdrun import SimulationParams
 from sdrun.main import prod
 
-def test_default_dynamics(monkeypatch):
-    def production(snapshot, sim_context, sim_params, dynamics, simulation_type):
-        assert dynamics == True
 
-    monkeypatch.setattr("sdrun.simulation.production", production)
-
+@pytest.fixture
+def runner():
     runner = CliRunner()
+    with runner.isolated_filesystem():
+        yield runner
+
+
+@pytest.fixture
+def sim_params():
+    return SimulationParams()
+
+
+def test_default_dynamics(monkeypatch, runner, sim_params):
+    def production(dynamics, infile):
+        assert dynamics is True
+
+    monkeypatch.setattr(prod, "callback", production)
+
+    testfile = "test.gsd"
+    Path(testfile).touch()
+    result = runner.invoke(prod, [testfile])
+    assert result.exit_code == 0, result.output
+    result = runner.invoke(prod, ["--dynamics", testfile])
+    assert result.exit_code == 0, result.output
+    result = runner.invoke(prod, ["--no-dynamics", testfile])
+    assert result.exit_code != 0
+
+
+def test_setting_dynamics(monkeypatch, runner):
+    def production(dynamics, infile):
+        assert dynamics is False
+
+    monkeypatch.setattr(prod, "callback", production)
+
+    testfile = "test.gsd"
+    Path(testfile).touch()
+    result = runner.invoke(prod, ["--no-dynamics", testfile])
+    assert result.exit_code == 0, result.output
+    result = runner.invoke(prod, ["--dynamics", testfile])
+    assert result.exit_code != 0
     result = runner.invoke(prod)
-
-def test_setting_dynamics(monkeypatch):
-    def production(snapshot, sim_context, sim_params, dynamics, simulation_type):
-        assert dynamics == False
-
-    monkeypatch.setattr("sdrun.simulation.production", production)
-
-    runner = CliRunner()
-    result = runner.invoke(prod, ['--no-dynamics'])
+    assert result.exit_code != 0
