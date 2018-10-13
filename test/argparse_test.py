@@ -9,7 +9,7 @@
 """Test the parsing of arguments gives the correct results."""
 
 import logging
-from typing import NamedTuple
+from typing import Callable, List, NamedTuple
 
 import click
 import pytest
@@ -48,7 +48,7 @@ def print_params_values(sim_params: SimulationParams) -> None:
         print(f"{key}={value}")
 
 
-@sdrun.command()
+@click.command("dummy_subcommand")
 @click.pass_obj
 def dummy_subcommand(obj):
     """Command which allows for the testing of the sdrun arguments.
@@ -73,6 +73,9 @@ def subcommands(request):
         yield Subcommand(equil, ["infile", "outfile"])
     elif request.param == "prod":
         yield Subcommand(prod, ["outfile"])
+
+
+sdrun.add_command(dummy_subcommand, "dummy_subcommand")
 
 
 def create_params():
