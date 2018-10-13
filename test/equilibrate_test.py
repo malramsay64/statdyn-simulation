@@ -11,8 +11,9 @@ import hoomd
 import numpy as np
 import pytest
 
-from sdrun.initialise import init_from_crystal, make_orthorhombic
+from sdrun.initialise import init_from_crystal, init_from_file, make_orthorhombic
 from sdrun.simulation import create_interface, equilibrate, get_group
+from sdrun.util import get_num_mols
 
 
 def test_orthorhombic_equil(crystal_params):
@@ -66,3 +67,23 @@ def test_get_group(mol_params):
         sys = hoomd.init.create_lattice(hoomd.lattice.sq(1), 5)
         group = get_group(sys, mol_params)
         assert group is not None
+
+
+@pytest.mark.parametrize("equil_type", ["liquid", "crystal", "interface"])
+def test_dump_mols(crystal_params, equil_type):
+    """Ensure the equilibration is close to initialisation."""
+    # Initialisation of snapshot
+    snap_init = init_from_crystal(crystal_params)
+    snap_init_mols = get_num_mols(snap_init)
+
+    # Equilibration
+    snap_equil = equilibrate(snap_init, crystal_params, equil_type)
+    snap_equil_mols = get_num_mols(snap_equil)
+
+    snap_out = init_from_file(
+        crystal_params.outfile, crystal_params.molecule, crystal_params.hoomd_args
+    )
+    snap_out_mols = get_num_mols(snap_out)
+
+    assert snap_init_mols == snap_equil_mols
+    assert snap_init_mols == snap_out_mols

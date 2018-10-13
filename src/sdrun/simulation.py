@@ -19,13 +19,7 @@ from hoomd.data import SnapshotParticleData as Snapshot
 from .initialise import init_from_crystal, initialise_snapshot, make_orthorhombic
 from .params import SimulationParams
 from .StepSize import GenerateStepSeries
-from .util import (
-    dump_frame,
-    get_group,
-    set_dump,
-    set_integrator,
-    set_thermo,
-)
+from .util import dump_frame, get_group, set_dump, set_integrator, set_thermo
 
 logger = logging.getLogger(__name__)
 
@@ -72,13 +66,20 @@ def equilibrate(
 
         if equil_type == "crystal":
             prime_interval = 307
-        if equil_type == "interface":
-            group = get_group(sys, sim_params, interface=True)
-            assert group is not None
 
         # Set mobile group for integrator
+        if equil_type == "interface":
+            integrated_group = get_group(sys, sim_params, interface=True)
+            assert integrated_group is not None
+        else:
+            integrated_group = group
+
         set_integrator(
-            sim_params, group, prime_interval, simulation_type, integration_method
+            sim_params,
+            integrated_group,
+            prime_interval,
+            simulation_type,
+            integration_method,
         )
 
         set_dump(
