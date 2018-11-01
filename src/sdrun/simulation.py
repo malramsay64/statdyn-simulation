@@ -16,7 +16,12 @@ import hoomd.md
 import numpy as np
 from hoomd.data import SnapshotParticleData as Snapshot
 
-from .initialise import init_from_crystal, initialise_snapshot, make_orthorhombic
+from .initialise import (
+    init_from_crystal,
+    initialise_snapshot,
+    make_orthorhombic,
+    thermalise,
+)
 from .params import SimulationParams
 from .StepSize import GenerateStepSeries
 from .util import dump_frame, get_group, set_dump, set_integrator, set_thermo
@@ -25,7 +30,10 @@ logger = logging.getLogger(__name__)
 
 
 def equilibrate(
-    snapshot: Snapshot, sim_params: SimulationParams, equil_type: str = "liquid"
+    snapshot: Snapshot,
+    sim_params: SimulationParams,
+    equil_type: str = "liquid",
+    thermalisation: bool = False,
 ) -> Snapshot:
     """Run an equilibration simulation.
 
@@ -51,6 +59,10 @@ def equilibrate(
     # Ensure orthorhombic liquid and interface
     if equil_type in ["liquid", "interface"]:
         snapshot = make_orthorhombic(snapshot)
+
+    # Randomise momenta such that the temperature is sim_params.temperature
+    if thermalisation:
+        snapshot = thermalise(snapshot, sim_params)
 
     logger.debug("Snapshot box size: %s", snapshot.box)
 
