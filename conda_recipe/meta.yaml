@@ -35,7 +35,7 @@ build:
         - sdrun = sdrun.main:sdrun
     preserve_egg_dir: False
     include_recipe: False
-    script: python setup.py bdist_wheel sdist && pip install dist/sdrun-{{version}}.tar.gz
+    script: pip install . --no-deps
     number: 0
 
 test:

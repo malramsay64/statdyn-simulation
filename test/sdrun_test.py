@@ -9,8 +9,10 @@
 """Test the sdrun command line tools."""
 
 import logging
+import os
 import subprocess
 import sys
+from datetime import datetime, timedelta
 from itertools import product
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -100,6 +102,7 @@ def test_commands(arguments):
     assert ret.returncode == 0
 
 
+@pytest.mark.timeout(60)
 @pytest.mark.skipif(sys.platform == "darwin", reason="No MPI support on macOS")
 def test_commands_mpi(arguments):
     """Ensure sdrun command line interface works with MPI.
@@ -110,5 +113,13 @@ def test_commands_mpi(arguments):
 
     """
     command = ["mpirun", "-np", "4", "sdrun"] + arguments
-    ret = subprocess.run(command)
-    assert ret.returncode == 0
+    end_time = datetime.now() + timedelta(seconds=50)
+    ret = subprocess.run(
+        command,
+        env=dict(os.environ, HOOMD_WALLTIME_STOP=str(end_time.timestamp())),
+        stderr=subprocess.PIPE,
+    )
+    walltime_alert = b"hoomd._hoomd.WalltimeLimitReached: HOOMD_WALLTIME_STOP reached"
+    assert ret.returncode == 0 or (
+        ret.returncode == 15 and walltime_alert in ret.stderr
+    )

@@ -1,0 +1,25 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+numpy = "*"
+rowan = "*"
+attrs = "*"
+click = "*"
+mpi4py = "*"
+
+[dev-packages]
+pylint = "==2.1.1"
+black = "==18.6b2"
+mypy = "==0.620"
+pytest = "*"
+coverage = "*"
+pytest-cov = "*"
+pytest-timeout = "*"
+hypothesis = "*"
+codecov = "*"
+
+[requires]
+python_version = "3.6"
