@@ -122,24 +122,35 @@ class SimulationParams:
     def cell_dimensions(self) -> Tuple[int, int, int]:
         """The number of unit cells in the direction of each lattice vector."""
         logger.debug("self._cell_dimensions %s", self._cell_dimensions)
+        assert self._cell_dimensions is not None
+
+        # Convert the immutable tuple to a mutable list
         if isinstance(self._cell_dimensions, int):
             cell_dims = [self._cell_dimensions] * self.molecule.dimensions
         else:
             cell_dims = list(self._cell_dimensions)
 
+        # Handle list of length 1 (Integer values handled on conversion to list)
         if len(cell_dims) == 1:
             cell_dims = cell_dims * self.molecule.dimensions
 
+        # Ensure the list is of length 3 by adding dimension with value of 1
         if len(cell_dims) == 2:
             cell_dims = cell_dims + [1]
             return (cell_dims[0], cell_dims[1], cell_dims[2])
 
+        # 2D molecules need to have z dimension of 1
         if self.molecule.dimensions == 2:
             cell_dims[2] = 1
+
         return (cell_dims[0], cell_dims[1], cell_dims[2])
 
     @cell_dimensions.setter
     def cell_dimensions(self, value: Tuple[int, ...]) -> None:
+        if value is None:
+            raise ValueError("Cannot set cell_dimensions to None")
+        if isinstance(value, (list, tuple)) and not value:
+            raise ValueError("Length of cell_dimensions cannot be 0")
         self._cell_dimensions = value
 
     @property

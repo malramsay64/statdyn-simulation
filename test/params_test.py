@@ -61,6 +61,17 @@ def test_cell_dimensions_setter(sim_params, cell_len):
         assert sim_params.cell_dimensions == (*cell_dims[:2], 1)
 
 
+def test_cell_dimensions_setter_None(sim_params):
+    with pytest.raises(ValueError):
+        sim_params.cell_dimensions = None
+
+
+def test_cell_dimensions_default():
+    sim_params = SimulationParams()
+    # The default molecule is 2D hence 3rd value is 1
+    assert sim_params.cell_dimensions == (30, 42, 1)
+
+
 def test_mol_crys(sim_params):
     crys = SquareCircle()
     init_mol = sim_params.molecule

@@ -89,7 +89,7 @@ def _verbosity(ctx, param, value) -> None:  # pylint: disable=unused-argument
     "cell_dimensions",
     nargs=2,
     type=int,
-    default=None,
+    default=(None, None),
     help="Replications of unit cell in each crystal dimension",
 )
 @click.option(
@@ -113,7 +113,11 @@ def sdrun(ctx, **kwargs) -> None:
         kwargs["crystal"] = crystal()
     logging.debug("Creating SimulationParams with values:\n%s", pformat(kwargs))
     ctx.obj = SimulationParams(
-        **{key: val for key, val in kwargs.items() if val is not None}
+        **{
+            key: val
+            for key, val in kwargs.items()
+            if val is not None and val != (None, None)
+        }
     )
     logging.debug("SimulationParams Created: \n%s", ctx.obj)
     if ctx.obj.output is not None:

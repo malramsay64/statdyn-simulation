@@ -16,7 +16,7 @@ import pytest
 from click.testing import CliRunner
 
 from sdrun import SimulationParams
-from sdrun.main import prod
+from sdrun.main import prod, sdrun
 
 
 @pytest.fixture
@@ -61,3 +61,10 @@ def test_setting_dynamics(monkeypatch, runner):
     assert result.exit_code != 0
     result = runner.invoke(prod)
     assert result.exit_code != 0
+
+
+def test_default_lattice_lengths(runner):
+    testfile = "test.gsd"
+    result = runner.invoke(sdrun, ["create", testfile])
+    assert result.exit_code == 0, result.output
+    assert Path(testfile).exist_ok()
