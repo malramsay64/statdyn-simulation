@@ -111,6 +111,11 @@ def sdrun(ctx, **kwargs) -> None:
         crystal = CRYSTAL_FUNCS.get(space_group)
         assert crystal is not None
         kwargs["crystal"] = crystal()
+    if kwargs.get("steps") is None:
+        logger.warning(
+            "Number of steps not specified, setting to default value of 100."
+        )
+        kwargs["steps"] = 100
     logging.debug("Creating SimulationParams with values:\n%s", pformat(kwargs))
     ctx.obj = SimulationParams(
         **{
