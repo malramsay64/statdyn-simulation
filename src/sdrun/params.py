@@ -61,7 +61,7 @@ class SimulationParams:
     _outfile: Optional[Path] = attr.ib(default=None, converter=_to_path, repr=False)
     _output: Path = attr.ib(factory=Path.cwd, converter=Path, repr=False)
 
-    hoomd_args: str = attr.ib(default="", repr=False)
+    hoomd_args: str = attr.ib(default="--notice-level=1", repr=False)
     iteration_id: Optional[int] = None
 
     @property
