@@ -67,4 +67,14 @@ def test_default_lattice_lengths(runner):
     testfile = "test.gsd"
     result = runner.invoke(sdrun, ["create", testfile])
     assert result.exit_code == 0, result.output
-    assert Path(testfile).exist_ok()
+    assert Path(testfile).exists()
+
+
+def test_no_warnings(runner):
+    testfile = str(Path(__file__).parent / "data/recreate_thermo_warnings.gsd")
+
+    result = runner.invoke(
+        sdrun, ["--num-steps=1", "--temperature=0.80", "prod", testfile]
+    )
+    assert result.exit_code == 0, result.output
+    assert r"*Warning*:" not in result.output, result.output

@@ -174,8 +174,8 @@ def production(
     assert isinstance(context, hoomd.context.SimulationContext)
     assert simulation_type in ["liquid"]
 
+    sys = initialise_snapshot(snapshot, context, sim_params)
     with context:
-        sys = initialise_snapshot(snapshot, context, sim_params)
         logger.debug("Run metadata: %s", sys.get_metadata())
 
         group = get_group(sys, sim_params)
