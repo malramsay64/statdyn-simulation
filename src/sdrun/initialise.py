@@ -12,7 +12,9 @@ configurations, whether that is a file, a crystal lattice, or no predefined
 config.
 """
 import logging
+import operator
 import textwrap
+from functools import reduce
 from pathlib import Path
 from typing import Optional
 
@@ -72,108 +74,7 @@ def init_from_none(
         cell_matrix=mol_size * np.identity(3), molecule=sim_params.molecule
     )
     with sim_params.temp_context(crystal=crystal):
-        return init_from_crystal(sim_params, equilibration)
-
-
-def initialise_snapshot(
-    snapshot: Snapshot,
-    context: Context,
-    sim_params: SimulationParams,
-    minimize: bool = False,
-    thermalisation: Optional[bool] = None,
-) -> System:
-    """Initialise the configuration from a snapshot.
-
-    In this function it is checked that the data in the snapshot and the
-    passed arguments are in agreement with each other, and rectified if not.
-    """
-
-    # Only use the master process to check the snapshot
-    if hoomd.comm.get_rank() == 0:
-        num_molecules = get_num_mols(snapshot)
-        num_particles = get_num_particles(snapshot)
-        logger.debug(
-            "Number of particles: %d , Number of molecules: %d",
-            num_particles,
-            num_molecules,
-        )
-        snapshot = _check_properties(snapshot, sim_params.molecule)
-
-    if minimize:
-        snapshot = minimize_snapshot(snapshot, sim_params, ensemble="NVE")
-
-    if sim_params.iteration_id is not None:
-        interface = False
-        # Interface simulations require the space_group parameter to be set
-        if sim_params.space_group is not None:
-            interface = True
-        snapshot = randomise_momenta(
-            snapshot, sim_params, interface, random_seed=sim_params.iteration_id
-        )
-
-    if hoomd.comm.get_rank() == 0:
-        # Thermalise where the velocity of the particle is well away from the desired temperature
-        if thermalisation is None:
-            temperature = (
-                sim_params.init_temp if sim_params.init_temp else sim_params.temperature
-            )
-            thermalisation = (
-                compute_translational_ke(snapshot) > 0.5 * num_molecules * temperature
-            )
-
-    thermalisation = COMM.bcast(thermalisation, root=0)
-
-    if thermalisation:
-        snapshot = thermalise(snapshot, sim_params)
-
-    with context:
-        sys = hoomd.init.read_snapshot(snapshot)
-        sim_params.molecule.define_potential()
-        sim_params.molecule.define_dimensions()
-        rigid = sim_params.molecule.define_rigid()
-        if rigid:
-            rigid.create_bodies()
-        return sys
-
-
-def minimize_snapshot(
-    snapshot: Snapshot, sim_params: SimulationParams, ensemble: str = "NVE"
-) -> Snapshot:
-    assert ensemble in ["NVE", "NPH"]
-    temp_context = hoomd.context.initialize(sim_params.hoomd_args)
-    with temp_context:
-        sys = hoomd.init.read_snapshot(snapshot)
-        sim_params.molecule.define_potential()
-        sim_params.molecule.define_dimensions()
-        rigid = sim_params.molecule.define_rigid()
-        if rigid:
-            rigid.check_initialization()
-        if sim_params.molecule.rigid:
-            group = hoomd.group.rigid_center()
-        else:
-            group = hoomd.group.all()
-
-        logger.debug("Minimizing energy")
-        fire = hoomd.md.integrate.mode_minimize_fire(0.001)
-
-        if ensemble == "NVE":
-            ensemble_integrator = hoomd.md.integrate.nve(group=group)
-        elif ensemble == "NPH":
-            ensemble_integrator = hoomd.md.integrate.nph(
-                group=group, P=sim_params.pressure, tauP=sim_params.tauP
-            )
-
-        num_steps = 100
-        while not fire.has_converged():
-            hoomd.run(num_steps)
-            num_steps *= 2
-            if num_steps > sim_params.num_steps:
-                break
-
-        ensemble_integrator.disable()
-        logger.debug("Energy Minimized in %s steps", num_steps)
-        equil_snapshot = sys.take_snapshot()
-    return equil_snapshot
+        return init_from_crystal(sim_params, equilibration=equilibration)
 
 
 def init_from_crystal(
@@ -242,6 +143,138 @@ def init_from_crystal(
 
         snap = equilibrate(snap, sim_params, equil_type="crystal")
     return snap
+
+
+def initialise_snapshot(
+    snapshot: Snapshot,
+    context: Context,
+    sim_params: SimulationParams,
+    minimize: bool = False,
+    thermalisation: Optional[bool] = None,
+) -> System:
+    """Ready a snapshot for a simulation run.
+
+    This function checks that the snapshot and the input arguments are appropriately
+    configured for running any of the other types of simulations. This includes ensuring
+    that rigid bodies are initialised correctly, ensuring the thermal velocities are
+    close to the desired values.
+
+    Args:
+        snapshot (class:`hoomd.snapshot.SnapshotParticleData`): The hoomd snapshot which
+            is to be initialised.
+        context (class:`hoomd.context.SimulationContext`): The Hoomd simulation context
+            to configure the snapshot for use in.
+        sim_params (class:`sdrun.SimulationParams`): The parameters of the simulation
+            defined for this simulation.
+        minimize (bool): Perform a FIRE energy minimisation on the crystal
+            after initialising from the lattice parameters. This accounts
+            for any slight inaccuracies of the lattice parameters.
+            (Default `False`).
+        thermalisation: (class:`bool`): Randomise the momenta of the particles in the
+            simulation according to a Poission distribution at the desired temperature.
+            With no value passed this is performed when the thermodynamic temperature
+            is well away from the desired value. This can be overridden by passing
+            either `True` or `False`.
+
+    """
+
+    # Only use the master process to check the snapshot
+    if hoomd.comm.get_rank() == 0:
+        num_molecules = get_num_mols(snapshot)
+        num_particles = get_num_particles(snapshot)
+        logger.debug(
+            "Number of particles: %d , Number of molecules: %d",
+            num_particles,
+            num_molecules,
+        )
+        snapshot = _check_properties(snapshot, sim_params.molecule)
+
+    if minimize:
+        snapshot = minimize_snapshot(snapshot, sim_params, ensemble="NVE")
+
+    if sim_params.iteration_id is not None:
+        interface = False
+        # Interface simulations require the space_group parameter to be set
+        if sim_params.space_group is not None:
+            interface = True
+        snapshot = randomise_momenta(
+            snapshot, sim_params, interface, random_seed=sim_params.iteration_id
+        )
+
+    if hoomd.comm.get_rank() == 0:
+        # Thermalise where the velocity of the particle is well away from the desired temperature
+        if thermalisation is None:
+            temperature = (
+                sim_params.init_temp if sim_params.init_temp else sim_params.temperature
+            )
+            thermalisation = (
+                compute_translational_ke(snapshot) > 0.5 * num_molecules * temperature
+            )
+
+    thermalisation = COMM.bcast(thermalisation, root=0)
+
+    if thermalisation:
+        snapshot = thermalise(snapshot, sim_params)
+
+    with context:
+        sys = hoomd.init.read_snapshot(snapshot)
+        sim_params.molecule.define_potential()
+        sim_params.molecule.define_dimensions()
+        rigid = sim_params.molecule.define_rigid()
+        if rigid:
+            rigid.create_bodies()
+        return sys
+
+
+def minimize_snapshot(
+    snapshot: Snapshot, sim_params: SimulationParams, ensemble: str = "NVE"
+) -> Snapshot:
+    assert ensemble in ["NVE", "NPH"]
+
+    logger.info(
+        textwrap.dedent(
+            """
+                ### INIT ###
+
+                Performing FIRE minimisation of snapshot
+            """
+        )
+    )
+
+    temp_context = hoomd.context.initialize(sim_params.hoomd_args)
+    with temp_context:
+        sys = hoomd.init.read_snapshot(snapshot)
+        sim_params.molecule.define_potential()
+        sim_params.molecule.define_dimensions()
+        rigid = sim_params.molecule.define_rigid()
+        if rigid:
+            rigid.check_initialization()
+        if sim_params.molecule.rigid:
+            group = hoomd.group.rigid_center()
+        else:
+            group = hoomd.group.all()
+
+        logger.debug("Minimizing energy")
+        fire = hoomd.md.integrate.mode_minimize_fire(0.001)
+
+        if ensemble == "NVE":
+            ensemble_integrator = hoomd.md.integrate.nve(group=group)
+        elif ensemble == "NPH":
+            ensemble_integrator = hoomd.md.integrate.nph(
+                group=group, P=sim_params.pressure, tauP=sim_params.tauP
+            )
+
+        num_steps = 100
+        while not fire.has_converged():
+            hoomd.run(num_steps)
+            num_steps *= 2
+            if num_steps > sim_params.num_steps:
+                break
+
+        ensemble_integrator.disable()
+        logger.debug("Energy Minimized in %s steps", num_steps)
+        equil_snapshot = sys.take_snapshot()
+    return equil_snapshot
 
 
 def make_orthorhombic(snapshot: Snapshot) -> Snapshot:
