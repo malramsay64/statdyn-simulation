@@ -20,7 +20,12 @@ from sdrun.initialise import (
     init_from_none,
     initialise_snapshot,
 )
-from sdrun.simulation import equilibrate, make_orthorhombic, production
+from sdrun.simulation import (
+    create_interface,
+    equilibrate,
+    make_orthorhombic,
+    production,
+)
 from sdrun.util import dump_frame, get_num_mols
 
 
@@ -30,6 +35,19 @@ def test_run_npt(mol_params):
     snapshot = init_from_none(mol_params)
     context = hoomd.context.initialize(mol_params.hoomd_args)
     production(snapshot, context, mol_params, dynamics=False)
+
+
+def test_run_zero_equil_steps(snapshot_params):
+    snapshot = snapshot_params["snapshot"]
+    sim_params = snapshot_params["sim_params"]
+    equilibrate(snapshot, sim_params)
+
+
+def test_run_zero_prod_steps(snapshot_params):
+    snapshot = snapshot_params["snapshot"]
+    sim_params = snapshot_params["sim_params"]
+    context = hoomd.context.initialize(sim_params.hoomd_args)
+    production(snapshot, context, sim_params)
 
 
 @pytest.mark.simulation

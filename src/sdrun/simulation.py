@@ -53,7 +53,7 @@ def equilibrate(
     assert sim_params.hoomd_args is not None
     assert sim_params.output_interval is not None
     assert sim_params.num_steps is not None
-    assert sim_params.num_steps > 0
+    assert sim_params.num_steps >= 0
     assert sim_params.outfile is not None
 
     # Ensure orthorhombic liquid and interface
@@ -134,7 +134,7 @@ def create_interface(sim_params: SimulationParams) -> Snapshot:
     assert sim_params.init_temp is not None
     assert sim_params.init_temp > 0
     assert sim_params.num_steps is not None
-    assert sim_params.num_steps > 0
+    assert sim_params.num_steps >= 0
 
     # Initialisation typically requires fewer steps than melting
     # 100 initialisation steps is a 'magic number' which works for the p2 crystal. I don't know why
@@ -170,6 +170,7 @@ def production(
 
     """
     assert sim_params.num_steps is not None
+    assert sim_params.num_steps >= 0
     assert sim_params.output_interval is not None
     assert isinstance(context, hoomd.context.SimulationContext)
     assert simulation_type in ["liquid"]
