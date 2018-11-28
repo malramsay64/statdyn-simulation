@@ -154,3 +154,19 @@ def test_set_integrator_vary_temp(initialised_simulation):
         assert integrator.tauP == sim_params.tauP
         assert integrator.S == [sim_params.pressure] * 3 + [0] * 3
         assert integrator.couple == "xyz"
+
+
+def test_get_group(initialised_simulation):
+    sys, sim_params = initialised_simulation
+    group_rigid = get_group(sys, sim_params)
+    if sim_params.molecule.rigid:
+        assert group_rigid.name == "rigid_center"
+    else:
+        assert group_rigid.name == "all"
+    group_interface = get_group(sys, sim_params, interface=True)
+    assert group_interface.name == "rigid_mobile"
+    # Ensure the interface group has fewer particles
+    assert (
+        group_interface.cpp_group.getNumMembersGlobal()
+        < group_rigid.cpp_group.getNumMembersGlobal()
+    )
