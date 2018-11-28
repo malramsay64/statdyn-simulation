@@ -12,6 +12,7 @@ configurations, whether that is a file, a crystal lattice, or no predefined
 config.
 """
 import logging
+import textwrap
 from pathlib import Path
 from typing import Optional
 
@@ -178,16 +179,41 @@ def minimize_snapshot(
 def init_from_crystal(
     sim_params: SimulationParams, equilibration: bool = False, minimize: bool = True
 ) -> Snapshot:
-    """Initialise a hoomd simulation from a crystal lattice.
+    """Initialise a Hoomd simulation from a crystal lattice.
+
+    This creates a crystal lattice using an instance of :class:`sdrun.Crystal` repeating
+    the unit cell in the a, b, and c crystal lattice dimensions as specified in the
+    cell_dimensions variable.
 
     Args:
-        crystal (class:`statdyn.crystals.Crystal`): The crystal lattice to
-            generate the simulation from.
+        sim_params (class:`sdrun.SimulationParams`): The parameters of the simulation
+            defined for this simulation.
+        equilibration (bool): Flag to equilibrate simulation after
+            initialisation. Thermalising the perfect crystal lattice.
+            (Default `False`).
+        minimize (bool): Perform a FIRE energy minimisation on the crystal
+            after initialising from the lattice parameters. This accounts
+            for any slight inaccuracies of the lattice parameters.
+            (Default `False`).
     """
-    logger.info("Hoomd Arguments: %s", sim_params.hoomd_args)
     assert sim_params.cell_dimensions is not None
     assert sim_params.crystal is not None
     assert sim_params.molecule is not None
+
+    logger.info(
+        textwrap.dedent(
+            """
+                ### INIT ###
+
+                Initialising snapshot from a %s crystal
+                with %d, %d, and %d replications in
+                the a, b, and c directions respectively.
+            """
+        ),
+        sim_params.crystal,
+        *sim_params.cell_dimensions
+    )
+
     temp_context = hoomd.context.initialize(sim_params.hoomd_args)
     with temp_context:
         logger.debug(
