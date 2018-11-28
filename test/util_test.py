@@ -8,6 +8,8 @@
 
 """Test the util module."""
 
+from pathlib import Path
+
 import hoomd
 import numpy as np
 import pytest
@@ -16,10 +18,11 @@ from numpy.testing import assert_allclose
 
 from sdrun.initialise import initialise_snapshot
 
-# TODO dump_frame, set_thermo
+# TODO set_thermo
 from sdrun.util import (
     NumBodies,
     _get_num_bodies,
+    dump_frame,
     get_group,
     get_num_mols,
     get_num_particles,
@@ -179,5 +182,18 @@ def test_set_dump(initialised_simulation):
     dump_file = set_dump(group, sim_params.filename())
     assert isinstance(dump_file, hoomd.dump.gsd)
     assert dump_file.filename.endswith("gsd")
-    assert dump_file.enabled == True
+    assert dump_file.enabled is True
     assert dump_file.group == group
+    hoomd.run(1)
+    assert Path(dump_file.filename).exists()
+
+
+def test_dump_frame(initialised_simulation):
+    sys, sim_params = initialised_simulation
+    group = get_group(sys, sim_params)
+    dump_file = dump_frame(group, sim_params.filename())
+    assert isinstance(dump_file, hoomd.dump.gsd)
+    assert dump_file.filename.endswith("gsd")
+    assert dump_file.enabled is True
+    assert dump_file.group == group
+    assert Path(dump_file.filename).exists()
