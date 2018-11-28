@@ -16,13 +16,14 @@ from numpy.testing import assert_allclose
 
 from sdrun.initialise import initialise_snapshot
 
-# TODO set_debug, set_dump, dump_frame, set_thermo
+# TODO dump_frame, set_thermo
 from sdrun.util import (
     NumBodies,
     _get_num_bodies,
     get_group,
     get_num_mols,
     get_num_particles,
+    set_dump,
     set_integrator,
     z2quaternion,
 )
@@ -170,3 +171,13 @@ def test_get_group(initialised_simulation):
         group_interface.cpp_group.getNumMembersGlobal()
         < group_rigid.cpp_group.getNumMembersGlobal()
     )
+
+
+def test_set_dump(initialised_simulation):
+    sys, sim_params = initialised_simulation
+    group = get_group(sys, sim_params)
+    dump_file = set_dump(group, sim_params.filename())
+    assert isinstance(dump_file, hoomd.dump.gsd)
+    assert dump_file.filename.endswith("gsd")
+    assert dump_file.enabled == True
+    assert dump_file.group == group

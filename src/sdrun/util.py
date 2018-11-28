@@ -90,6 +90,8 @@ def set_dump(
 ) -> hoomd.dump.gsd:
     """Initialise dumping configuration to a file."""
     assert group is not None
+    # Ensure outfile is a Path object
+    outfile = Path(outfile)
     if extension:
         outfile = outfile.with_suffix(".gsd")
     return hoomd.dump.gsd(
