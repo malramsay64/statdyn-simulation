@@ -14,12 +14,16 @@ import pytest
 from hoomd.data import boxdim, make_snapshot
 from numpy.testing import assert_allclose
 
-# TODO set_integrator, set_debug, set_dump, dump_frame, set_thermo
+from sdrun.initialise import initialise_snapshot
+
+# TODO set_debug, set_dump, dump_frame, set_thermo
 from sdrun.util import (
     NumBodies,
     _get_num_bodies,
+    get_group,
     get_num_mols,
     get_num_particles,
+    set_integrator,
     z2quaternion,
 )
 
@@ -90,3 +94,63 @@ def test_z2quaternion():
     assert quats.dtype == np.float32
     assert_allclose(np.linalg.norm(quats, axis=1), 1.)
     assert np.all(quats[:, 1:3] == 0.)
+
+
+@pytest.fixture()
+def initialised_simulation(snapshot_from_none):
+    snapshot = snapshot_from_none["snapshot"]
+    sim_params = snapshot_from_none["sim_params"]
+    context = hoomd.context.initialize(sim_params.hoomd_args)
+    sys = initialise_snapshot(snapshot, context, sim_params)
+    with context:
+        yield sys, sim_params
+
+
+@pytest.mark.parametrize("simulation_type", ["liquid", "crystal", "interface"])
+@pytest.mark.parametrize("integration_method", ["NPT", "NVT"])
+def test_set_integrator(initialised_simulation, simulation_type, integration_method):
+    sys, sim_params = initialised_simulation
+    group = get_group(sys, sim_params)
+    integrator = set_integrator(
+        sim_params,
+        group=group,
+        simulation_type=simulation_type,
+        integration_method=integration_method,
+    )
+    assert integrator.enabled
+    assert integrator.kT.val == sim_params.temperature
+    assert integrator.group == group
+    assert integrator.tau == sim_params.tau
+
+    if integration_method == "NPT":
+        assert integrator.tauP == sim_params.tauP
+        # The three values set to zero are a stress value
+        assert integrator.S == [sim_params.pressure] * 3 + [0] * 3
+
+        # Crystal simulations all pressures are independent
+        if simulation_type == "crystal":
+            assert integrator.couple == "none"
+        else:
+            assert integrator.couple == "xyz"
+
+    else:
+        with pytest.raises(AttributeError):
+            assert integrator.tauP
+        with pytest.raises(AttributeError):
+            assert integrator.S
+
+
+def test_set_integrator_vary_temp(initialised_simulation):
+    sys, sim_params = initialised_simulation
+    with sim_params.temp_context(init_temp=0.2):
+        group = get_group(sys, sim_params)
+        integrator = set_integrator(
+            sim_params, group=group, simulation_type="liquid", integration_method="NPT"
+        )
+        assert integrator.enabled
+        assert integrator.kT.points
+        assert integrator.group == group
+        assert integrator.tau == sim_params.tau
+        assert integrator.tauP == sim_params.tauP
+        assert integrator.S == [sim_params.pressure] * 3 + [0] * 3
+        assert integrator.couple == "xyz"
