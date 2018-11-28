@@ -17,8 +17,6 @@ from hoomd.data import boxdim, make_snapshot
 from numpy.testing import assert_allclose
 
 from sdrun.initialise import initialise_snapshot
-
-# TODO set_thermo
 from sdrun.util import (
     NumBodies,
     _get_num_bodies,
@@ -28,6 +26,7 @@ from sdrun.util import (
     get_num_particles,
     set_dump,
     set_integrator,
+    set_thermo,
     z2quaternion,
 )
 
@@ -197,3 +196,12 @@ def test_dump_frame(initialised_simulation):
     assert dump_file.enabled is True
     assert dump_file.group == group
     assert Path(dump_file.filename).exists()
+
+
+def test_set_thermo(initialised_simulation):
+    sys, sim_params = initialised_simulation
+
+    thermo = set_thermo(sim_params.filename(), thermo_period=sim_params.output_interval)
+    assert thermo.filename.endswith(".log")
+    assert thermo.enabled is True
+    assert thermo.period == sim_params.output_interval

@@ -112,7 +112,9 @@ def dump_frame(
     )
 
 
-def set_thermo(outfile: Path, thermo_period: int = 10000, rigid=True) -> None:
+def set_thermo(
+    outfile: Path, thermo_period: int = 10000, rigid=True
+) -> hoomd.analyze.log:
     """Set the thermodynamic quantities for a simulation."""
     default = [
         "N",
@@ -143,8 +145,8 @@ def set_thermo(outfile: Path, thermo_period: int = 10000, rigid=True) -> None:
             "translational_ndof_rigid_center",
             "rotational_ndof_rigid_center",
         ]
-    outfile = outfile.with_suffix(".log")
-    hoomd.analyze.log(
+    outfile = Path(outfile).with_suffix(".log")
+    return hoomd.analyze.log(
         str(outfile), quantities=default + rigid_thermo, period=thermo_period
     )
 
