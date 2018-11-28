@@ -43,16 +43,11 @@ def arguments(request):
         lattice_y = int(lattice_y / 2)
 
     common_args = [
-        "--hoomd-args",
-        '"--mode=cpu"',
-        "--num-steps",
-        "2000",
-        "--temperature",
-        "2.50",
-        "--pressure",
-        "13.50",
-        "--space-group",
-        crystal,
+        '--hoomd-args="--mode=cpu"',
+        "--num-steps=2000",
+        "--temperature=2.50",
+        "--pressure=13.50",
+        f"--space-group={crystal}",
         "--lattice-lengths",
         str(lattice_x),
         str(lattice_y),
@@ -68,8 +63,7 @@ def arguments(request):
         if command == "create":
             if request.param.get("interface"):
                 args = [
-                    "--init-temp",
-                    "0.4",
+                    "--init-temp=0.4",
                     "create",
                     "--interface",
                     str(tmp_dst / "test_create.gsd"),
@@ -79,8 +73,7 @@ def arguments(request):
         elif command == "equil":
             args = [
                 "equil",
-                "--equil-type",
-                "liquid",
+                "--equil-type=liquid",
                 "test/data/Trimer-13.50-3.00.gsd",
                 str(tmp_dst / "test_equil.gsd"),
             ]

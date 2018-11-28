@@ -20,12 +20,7 @@ from sdrun.initialise import (
     init_from_none,
     initialise_snapshot,
 )
-from sdrun.simulation import (
-    create_interface,
-    equilibrate,
-    make_orthorhombic,
-    production,
-)
+from sdrun.simulation import equilibrate, make_orthorhombic, production
 from sdrun.util import dump_frame, get_num_mols
 
 
@@ -82,23 +77,11 @@ def test_file_placement(mol_params):
     }
     outdir = Path(mol_params.output)
     print(list(outdir.glob("*")))
-    assert (
-        outdir / "{molecule}-P{pressure:.2f}-T{temperature:.2f}.gsd".format(**params)
-    ).is_file()
-    assert (
-        outdir
-        / "dump-{molecule}-P{pressure:.2f}-T{temperature:.2f}.gsd".format(**params)
-    ).is_file()
-    assert (
-        outdir
-        / "thermo-{molecule}-P{pressure:.2f}-T{temperature:.2f}.log".format(**params)
-    ).is_file()
-    assert (
-        outdir
-        / "trajectory-{molecule}-P{pressure:.2f}-T{temperature:.2f}.gsd".format(
-            **params
-        )
-    ).is_file()
+    base_filename = "{molecule}-P{pressure:.2f}-T{temperature:.2f}.gsd".format(**params)
+    assert (outdir / base_filename).is_file()
+    assert (outdir / ("dump-" + base_filename)).is_file()
+    assert (outdir / ("thermo-" + base_filename.replace(".gsd", ".log"))).is_file()
+    assert (outdir / ("trajectory-" + base_filename)).is_file()
 
 
 @pytest.mark.simulation
@@ -108,43 +91,30 @@ def test_interface(mol_params, pressure, temperature):
     outdir = str(mol_params.output)
     create_command = [
         "sdrun",
-        "--pressure",
-        "{}".format(pressure),
-        "--space-group",
-        "p2",
+        "--pressure=" "{}".format(pressure),
+        "--space-group=" "p2",
         "--lattice-lengths",
         "48",
         "42",
-        "--temperature",
-        "{}".format(init_temp),
-        "--num-steps",
-        "1000",
-        "--output",
-        outdir,
+        "--temperature=" "{}".format(init_temp),
+        "--num-steps=" "1000",
+        "--output=" "{}".format(outdir),
         "-vvv",
-        "--hoomd-args",
-        '"--mode=cpu"',
+        "--hoomd-args=" '"--mode=cpu"',
         "create",
         str(Path(outdir) / "P{:.2f}-T{:.2f}.gsd".format(pressure, init_temp)),
     ]
     melt_command = [
         "sdrun",
-        "--pressure",
-        "{}".format(pressure),
-        "--space-group",
-        "p2",
-        "--temperature",
-        "{}".format(temperature),
-        "--output",
-        outdir,
-        "--num-steps",
-        "1000",
+        "--pressure=" "{}".format(pressure),
+        "--space-group=" "p2",
+        "--temperature=" "{}".format(temperature),
+        "--output=" "{}".format(outdir),
+        "--num-steps=" "1000",
         "-vvv",
-        "--hoomd-args",
-        '"--mode=cpu"',
+        "--hoomd-args=" '"--mode=cpu"',
         "equil",
-        "--equil-type",
-        "interface",
+        "--equil-type=" "interface",
         str(Path(outdir) / "P{:.2f}-T{:.2f}.gsd".format(pressure, init_temp)),
         str(Path(outdir) / "P{:.2f}-T{:.2f}.gsd".format(pressure, temperature)),
     ]

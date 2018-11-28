@@ -199,7 +199,7 @@ def test_dump_frame(initialised_simulation):
 
 
 def test_set_thermo(initialised_simulation):
-    sys, sim_params = initialised_simulation
+    _, sim_params = initialised_simulation
 
     thermo = set_thermo(sim_params.filename(), thermo_period=sim_params.output_interval)
     assert thermo.filename.endswith(".log")
