@@ -43,8 +43,18 @@ COMM = MPI.COMM_WORLD
 
 def init_from_file(fname: Path, molecule: Molecule, hoomd_args: str = "") -> Snapshot:
     """Initialise a hoomd simulation from an input file."""
-    logger.debug("Initialising from file %s", fname)
-    # Hoomd context needs to be initialised before calling gsd_snapshot
+    logger.info(
+        textwrap.dedent(
+            """
+                ### INIT ###
+
+                Initialising snapshot from file: %s
+            """
+        ),
+        fname,
+    )
+
+    # Hoomd context needs to be initialised before calling gad_snapshot
     logger.debug("Hoomd Arguments: %s", hoomd_args)
     temp_context = hoomd.context.initialize(hoomd_args)
     with temp_context:
@@ -61,12 +71,31 @@ def init_from_file(fname: Path, molecule: Molecule, hoomd_args: str = "") -> Sna
 def init_from_none(
     sim_params: SimulationParams, equilibration: bool = False
 ) -> Snapshot:
-    """Initialise a system from no inputs.
+    """Initialise a system from a random configuration.
 
-    This creates a simulation with a large unit cell lattice such that there
-    is no chance of molecules overlapping and places molecules on the lattice.
+    This creates a simulation starting with with a large unit cell lattice such that
+    there is no chance of molecules overlapping on the lattice. This is then minimised
+    using a conjugate gradient algorithm to give a reasonable low energy configuration.
+
+    Args:
+        sim_params (class:`sdrun.SimulationParams`): The parameters of the simulation
+            defined for this simulation.
+        equilibration (bool): Flag to equilibrate simulation after
+            initialisation. Thermalising the perfect crystal lattice.
+            (Default `False`).
 
     """
+    logger.info(
+        textwrap.dedent(
+            """
+                ### INIT ###
+
+                Initialising snapshot with random positions of %d particles
+            """
+        ),
+        reduce(operator.mul, sim_params.cell_dimensions),
+    )
+
     logger.debug("Hoomd Arguments: %s", sim_params.hoomd_args)
     mol_size = sim_params.molecule.compute_size()
 
@@ -74,7 +103,7 @@ def init_from_none(
         cell_matrix=mol_size * np.identity(3), molecule=sim_params.molecule
     )
     with sim_params.temp_context(crystal=crystal):
-        return init_from_crystal(sim_params, equilibration=equilibration)
+        return init_from_crystal(sim_params, equilibration=equilibration, minimize=True)
 
 
 def init_from_crystal(
@@ -338,7 +367,20 @@ def randomise_momenta(
     """Randomise the momenta of particles in a snapshot."""
     if random_seed is None:
         random_seed = 42
-        logger.debug("No random seed provided using %s", random_seed)
+        logger.warning("No random seed provided using %s", random_seed)
+
+    logger.info(
+        textwrap.dedent(
+            """
+                ### INIT ###
+
+                Randomising momenta of snapshot with random_seed %s
+                with target temperature of %.2f
+            """
+        ),
+        random_seed,
+        sim_params.temperature,
+    )
     context = hoomd.context.initialize(sim_params.hoomd_args)
     with sim_params.temp_context(iteration_id=None):
         sys = initialise_snapshot(snapshot, context, sim_params, thermalisation=False)
