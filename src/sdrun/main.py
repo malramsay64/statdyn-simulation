@@ -64,6 +64,13 @@ def _verbosity(ctx, param, value) -> None:  # pylint: disable=unused-argument
 )
 @click.option("--init-temp", type=float, help="Temperature to start equilibration.")
 @click.option(
+    "--keyframe-interval",
+    "gen_steps",
+    type=int,
+    default=20_000,
+    help="Timesteps between keyframes in step sequence.",
+)
+@click.option(
     "--molecule",
     type=click.Choice(MOLECULE_OPTIONS),
     help="Molecule to use for simulation",
