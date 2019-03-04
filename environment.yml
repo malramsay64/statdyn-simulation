@@ -19,7 +19,7 @@ dependencies:
   - mpi4py
   # Testing and development
   - pylint=2.1.1
-  - black=18.6b2
+  - black=18.9b0
   - mypy=0.620
   - pytest
   - pytest-cov
