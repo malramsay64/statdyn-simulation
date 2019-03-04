@@ -141,7 +141,7 @@ def init_from_crystal(
             """
         ),
         sim_params.crystal,
-        *sim_params.cell_dimensions
+        *sim_params.cell_dimensions,
     )
 
     temp_context = hoomd.context.initialize(sim_params.hoomd_args)

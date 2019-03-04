@@ -125,14 +125,14 @@ def test_trimerP2_init_position():
     snap = init_from_crystal(sim_params, equilibration=False, minimize=False)
     manual = np.array(
         [
-            [-1.0885514, 1.0257734, -0.5],
-            [1.0885514, -1.0257734, -0.5],
-            [-1.3476, 0.81600004, -0.5],
-            [-0.8740344, -0.74631166, -0.5],
-            [-0.4140196, 0.45763204, -0.5],
-            [1.3476, -0.8159999, -0.5],
-            [0.87403464, 0.7463118, -0.5],
-            [0.41401944, -0.45763224, -0.5],
+            [-1.088_551_4, 1.025_773_4, -0.5],
+            [1.088_551_4, -1.025_773_4, -0.5],
+            [-1.3476, 0.816_000_04, -0.5],
+            [-0.874_034_4, -0.746_311_66, -0.5],
+            [-0.414_019_6, 0.457_632_04, -0.5],
+            [1.3476, -0.815_999_9, -0.5],
+            [0.874_034_64, 0.746_311_8, -0.5],
+            [0.414_019_44, -0.457_632_24, -0.5],
         ],
         dtype=np.float32,
     )
@@ -145,14 +145,14 @@ def test_trimerPg_init_position():
     snap = init_from_crystal(sim_params, equilibration=False, minimize=False)
     manual = np.array(
         [
-            [-1.0885514, 1.0257734, -0.5],
-            [1.0885514, -1.0257734, -0.5],
-            [-1.3476, 0.81600004, -0.5],
-            [-0.8740344, -0.74631166, -0.5],
-            [-0.4140196, 0.45763204, -0.5],
-            [1.3476, -0.8159999, -0.5],
-            [0.87403464, 0.7463118, -0.5],
-            [0.41401944, -0.45763224, -0.5],
+            [-1.088_551_4, 1.025_773_4, -0.5],
+            [1.088_551_4, -1.025_773_4, -0.5],
+            [-1.3476, 0.816_000_04, -0.5],
+            [-0.874_034_4, -0.746_311_66, -0.5],
+            [-0.414_019_6, 0.457_632_04, -0.5],
+            [1.3476, -0.815_999_9, -0.5],
+            [0.874_034_64, 0.746_311_8, -0.5],
+            [0.414_019_44, -0.457_632_24, -0.5],
         ],
         dtype=np.float32,
     )
@@ -250,10 +250,10 @@ def test_make_orthorhombic(cell_dimensions):
             unitcell=TrimerP2().get_unitcell(), n=cell_dimensions
         ).take_snapshot()
         snap_ortho = make_orthorhombic(snap_crys)
-        assert np.all(snap_ortho.particles.position[:, 0] < snap_ortho.box.Lx / 2.)
-        assert np.all(snap_ortho.particles.position[:, 0] > -snap_ortho.box.Lx / 2.)
-        assert np.all(snap_ortho.particles.position[:, 1] < snap_ortho.box.Ly / 2.)
-        assert np.all(snap_ortho.particles.position[:, 1] > -snap_ortho.box.Ly / 2.)
+        assert np.all(snap_ortho.particles.position[:, 0] < snap_ortho.box.Lx / 2.0)
+        assert np.all(snap_ortho.particles.position[:, 0] > -snap_ortho.box.Lx / 2.0)
+        assert np.all(snap_ortho.particles.position[:, 1] < snap_ortho.box.Ly / 2.0)
+        assert np.all(snap_ortho.particles.position[:, 1] > -snap_ortho.box.Ly / 2.0)
         assert snap_ortho.box.xy == 0
         assert snap_ortho.box.xz == 0
         assert snap_ortho.box.yz == 0
@@ -265,10 +265,10 @@ def test_orthorhombic_init(crystal_params, cell_dimensions):
     snap = init_from_crystal(crystal_params)
     snap_ortho = make_orthorhombic(snap)
     assert np.all(snap_ortho.particles.position == snap.particles.position)
-    assert np.all(snap_ortho.particles.position[:, 0] < snap_ortho.box.Lx / 2.)
-    assert np.all(snap_ortho.particles.position[:, 0] > -snap_ortho.box.Lx / 2.)
-    assert np.all(snap_ortho.particles.position[:, 1] < snap_ortho.box.Ly / 2.)
-    assert np.all(snap_ortho.particles.position[:, 1] > -snap_ortho.box.Ly / 2.)
+    assert np.all(snap_ortho.particles.position[:, 0] < snap_ortho.box.Lx / 2.0)
+    assert np.all(snap_ortho.particles.position[:, 0] > -snap_ortho.box.Lx / 2.0)
+    assert np.all(snap_ortho.particles.position[:, 1] < snap_ortho.box.Ly / 2.0)
+    assert np.all(snap_ortho.particles.position[:, 1] > -snap_ortho.box.Ly / 2.0)
     assert snap_ortho.box.xy == 0
     assert snap_ortho.box.xz == 0
     assert snap_ortho.box.yz == 0

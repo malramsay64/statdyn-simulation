@@ -98,7 +98,7 @@ class GenerateStepSeries(Iterable):
         self,
         total_steps: int,
         num_linear: int = 100,
-        gen_steps: int = 200000,
+        gen_steps: int = 200_000,
         max_gen: int = 500,
     ) -> None:
         """"""

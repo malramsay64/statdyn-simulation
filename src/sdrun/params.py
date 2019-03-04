@@ -18,7 +18,7 @@ import hoomd
 from .molecules import Molecule, Trimer
 
 if TYPE_CHECKING:
-    from .crystals import Crystal  # pylint: disable=unused-import
+    from .crystals import Crystal
 
 logger = logging.getLogger(__name__)
 
@@ -54,8 +54,8 @@ class SimulationParams:
     step_size: float = 0.005
     num_linear: int = attr.ib(default=100, repr=False)
     max_gen: int = attr.ib(default=500, repr=False)
-    gen_steps: int = attr.ib(default=20_000, repr=False)
-    output_interval: int = attr.ib(default=10_000, repr=False)
+    gen_steps: int = attr.ib(default=20000, repr=False)
+    output_interval: int = attr.ib(default=10000, repr=False)
 
     # File Params
     _infile: Optional[Path] = attr.ib(default=None, converter=_to_path, repr=False)

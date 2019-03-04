@@ -121,7 +121,7 @@ def test_translational_ke(setup_thermo):
 
 def test_rotational_ke(setup_thermo):
     with setup_thermo.context:
-        rot_dimensions = np.sum(setup_thermo.sim_params.molecule.moment_inertia > 0.)
+        rot_dimensions = np.sum(setup_thermo.sim_params.molecule.moment_inertia > 0.0)
 
         computed_rot_ke = compute_rotational_ke(setup_thermo.snapshot)
         thermodynamic_ke = rot_dimensions * 0.5 * setup_thermo.sim_params.temperature

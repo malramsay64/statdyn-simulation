@@ -168,5 +168,5 @@ def test_trimerp2_positions():
     positions = TrimerP2().positions
 
     # Check against manually computed positions
-    manual_large_positions = np.array([[1.3476, 0.816, 0.], [3.1024, 1.734, 0.]])
+    manual_large_positions = np.array([[1.3476, 0.816, 0.0], [3.1024, 1.734, 0.0]])
     assert_allclose(manual_large_positions, positions)

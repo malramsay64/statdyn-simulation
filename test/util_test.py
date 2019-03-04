@@ -95,8 +95,8 @@ def test_z2quaternion():
     quats = z2quaternion(angles)
 
     assert quats.dtype == np.float32
-    assert_allclose(np.linalg.norm(quats, axis=1), 1.)
-    assert np.all(quats[:, 1:3] == 0.)
+    assert_allclose(np.linalg.norm(quats, axis=1), 1.0)
+    assert np.all(quats[:, 1:3] == 0.0)
 
 
 @pytest.fixture()

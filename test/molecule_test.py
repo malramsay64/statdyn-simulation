@@ -64,7 +64,7 @@ def test_compute_moment_inertia(molecule):
 
 
 def test_scale_moment_inertia(molecule):
-    scale_factor = 10.
+    scale_factor = 10.0
     init_mom_I = molecule.moment_inertia
     print(init_mom_I)
     molecule.moment_inertia_scale = scale_factor
@@ -75,7 +75,7 @@ def test_scale_moment_inertia(molecule):
 
 def test_get_radii(molecule):
     radii = molecule.get_radii()
-    assert radii[0] == 1.
+    assert radii[0] == 1.0
 
 
 def test_read_only_position(molecule):
@@ -101,15 +101,15 @@ def test_mass_dimer():
 def test_moment_inertia_trimer():
     """Ensure calculation of moment of inertia is working properly."""
     molecule = Trimer()
-    assert_allclose(molecule.moment_inertia, np.array([0, 0, 1.6666666666666665]))
+    assert_allclose(molecule.moment_inertia, np.array([0, 0, 1.666_666_666_666_666_5]))
     molecule = Trimer(distance=0.8)
     assert molecule.moment_inertia[0] == 0
     assert molecule.moment_inertia[1] == 0
-    assert molecule.moment_inertia[2] < 1.6666666666666665
+    assert molecule.moment_inertia[2] < 1.666_666_666_666_666_5
     molecule = Trimer(distance=1.2)
     assert molecule.moment_inertia[0] == 0
     assert molecule.moment_inertia[1] == 0
-    assert molecule.moment_inertia[2] > 1.6666666666666665
+    assert molecule.moment_inertia[2] > 1.666_666_666_666_666_5
 
 
 def test_moment_inertia_dimer():
@@ -143,7 +143,7 @@ def test_moment_inertia_scaling(scaling_factor):
 
 def test_compute_size(molecule):
     size = molecule.compute_size()
-    assert size >= 2.
+    assert size >= 2.0
 
 
 def test_dimensions(molecule):
