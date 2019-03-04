@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 # vim:fenc=utf-8
 #
@@ -327,9 +327,9 @@ def make_orthorhombic(snapshot: Snapshot) -> Snapshot:
     len_z = snapshot.box.Lz
     dimensions = snapshot.box.dimensions
     xlen = len_x + snapshot.box.xy * len_y
-    snapshot.particles.position[:, 0] += xlen / 2.
+    snapshot.particles.position[:, 0] += xlen / 2.0
     snapshot.particles.position[:, 0] %= len_x
-    snapshot.particles.position[:, 0] -= len_x / 2.
+    snapshot.particles.position[:, 0] -= len_x / 2.0
     box = hoomd.data.boxdim(len_x, len_y, len_z, 0, 0, 0, dimensions=dimensions)
     hoomd.data.set_snapshot_box(snapshot, box)
     return snapshot
