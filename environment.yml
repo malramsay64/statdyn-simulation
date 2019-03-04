@@ -10,17 +10,17 @@ dependencies:
   - setuptools
   - pip>=10
   # Package Dependencies
-  - numpy
+  - numpy >1.12, <1.16
   - glotzer::hoomd=2.3.0
   - cudatoolkit=8
   - rowan
   - attrs
-  - click
+  - click ~= 7.0.0
   - mpi4py
   # Testing and development
-  - pylint=2.1.1
+  - pylint=2.2.0
   - black=18.9b0
-  - mypy=0.620
+  - mypy=0.670
   - pytest
   - pytest-cov
   - coverage
