@@ -196,9 +196,9 @@ def production(
         if dynamics:
             iterator = GenerateStepSeries(
                 sim_params.num_steps,
-                num_linear=100,
+                num_linear=sim_params.num_linear,
                 max_gen=sim_params.max_gen,
-                gen_steps=20000,
+                gen_steps=sim_params.gen_steps,
             )
             # Zeroth step
             curr_step = iterator.next()
