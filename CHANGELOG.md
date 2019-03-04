@@ -2,10 +2,30 @@
 ## [Unreleased]
 
 
+<a name="v0.6.5"></a>
+## [v0.6.5] - 2019-03-05
+### Chore
+- Update development environment
+- Update black to latest version
+
+### Feat
+- Makefile rules for running lints and formatting locally
+
+### Fix
+- Use the simulation params in running a simulation
+
+### Style
+- Format with updated version of black
+- Standardise #! line to python3
+
+
 <a name="v0.6.4"></a>
 ## [v0.6.4] - 2019-02-27
 ### Chore
 - Include change log generation using git-chglog
+
+### Docs
+- Generate changelog for v0.6.4 release
 
 ### Feat
 - Allow specification of keyframe interval on commandline
@@ -212,7 +232,8 @@
 <a name="0.0.8"></a>
 ## 0.0.8 - 2016-09-10
 
-[Unreleased]: https://github.com/malramsay64/statdyn-simulation/compare/v0.6.4...HEAD
+[Unreleased]: https://github.com/malramsay64/statdyn-simulation/compare/v0.6.5...HEAD
+[v0.6.5]: https://github.com/malramsay64/statdyn-simulation/compare/v0.6.4...v0.6.5
 [v0.6.4]: https://github.com/malramsay64/statdyn-simulation/compare/v0.6.3...v0.6.4
 [v0.6.3]: https://github.com/malramsay64/statdyn-simulation/compare/v0.6.2...v0.6.3
 [v0.6.2]: https://github.com/malramsay64/statdyn-simulation/compare/v0.6.1...v0.6.2
