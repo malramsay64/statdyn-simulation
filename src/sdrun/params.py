@@ -92,7 +92,9 @@ class SimulationParams:
     @temperature.setter
     def temperature(self, value: float) -> None:
         assert value is not None
-        assert value >= 0, f"Temperature cannot be negative. You gave: {value}"
+        if value < 0:
+            raise ValueError(f"Temperature can no be negative. Found {value}")
+
         self._temperature = float(value)
 
     @property
