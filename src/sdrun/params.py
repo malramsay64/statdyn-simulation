@@ -78,7 +78,7 @@ class SimulationParams:
         assert self.num_steps is not None
         assert self.num_steps > 0
 
-        ramp_steps = int(min(0.75e6, self.num_steps * 0.75))
+        ramp_steps = int(min(1e7, self.num_steps * 0.5))
         logger.debug("Ramp steps: %d", ramp_steps)
         return hoomd.variant.linear_interp(
             [
