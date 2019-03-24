@@ -99,6 +99,7 @@ def set_dump(
         time_step=timestep,
         period=dump_period,
         group=group,
+        dynamic=["property", "momentum"],
         overwrite=True,
     )
 
