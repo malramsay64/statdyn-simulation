@@ -18,7 +18,7 @@ import hoomd
 from .molecules import Molecule, Trimer
 
 if TYPE_CHECKING:
-    from .crystals import Crystal
+    from .crystals import Crystal  # pylint: disable=unused-import,useless-suppression
 
 logger = logging.getLogger(__name__)
 
