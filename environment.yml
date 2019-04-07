@@ -18,6 +18,7 @@ dependencies:
   - click ~= 7.0.0
   - mpi4py
   # Testing and development
+  - pre_commit
   - pylint=2.2.0
   - black=18.9b0
   - mypy=0.670
