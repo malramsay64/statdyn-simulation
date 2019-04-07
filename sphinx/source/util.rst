@@ -1,7 +1,7 @@
-Dynamics Module
-===============
+Util module
+===========
 
-.. automodule:: dynamics
+.. automodule:: sdrun.util
     :members:
     :undoc-members:
     :show-inheritance:

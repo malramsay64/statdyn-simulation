@@ -1,7 +1,7 @@
-TransData module
+Molecules Module
 ================
 
-.. automodule:: TransData
+.. automodule:: sdrun.molecules
     :members:
     :undoc-members:
     :show-inheritance:

@@ -27,3 +27,8 @@ dependencies:
   - coverage
   - hypothesis
   - ipykernel
+  - sphinx
+  - sphinx_rtd_theme
+  - pip
+  - pip:
+    - sphinx_autodoc_typehints

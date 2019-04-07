@@ -1,7 +1,7 @@
-TimeDep module
-==============
+Params module
+=============
 
-.. automodule:: TimeDep
+.. automodule:: sdrun.params
     :members:
     :undoc-members:
     :show-inheritance:

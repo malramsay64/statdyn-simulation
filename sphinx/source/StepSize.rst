@@ -1,7 +1,7 @@
-StepSize Module
+StepSize module
 ===============
 
-.. automodule:: StepSize
+.. automodule:: sdrun.StepSize
     :members:
     :undoc-members:
     :show-inheritance:
