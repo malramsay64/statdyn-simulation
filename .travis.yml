@@ -11,6 +11,7 @@ script:
   - docker run malramsay/sdrun pylint src/
   - docker run malramsay/sdrun mypy src/
   - docker run malramsay/sdrun pytest
+  - docker run malramsay/sdrun make docs
 
 after_success:
   - docker run malramsay/sdrun codecov

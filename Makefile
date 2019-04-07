@@ -23,7 +23,7 @@ llint:
 
 lint: build
 	docker run malramsay/sdrun pylint src/
-	,docker run malramsay/sdrun mypy src/
+	docker run malramsay/sdrun mypy src/
 
 docs:
 	$(MAKE) -C sphinx html
