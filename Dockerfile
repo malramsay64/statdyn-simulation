@@ -7,8 +7,7 @@ RUN yum install -y which && \
 
 # Install pip and pipenv
 RUN python36 -m ensurepip && \
-    python36 -m pip install -U pip && \
-    python36 -m pip install pipenv
+    python36 -m pip install -U pip
 
 # Set environment encoding to UTF-8
 # This is because the default encoding is typically ASCII which is a bad idea.
@@ -21,14 +20,8 @@ ARG PYTHON=/usr/bin/python36
 # This helps keep the image smaller
 ENV PIP_NO_CACHE_DIR=false
 
-# Just add the Pipfiles which means we only need to rerun the pipenv install when
-# these files change.
-ADD ./Pipfile /srv/sdrun/Pipfile
-ADD ./Pipfile.lock /srv/sdrun/Pipfile.lock
-WORKDIR /srv/sdrun
-
-RUN pipenv install --system --ignore-pipfile --python $PYTHON --dev
-
 ADD ./ /srv/sdrun/
 
-RUN pip install -e .
+WORKDIR /srv/sdrun
+
+RUN python36 -m pip install -e .[dev]

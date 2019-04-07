@@ -18,10 +18,30 @@ def get_version():
     return g["__version__"]
 
 
+setup_requires = []
+install_requires = ["numpy", "rowan", "attrs", "click", "mpi4py"]
+test_requires = [
+    "pytest",
+    "pylint",
+    "hypothesis",
+    "coverage",
+    "black==19.3b0",
+    "mypy",
+    "pytest-mypy",
+    "pytest-pylint",
+    "pytest-cov",
+]
+docs_requires = ["sphinx", "sphinx_rtd_theme", "sphinx_autodoc_typehints"]
+dev_requires = docs_requires + test_requires
+
+
 setup(
     name="sdrun",
     version=get_version(),
     python_requires=">=3.6",
+    setup_requires=setup_requires,
+    install_requires=install_requires,
+    extras_require={"docs": docs_requires, "tests": test_requires, "dev": dev_requires},
     packages=find_packages("src"),
     package_dir={"": "src"},
     include_package_data=True,
