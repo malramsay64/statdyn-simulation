@@ -31,7 +31,7 @@ def _verbosity(ctx, param, value) -> None:  # pylint: disable=unused-argument
     log_level = levels.get(value, "DEBUG")
     logging.basicConfig(level=log_level)
     root_logger.setLevel(log_level)
-    logger.debug(f"Setting log level to %s", log_level)
+    logger.debug("Setting log level to %s", log_level)
 
 
 @click.group()
