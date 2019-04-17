@@ -29,6 +29,7 @@ requirements:
         - click
         - rowan
         - mpi4py
+        - mpich
 
 build:
     entry_points:
