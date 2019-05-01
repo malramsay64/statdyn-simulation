@@ -228,6 +228,11 @@ def initialise_snapshot(
             either `True` or `False`.
 
     """
+    if not MPI and hoomd.comm.get_num_ranks() > 1:
+        raise RuntimeError(
+            "Running with MPI with mpi4py not installed is not supported,"
+            "install mpi dependencies with pip install sdrun[mpi]"
+        )
 
     # Only use the master process to check the snapshot
     if hoomd.comm.get_rank() == 0:
