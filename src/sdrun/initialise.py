@@ -126,9 +126,26 @@ def init_from_crystal(
             for any slight inaccuracies of the lattice parameters.
             (Default `False`).
     """
-    assert sim_params.cell_dimensions is not None
-    assert sim_params.crystal is not None
-    assert sim_params.molecule is not None
+    if sim_params.cell_dimensions is None:
+        raise ValueError(
+            "The cell_dimensions need to be set to initialise"
+            "a simulation from a crystal, found None"
+        )
+
+    if sim_params.crystal is None:
+        raise ValueError(
+            "The crystal parameter needs to be set to a value"
+            "giving the crystal parameters to use, found None."
+        )
+
+    if sim_params.molecule is None:
+        # This should be set when the crystal is set hence RuntimeError,
+        # as something has gone wrong in the code/runtime
+        raise RuntimeError(
+            "The molecule parameter needs to be set when initialising"
+            "from a crystal structure, which should be part of the"
+            "crystal parameter"
+        )
 
     logger.info(
         textwrap.dedent(
@@ -259,7 +276,8 @@ def initialise_snapshot(
 def minimize_snapshot(
     snapshot: Snapshot, sim_params: SimulationParams, ensemble: str = "NVE"
 ) -> Snapshot:
-    assert ensemble in ["NVE", "NPH"]
+    if ensemble not in ["NVE", "NPH"]:
+        raise ValueError(f"Ensemble needs to be one of (NVE|NPH), found {ensemble}")
 
     logger.info(
         textwrap.dedent(
