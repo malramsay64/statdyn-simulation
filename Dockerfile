@@ -24,4 +24,4 @@ ADD ./ /srv/sdrun/
 
 WORKDIR /srv/sdrun
 
-RUN python36 -m pip install -e .[dev]
+RUN python36 -m pip install -e .[dev,mpi]
