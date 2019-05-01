@@ -233,6 +233,7 @@ def initialise_snapshot(
     if hoomd.comm.get_rank() == 0:
         # Thermalise where the velocity of the particle is well away from the desired temperature
         if thermalisation is None:
+            logger.debug("sim_params.init_temp: %s", sim_params.init_temp)
             temperature = (
                 sim_params.init_temp if sim_params.init_temp else sim_params.temperature
             )
@@ -369,6 +370,10 @@ def randomise_momenta(
         random_seed = 42
         logger.warning("No random seed provided using %s", random_seed)
 
+    initialisation_temperature = sim_params.init_temp
+    if sim_params.init_temp is None:
+        initialisation_temperature = sim_params.temperature
+
     logger.info(
         textwrap.dedent(
             """
@@ -379,7 +384,7 @@ def randomise_momenta(
             """
         ),
         random_seed,
-        sim_params.temperature,
+        initialisation_temperature,
     )
     context = hoomd.context.initialize(sim_params.hoomd_args)
     with sim_params.temp_context(iteration_id=None):
@@ -388,7 +393,7 @@ def randomise_momenta(
         group = get_group(sys, sim_params, interface)
         integrator = set_integrator(sim_params, group)
         integrator.randomize_velocities(random_seed)
-        logger.debug("Randomising momenta at kT=%.2f", sim_params.temperature)
+        logger.debug("Randomising momenta at kT=%.2f", sim_params.init_temp)
         hoomd.run(0)
         integrator.disable()
 
