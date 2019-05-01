@@ -41,7 +41,7 @@ setup(
     python_requires=">=3.6",
     setup_requires=setup_requires,
     install_requires=install_requires,
-    extras_require={"docs": docs_requires, "tests": test_requires, "dev": dev_requires},
+    extras_require={"doc": docs_requires, "test": test_requires, "dev": dev_requires},
     packages=find_packages("src"),
     package_dir={"": "src"},
     include_package_data=True,
