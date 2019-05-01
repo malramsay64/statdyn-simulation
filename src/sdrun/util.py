@@ -46,9 +46,18 @@ def set_integrator(
         integration_method: The type of thermodynamic integration.
 
     """
-    assert integration_method in ["NPT", "NVT"]
-    assert simulation_type in ["liquid", "crystal", "interface"]
-    assert group is not None
+    if integration_method not in ["NPT", "NVT"]:
+        raise ValueError(
+            f"Integration method must be in (NPT|NVT), found {integration_method}"
+        )
+
+    if simulation_type not in ["liquid", "crystal", "interface"]:
+        raise ValueError(
+            f"simulation_type must be one out (liquid|crystal|interface), found {simulation_type}"
+        )
+
+    if group is None:
+        raise ValueError("group must not be none")
 
     md.integrate.mode_standard(sim_params.step_size)
     if sim_params.molecule.dimensions == 2:
@@ -89,7 +98,8 @@ def set_dump(
     extension: bool = True,
 ) -> hoomd.dump.gsd:
     """Initialise dumping configuration to a file."""
-    assert group is not None
+    if group is None:
+        raise ValueError("group must not be None")
     # Ensure outfile is a Path object
     outfile = Path(outfile)
     if extension:
@@ -165,7 +175,9 @@ def get_group(
 
 
 def _interface_group(sys: System, base_group: Group, stationary: bool = False):
-    assert base_group is not None
+    if base_group is None:
+        raise ValueError("The base_group argument cannot be None")
+
     stationary_group = hoomd.group.cuboid(
         name="stationary",
         xmin=-sys.box.Lx / 3,
@@ -201,10 +213,23 @@ def _get_num_bodies(snapshot: Snapshot) -> NumBodies:
     if num_mols > num_particles:
         num_mols = num_particles
 
-    assert (
-        num_mols <= num_particles
-    ), f"Num molecule: {num_mols}, Num particles {num_particles}"
-    assert num_particles == len(snapshot.particles.position)
+    if num_mols > num_particles:
+        raise RuntimeError(
+            "There more molecules than particles, calculation has failed"
+            f"found {num_mols} molecules and {num_particles} particles."
+        )
+
+    if num_mols > len(snapshot.particles.position):
+        raise RuntimeError(
+            "There are more molecules than position vectors,"
+            f"num_mols: {num_mols}, positions: {len(snapshot.particles.position)}"
+        )
+
+    if num_particles > len(snapshot.particles.position):
+        raise RuntimeError(
+            "There are more particles than position vectors,"
+            f"num_particles: {num_particles}, positions: {len(snapshot.particles.position)}"
+        )
 
     return NumBodies(num_particles, num_mols)
 
