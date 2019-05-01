@@ -49,12 +49,30 @@ def equilibrate(
 
     """
     # Check for required parameters, failing early if missing
-    assert equil_type in ["liquid", "crystal", "interface"]
-    assert sim_params.hoomd_args is not None
-    assert sim_params.output_interval is not None
-    assert sim_params.num_steps is not None
-    assert sim_params.num_steps >= 0
-    assert sim_params.outfile is not None
+    if equil_type not in ["liquid", "crystal", "interface"]:
+        raise ValueError(
+            f"equil_type needs to be one of (liquid|crystal|interface), found {equil_type}"
+        )
+
+    if sim_params.hoomd_args is None:
+        raise ValueError(
+            "The hoomd_args cannot be None, no arguments is an empty string."
+            "Found {hoomd_args}"
+        )
+
+    if sim_params.num_steps is None or sim_params.num_steps < 0:
+        raise ValueError(
+            "The number of steps has to be a positive number, found {sim_params.num_steps}"
+        )
+
+    if sim_params.output_interval is None or sim_params.output_interval < 0:
+        raise ValueError(
+            "The number of steps between output configurations needs to be a positive integer,"
+            "found {sim_params.output_interval}"
+        )
+
+    if sim_params.outfile is None:
+        raise ValueError("The outfile needs to be defined, found None")
 
     # Ensure orthorhombic liquid and interface
     if equil_type in ["liquid", "interface"]:
@@ -131,10 +149,17 @@ def create_interface(sim_params: SimulationParams) -> Snapshot:
     function which goes through those steps with the intent of having melted the liquid component
     and having high temperature liquid--crystal interface.
     """
-    assert sim_params.init_temp is not None
-    assert sim_params.init_temp > 0
-    assert sim_params.num_steps is not None
-    assert sim_params.num_steps >= 0
+    if sim_params.init_temp is None or sim_params.init_temp <= 0:
+        raise ValueError(
+            "The init_temp parameter needs to be set to a positive value"
+            "to create an interface, found {sim_params.init_temp}"
+        )
+
+    if sim_params.num_steps is None or sim_params.num_steps <= 0:
+        raise ValueError(
+            "The num_steps parameter needs to be set to a positive integer"
+            "to create an interface, found {sim_params.num_steps}"
+        )
 
     # Initialisation typically requires fewer steps than melting
     # 100 initialisation steps is a 'magic number' which works for the p2 crystal. I don't know why
@@ -169,11 +194,27 @@ def production(
 
 
     """
-    assert sim_params.num_steps is not None
-    assert sim_params.num_steps >= 0
-    assert sim_params.output_interval is not None
-    assert isinstance(context, hoomd.context.SimulationContext)
-    assert simulation_type in ["liquid"]
+    if sim_params.num_steps is None or sim_params.num_steps < 0:
+        raise ValueError(
+            "The number of steps has to be a positive number, found {sim_params.num_steps}"
+        )
+
+    if sim_params.output_interval is None or sim_params.output_interval < 0:
+        raise ValueError(
+            "The number of steps between output configurations needs to be a positive integer,"
+            "found {sim_params.output_interval}"
+        )
+
+    if not isinstance(context, hoomd.context.SimulationContext):
+        raise ValueError(
+            "The context needs to be a `hoomd.context.SimulationContext' instance",
+            f"found {type(context)}",
+        )
+
+    if simulation_type not in ["liquid"]:
+        raise ValueError(
+            "Supported simulation types are (liquid)," "found {simulation_type}"
+        )
 
     sys = initialise_snapshot(snapshot, context, sim_params)
     with context:
