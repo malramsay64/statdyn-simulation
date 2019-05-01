@@ -44,8 +44,8 @@ def equilibrate(
     Args:
         snapshot: The initial snapshot to start the simulation.
         sim_params: The simulation parameters
-        equil_type: The type of equilibration to undertake. This is one of `["liquid", "crystal",
-        "interface"]`.
+        equil_type: The type of equilibration to undertake. This is one
+            of (liquid|crystal|interface).
 
     """
     # Check for required parameters, failing early if missing
