@@ -15,7 +15,7 @@ dependencies:
   - cudatoolkit=8
   - rowan
   - attrs
-  - click ~= 7.0.0
+  - click=7.*
   - mpi4py
   # Testing and development
   - pre_commit
