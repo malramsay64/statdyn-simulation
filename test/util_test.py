@@ -5,6 +5,8 @@
 # Copyright © 2018 Malcolm Ramsay <malramsay64@gmail.com>
 #
 # Distributed under terms of the MIT license.
+#
+# pylint: disable=redefined-outer-name
 
 """Test the util module."""
 
@@ -18,8 +20,8 @@ from numpy.testing import assert_allclose
 
 from sdrun.initialise import initialise_snapshot
 from sdrun.util import (
-    NumBodies,
     _get_num_bodies,
+    _NumBodies,
     dump_frame,
     get_group,
     get_num_mols,
@@ -39,7 +41,7 @@ def create_snapshot():
             N=num_particles, box=boxdim(1, 1, 1), particle_types=["A"] * num_particles
         )
         yield {
-            "num_bodies": NumBodies(num_particles, num_particles),
+            "num_bodies": _NumBodies(num_particles, num_particles),
             "snapshot": snapshot,
         }
 
@@ -49,10 +51,10 @@ def create_snapshot():
 )
 def test_num_bodies_types(type_conv):
     num_particles, num_mols = 300, 100
-    n_bodies = NumBodies(type_conv(num_particles), type_conv(num_mols))
-    assert type(n_bodies.particles) is int
+    n_bodies = _NumBodies(type_conv(num_particles), type_conv(num_mols))
+    assert isinstance(n_bodies.particles, int)
     assert n_bodies.particles == num_particles
-    assert type(n_bodies.molecules) is int
+    assert isinstance(n_bodies.molecules, int)
     assert n_bodies.molecules == num_mols
 
 
@@ -63,13 +65,13 @@ def test_num_bodies(create_snapshot):
 
 def test_get_num_particles(create_snapshot):
     num_particles = get_num_particles(create_snapshot["snapshot"])
-    assert type(num_particles) is int
+    assert isinstance(num_particles, int)
     assert num_particles == create_snapshot["num_bodies"].particles
 
 
 def test_get_num_mols(create_snapshot):
     num_bodies = get_num_mols(create_snapshot["snapshot"])
-    assert type(num_bodies) is int
+    assert isinstance(num_bodies, int)
     assert num_bodies == create_snapshot["num_bodies"].molecules
 
 
