@@ -246,12 +246,12 @@ class Trimer(Molecule):
         """Initialise trimer molecule.
 
         Args:
-            radius (float): Radius of the small particles. Default is 0.637556
-            distance (float): Distance of the outer particles from the central
+            radius: Radius of the small particles. Default is 0.637556
+            distance: Distance of the outer particles from the central
                 one. Default is 1.0
-            angle (float): Angle between the two outer particles in degrees.
+            angle: Angle between the two outer particles in degrees.
                 Default is 120
-            moment_inertia_scale(float): Scale the moment of inertia by this
+            moment_inertia_scale: Scale the moment of inertia by this
                 factor.
 
         """
@@ -322,9 +322,11 @@ class Dimer(Molecule):
         """Initialise Dimer molecule.
 
         Args:
-            radius (float): Radius of the small particles. Default is 0.637556
-            distance (float): Distance of the outer particles from the central
+            radius: Radius of the small particles. Default is 0.637556
+            distance: Distance of the outer particles from the central
                 one. Default is 1.0
+            moment_inertia_scale: Scale the moment of inertia by this
+                factor.
 
         """
         self.radius = radius

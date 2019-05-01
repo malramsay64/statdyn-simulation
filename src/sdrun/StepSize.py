@@ -159,7 +159,7 @@ class GenerateStepSeries(Iterable):
         iterindexes = self.values[self.curr_step]
         logger.debug("Value of iterindexes: %s at step %d", iterindexes, self.curr_step)
 
-        # Add interators back onto queue
+        # Add iterators back onto queue
         for iindex in iterindexes:
             self._enqueue(iindex)
 

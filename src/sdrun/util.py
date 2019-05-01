@@ -36,6 +36,7 @@ def set_integrator(
 
     Args:
         sim_params: The general parameters of the simulation.
+        group: The group of particles over which the integration is to take place.
         prime_interval: The number of steps between zeroing the momentum of the simulation.
             A prime number is chosen to have this change be less systematic.
         simulation_type: The type of simulation, which influences the parameters for the
@@ -97,7 +98,21 @@ def set_dump(
     timestep: int = 0,
     extension: bool = True,
 ) -> hoomd.dump.gsd:
-    """Initialise dumping configuration to a file."""
+    """Initialise the dumping of configurations to a file.
+
+    This initialises the simulation configuration to be output every
+    `dump_period` timesteps.
+
+    Args:
+        group: The group of particles to dump.
+        outfile: The file to store the output configurations.
+        dump_period: How often the particles should be output. When
+            this is None just the current frame is output. Defaults
+            to 10000.
+        timestep: The timestep to be associated with the current configuration, default is 0
+        extension: Whether to manually set the file extension, default True
+
+    """
     if group is None:
         raise ValueError("group must not be None")
     # Ensure outfile is a Path object
@@ -117,7 +132,15 @@ def set_dump(
 def dump_frame(
     group: Group, outfile: Path, timestep: int = 0, extension: bool = True
 ) -> hoomd.dump.gsd:
-    """Dump a single frame to an output frame now."""
+    """Dump a single frame to an output frame now.
+
+    Args:
+        group: The group of particles to dump.
+        outfile: The file to store the output configurations.
+        timestep: The timestep to be associated with the current configuration, default is 0
+        extension: Whether to manually set the file extension, default True
+
+    """
     return set_dump(
         group, outfile=outfile, dump_period=None, extension=extension, timestep=timestep
     )
@@ -126,7 +149,16 @@ def dump_frame(
 def set_thermo(
     outfile: Path, thermo_period: int = 10000, rigid=True
 ) -> hoomd.analyze.log:
-    """Set the thermodynamic quantities for a simulation."""
+    """Set the thermodynamic quantities for a simulation.
+
+    Args:
+        outfile: File to output thermodynamic data to
+        thermo_period: The period with which the thermodynamic
+            data should be output. (Default is 10_000)
+        rigid: Whether to output the additional information about
+            the rigid group. (Default is True)
+
+    """
     default = [
         "N",
         "volume",
@@ -165,6 +197,19 @@ def set_thermo(
 def get_group(
     sys: System, sim_params: SimulationParams, interface: bool = False
 ) -> Group:
+    """Method for creating a Hoomd group instance
+
+    This makes the creation of a group simpler, handling the different types of groups
+    which are used in this project, those where there are rigid particles, those without,
+    and a group of particles creating an interface.
+
+    Args:
+        sys: The system in which the group should be created.
+        sim_params: Parameters for the simulation.
+        interface: Whether to create a sub-group of mobile particles
+            to assist in creating an interface. (Default is False)
+
+    """
     if sim_params.molecule.rigid:
         group = hoomd.group.rigid_center()
     else:
@@ -198,12 +243,12 @@ def _interface_group(sys: System, base_group: Group, stationary: bool = False):
 
 
 @attr.s(auto_attribs=True)
-class NumBodies:
+class _NumBodies:
     particles: int = attr.ib(converter=int)
     molecules: int = attr.ib(converter=int)
 
 
-def _get_num_bodies(snapshot: Snapshot) -> NumBodies:
+def _get_num_bodies(snapshot: Snapshot) -> _NumBodies:
     try:
         num_particles = snapshot.particles.N
         num_mols = max(snapshot.particles.body) + 1
@@ -231,7 +276,7 @@ def _get_num_bodies(snapshot: Snapshot) -> NumBodies:
             f"num_particles: {num_particles}, positions: {len(snapshot.particles.position)}"
         )
 
-    return NumBodies(num_particles, num_mols)
+    return _NumBodies(num_particles, num_mols)
 
 
 def get_num_mols(snapshot: Snapshot) -> int:
