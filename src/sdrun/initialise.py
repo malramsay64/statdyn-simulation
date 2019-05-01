@@ -23,7 +23,6 @@ import hoomd.md
 import numpy as np
 from hoomd.context import SimulationContext as Context
 from hoomd.data import SnapshotParticleData as Snapshot, system_data as System
-from mpi4py import MPI
 
 from .crystals import Crystal
 from .molecules import Molecule
@@ -36,9 +35,15 @@ from .util import (
     set_integrator,
 )
 
-logger = logging.getLogger(__name__)
+try:
+    from mpi4py import MPI
+except ImportError:
+    MPI = None
+else:
+    COMM = MPI.COMM_WORLD
 
-COMM = MPI.COMM_WORLD
+
+logger = logging.getLogger(__name__)
 
 
 def init_from_file(fname: Path, molecule: Molecule, hoomd_args: str = "") -> Snapshot:
@@ -258,7 +263,8 @@ def initialise_snapshot(
                 compute_translational_ke(snapshot) > 0.5 * num_molecules * temperature
             )
 
-    thermalisation = COMM.bcast(thermalisation, root=0)
+    if MPI:
+        thermalisation = COMM.bcast(thermalisation, root=0)
 
     if thermalisation:
         snapshot = thermalise(snapshot, sim_params)

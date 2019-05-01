@@ -19,7 +19,7 @@ def get_version():
 
 
 setup_requires = []
-install_requires = ["numpy", "rowan", "attrs", "click", "mpi4py"]
+install_requires = ["numpy", "rowan", "attrs", "click"]
 test_requires = [
     "pytest",
     "pylint",
@@ -41,7 +41,12 @@ setup(
     python_requires=">=3.6",
     setup_requires=setup_requires,
     install_requires=install_requires,
-    extras_require={"doc": docs_requires, "test": test_requires, "dev": dev_requires},
+    extras_require={
+        "doc": docs_requires,
+        "test": test_requires,
+        "dev": dev_requires,
+        "mpi": ["mpi4py"],
+    },
     packages=find_packages("src"),
     package_dir={"": "src"},
     include_package_data=True,
