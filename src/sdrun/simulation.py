@@ -174,7 +174,10 @@ def create_interface(sim_params: SimulationParams) -> Snapshot:
         # Find NPT minimum of crystal
         snapshot = equilibrate(snapshot, sim_params, equil_type="crystal")
     # Equilibrate interface to temperature with intent to melt the interface
-    snapshot = equilibrate(snapshot, sim_params, equil_type="interface")
+    with sim_params.temp_context(init_temp=None):
+        snapshot = equilibrate(
+            snapshot, sim_params, equil_type="interface", thermalisation=True
+        )
     return snapshot
 
 
