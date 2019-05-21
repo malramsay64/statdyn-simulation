@@ -83,11 +83,10 @@ def init_from_none(
     using a conjugate gradient algorithm to give a reasonable low energy configuration.
 
     Args:
-        sim_params (class:`sdrun.SimulationParams`): The parameters of the simulation
+        sim_params: The parameters of the simulation
             defined for this simulation.
-        equilibration (bool): Flag to equilibrate simulation after
-            initialisation. Thermalising the perfect crystal lattice.
-            (Default `False`).
+        equilibration: Flag to equilibrate simulation after
+            initialisation. Thermalising the perfect crystal lattice. (Default `False`).
 
     """
     logger.info(
@@ -121,12 +120,11 @@ def init_from_crystal(
     cell_dimensions variable.
 
     Args:
-        sim_params (class:`sdrun.SimulationParams`): The parameters of the simulation
-            defined for this simulation.
-        equilibration (bool): Flag to equilibrate simulation after
+        sim_params: The parameters of the simulation defined for this simulation.
+        equilibration: Flag to equilibrate simulation after
             initialisation. Thermalising the perfect crystal lattice.
             (Default `False`).
-        minimize (bool): Perform a FIRE energy minimisation on the crystal
+        minimize: Perform a FIRE energy minimisation on the crystal
             after initialising from the lattice parameters. This accounts
             for any slight inaccuracies of the lattice parameters.
             (Default `False`).
@@ -211,18 +209,14 @@ def initialise_snapshot(
     close to the desired values.
 
     Args:
-        snapshot (class:`hoomd.snapshot.SnapshotParticleData`): The hoomd snapshot which
-            is to be initialised.
-        context (class:`hoomd.context.SimulationContext`): The Hoomd simulation context
-            to configure the snapshot for use in.
-        sim_params (class:`sdrun.SimulationParams`): The parameters of the simulation
-            defined for this simulation.
-        minimize (bool): Perform a FIRE energy minimisation on the crystal
+        snapshot: The Hoomd snapshot which is to be initialised.
+        context: The Hoomd simulation context to configure the snapshot for use in.
+        sim_params: The parameters of the simulation defined for this simulation.
+        minimize: Perform a FIRE energy minimisation on the crystal
             after initialising from the lattice parameters. This accounts
-            for any slight inaccuracies of the lattice parameters.
-            (Default `False`).
-        thermalisation: (class:`bool`): Randomise the momenta of the particles in the
-            simulation according to a Poission distribution at the desired temperature.
+            for any slight inaccuracies of the lattice parameters. (Default `False`).
+        thermalisation: Randomise the momenta of the particles in the simulation
+            according to a Maxwell-Bolzmann distribution at the desired temperature.
             With no value passed this is performed when the thermodynamic temperature
             is well away from the desired value. This can be overridden by passing
             either `True` or `False`.
@@ -230,7 +224,7 @@ def initialise_snapshot(
     """
     if not MPI and hoomd.comm.get_num_ranks() > 1:
         raise RuntimeError(
-            "Running with MPI with mpi4py not installed is not supported,"
+            "Running with MPI when mpi4py not installed is not supported,"
             "install mpi dependencies with pip install sdrun[mpi]"
         )
 
@@ -287,6 +281,20 @@ def initialise_snapshot(
 def minimize_snapshot(
     snapshot: Snapshot, sim_params: SimulationParams, ensemble: str = "NVE"
 ) -> Snapshot:
+    """Find a minimum energy configuration for a snapshot.
+
+    This uses the FIRE energy minimisation algorithm to find the minimum energy
+    configuration of an input snapshot. The minimisation takes place until a minimum is
+    found or there have been too many steps to find the minimum, which is defined by the
+    `num_steps` parameter from the SimulationParams.
+
+    Args:
+        snapshot: The configuration from which to perform the minimization
+        sim_params: The parameters of the simulation defining the conditions.
+        ensemble: The type of ensemble for the integration. Can take the values
+            `"NVE"` or `"NPH"`, the default is `"NVE"`.
+
+    """
     if ensemble not in ["NVE", "NPH"]:
         raise ValueError(f"Ensemble needs to be one of (NVE|NPH), found {ensemble}")
 
@@ -344,7 +352,19 @@ def make_orthorhombic(snapshot: Snapshot) -> Snapshot:
     is to ensure consistency within simulations and because it is simpler to
     use an orthorhombic simulation cell in calculations.
 
-    Todo:
+    The orthorhombic configuration is created by specifying an box with the same volume
+    as the tilted box, only with all right angles. This newly defined simulation box is
+    passed to Hoomd, which will wrap the particles into the new box during the
+    simulation.
+
+    .. warning::
+
+        There are no checks made that this will produce a sensible box. Care is required
+        in choosing a simulation where the changing of the periodicity is not a huge
+        problem for the simulation.
+
+    ... note::
+
         This function doesn't yet account for particles within a molecule
         which are across a simulation boundary. This needs to be fixed before
         this function is truly general, otherwise it only works with special

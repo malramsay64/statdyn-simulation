@@ -6,7 +6,11 @@
 #
 # Distributed under terms of the MIT license.
 
-"""
+"""Module for the running of molecular dynamics simulations
+
+This module contains functions for running simulations, with a range of
+functions for different simulation types.
+
 """
 
 import logging
@@ -37,15 +41,43 @@ def equilibrate(
 ) -> Snapshot:
     """Run an equilibration simulation.
 
-    This will configure and run an equilibration simulation of the type specified in equil_type.
-    Each of these equilibration types has some slight variations although they all follow the
-    same premise of running a simulation with the goal of reaching an equilibrated state.
+    This will configure and run an equilibration simulation of the type specified in
+    equil_type. Each of these equilibration types has some slight variations although
+    they all follow the same premise of running a simulation with the goal of reaching
+    an equilibrated state.
 
     Args:
         snapshot: The initial snapshot to start the simulation.
         sim_params: The simulation parameters
         equil_type: The type of equilibration to undertake. This is one
             of (liquid|crystal|interface).
+        thermalisation: When `True`, an initial velocity and angular momenta to each
+            molecule in the simulation, with the values being pulled from the appropriate
+            Maxwell-Bolzmann distribution for the temperature.
+
+    Simulations of type liquid or interface will be forced into an orthorhombic shape by
+    setting the new orthorhombic box shape and moving particles through the new periodic
+    boundary conditions. In the image below, the initial configuration is the tilted
+    box, with the vertical bars being the simulation box. Particles outside the new box
+    are wrapped into the missing regions on the opposite side.
+
+    ::
+           ____________________
+          | /               | /
+          |/                |/
+          /                 /
+         /|                /|
+        /_|_______________/_|
+
+    The only difference between simulations of type `"liquid"` and `"interface"`, is
+    that the interface simulations will only be integrating the motion of a subset of
+    molecules, with the central 2/3 of particles remaining stationary.
+
+    For the simulation type `"crystal"`, the momentum is zeroed more often, every 307
+    steps instead of 33533 for the liquid and interface simulations. Additionally, to
+    allow proper and complete relaxation of the crystal structure, each side of the
+    simulation cell is able to move independently and the simulation cell is also
+    permitted to tilt.
 
     """
     # Check for required parameters, failing early if missing
@@ -188,13 +220,21 @@ def production(
     dynamics: bool = True,
     simulation_type: str = "liquid",
 ) -> None:
-    """Initialise and run a hoomd npt simulation.
+    """Initialise and run a hoomd npt simulation for data collection.
+
+    This is a utility function to run a simulation designed for the collection
+    of data. This is particularly true when the `dynamics` argument is `True`,
+    with a separate sequence of data points on an exponential sequence being 
+    collected.
 
     Args:
-        snapshot (class:`hoomd.data.snapshot`): Hoomd snapshot object
-        context:
-        sim_params:
-
+        snapshot: The configuration from which to start the production simulation
+        context: Simulation context in which to run the simulation.
+        sim_params: The parameters of the simulation which are to be set.
+        dynamics: Whether to output an exponential series of configurations
+            to make calculating dynamics properties easier.
+        simulation_type: The type of simulation to run. Currently only `"liquid"`
+            is supported.
 
     """
     if sim_params.num_steps is None or sim_params.num_steps < 0:

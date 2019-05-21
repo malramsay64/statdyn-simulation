@@ -32,7 +32,12 @@ def set_integrator(
     simulation_type: str = "liquid",
     integration_method: str = "NPT",
 ) -> hoomd.md.integrate.npt:
-    """Hoomd integrate method.
+    """Helper to create a Hoomd Integrator.
+
+    This is a utility function to more easily create an integrator for use
+    within a hoomd simulation. This sets a number of properties related to
+    the integrator, such that the main concern is setting the main integration
+    properties.
 
     Args:
         sim_params: The general parameters of the simulation.
@@ -44,7 +49,10 @@ def set_integrator(
             "crys" allows for simulation cell to tilt and decoupling of cell parameters, and
             "interface" ensures all particles are rescaled instead of just those being
             integrated.
-        integration_method: The type of thermodynamic integration.
+        integration_method: The type of thermodynamic integration, which is on
+
+    Where the simulation is two dimensional, it restricts the integration of the particle
+    positions to the two dimensional plane.
 
     """
     if integration_method not in ["NPT", "NVT"]:
