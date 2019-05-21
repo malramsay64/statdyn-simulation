@@ -224,7 +224,7 @@ def production(
 
     This is a utility function to run a simulation designed for the collection
     of data. This is particularly true when the `dynamics` argument is `True`,
-    with a separate sequence of data points on an exponential sequence being 
+    with a separate sequence of data points on an exponential sequence being
     collected.
 
     Args:
