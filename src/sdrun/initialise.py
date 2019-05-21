@@ -228,6 +228,17 @@ def initialise_snapshot(
             "install mpi dependencies with pip install sdrun[mpi]"
         )
 
+    logger.info(
+        textwrap.dedent(
+            """
+                ### INIT ###
+
+                Initialising snapshot from input: %s
+            """
+        ),
+        snapshot,
+    )
+
     # Only use the master process to check the snapshot
     if hoomd.comm.get_rank() == 0:
         num_molecules = get_num_mols(snapshot)
@@ -303,9 +314,10 @@ def minimize_snapshot(
             """
                 ### INIT ###
 
-                Performing FIRE minimisation of snapshot
+                Performing FIRE minimisation of snapshot: %s
             """
-        )
+        ),
+        snapshot,
     )
 
     temp_context = hoomd.context.initialize(sim_params.hoomd_args)
@@ -371,6 +383,19 @@ def make_orthorhombic(snapshot: Snapshot) -> Snapshot:
         cells.
 
     """
+
+    logger.info(
+        textwrap.dedent(
+            """
+                ### INIT ###
+
+                Forcing snapshot into orthorhombic configuration.
+                Initial box: %s
+            """
+        ),
+        snapshot.box,
+    )
+
     logger.debug("Snapshot type: %s", snapshot)
     len_x = snapshot.box.Lx
     len_y = snapshot.box.Ly
@@ -382,6 +407,8 @@ def make_orthorhombic(snapshot: Snapshot) -> Snapshot:
     snapshot.particles.position[:, 0] -= len_x / 2.0
     box = hoomd.data.boxdim(len_x, len_y, len_z, 0, 0, 0, dimensions=dimensions)
     hoomd.data.set_snapshot_box(snapshot, box)
+
+    logger.info("Final box: %s", snapshot.box)
     return snapshot
 
 
