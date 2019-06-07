@@ -443,8 +443,11 @@ def randomise_momenta(
 ) -> Snapshot:
     """Randomise the momenta of particles in a snapshot."""
     if random_seed is None:
-        random_seed = 42
-        logger.warning("No random seed provided using %s", random_seed)
+        if sim_params.iteration_id is not None:
+            random_seed = sim_params.iteration_id
+        else:
+            random_seed = 42
+            logger.warning("No random seed provided using %s", random_seed)
 
     initialisation_temperature = sim_params.init_temp
     if sim_params.init_temp is None:

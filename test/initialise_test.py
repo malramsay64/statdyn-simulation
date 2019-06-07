@@ -120,6 +120,30 @@ def test_randomise_seed_different(snapshot_params):
     assert np.all(velocity_similarity > 0)
 
 
+@pytest.mark.parametrize("seed", [0, 1, 10])
+def test_randomise_iteration_id(snapshot_params, seed):
+    snap1 = randomise_momenta(**snapshot_params)
+    with snapshot_params["sim_params"].temp_context(iteration_id=seed):
+        snap2 = randomise_momenta(**snapshot_params)
+    num_mols = get_num_mols(snapshot_params["snapshot"])
+    angmom_similarity = np.sum(
+        np.square(
+            snap1.particles.angmom[:num_mols] - snap2.particles.angmom[:num_mols]
+        ),
+        axis=1,
+    )
+    velocity_similarity = np.sum(
+        np.square(
+            snap1.particles.velocity[:num_mols] - snap2.particles.velocity[:num_mols]
+        ),
+        axis=1,
+    )
+    if np.any(snapshot_params["sim_params"].molecule.moment_inertia != 0):
+        print("Molecule: ", snapshot_params["sim_params"].molecule)
+        assert np.all(angmom_similarity > 0)
+    assert np.all(velocity_similarity > 0)
+
+
 def test_trimerP2_init_position():
     sim_params = SimulationParams(crystal=TrimerP2(), cell_dimensions=1)
     snap = init_from_crystal(sim_params, equilibration=False, minimize=False)
