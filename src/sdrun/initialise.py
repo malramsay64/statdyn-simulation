@@ -253,15 +253,6 @@ def initialise_snapshot(
     if minimize:
         snapshot = minimize_snapshot(snapshot, sim_params, ensemble="NVE")
 
-    if sim_params.iteration_id is not None:
-        interface = False
-        # Interface simulations require the space_group parameter to be set
-        if sim_params.space_group is not None:
-            interface = True
-        snapshot = randomise_momenta(
-            snapshot, sim_params, interface, random_seed=sim_params.iteration_id
-        )
-
     if hoomd.comm.get_rank() == 0:
         # Thermalise where the velocity of the particle is well away from the desired temperature
         if thermalisation is None:
@@ -278,6 +269,15 @@ def initialise_snapshot(
 
     if thermalisation:
         snapshot = thermalise(snapshot, sim_params)
+
+    if sim_params.iteration_id is not None:
+        interface = False
+        # Interface simulations require the space_group parameter to be set
+        if sim_params.space_group is not None:
+            interface = True
+        snapshot = randomise_momenta(
+            snapshot, sim_params, interface, random_seed=sim_params.iteration_id
+        )
 
     with context:
         sys = hoomd.init.read_snapshot(snapshot)
