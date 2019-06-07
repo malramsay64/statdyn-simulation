@@ -152,3 +152,14 @@ def test_simulation_from_file(snapshot_params):
     assert snap_equil.particles.types == sim_params.molecule.get_types()
     assert snap_equil.particles.N == snapshot.particles.N
     assert np.all(snap_equil.particles.mass[:num_mols] == sim_params.molecule.mass)
+
+
+def test_iteration_id(snapshot_params):
+    sim_params = snapshot_params["sim_params"]
+    snapshot = snapshot_params["snapshot"]
+
+    with sim_params.temp_context(iteration_id=0):
+        snap_id = equilibrate(snapshot, sim_params, "liquid", thermalisation=True)
+    snap = equilibrate(snapshot, sim_params, "liquid", thermalisation=True)
+
+    assert np.all(snap.particles.position[:, :2] != snap_id.particles.position[:, :2])
