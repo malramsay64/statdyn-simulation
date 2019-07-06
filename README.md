@@ -1,6 +1,7 @@
 # statdyn-simulation
 
 [![Build Status](https://travis-ci.org/malramsay64/statdyn-simulation.svg?branch=master)](https://travis-ci.org/malramsay64/statdyn-simulation)
+[![Documentation Status](https://readthedocs.org/projects/statdyn-simulation/badge/?version=latest)](https://statdyn-simulation.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/malramsay64/statdyn-simulation/branch/master/graph/badge.svg)](https://codecov.io/gh/malramsay64/statdyn-simulation)
 [![Anaconda-Server Badge](https://anaconda.org/malramsay/sdrun/badges/installer/conda.svg)](https://conda.anaconda.org/malramsay)
 [![Anaconda-Server Badge](https://anaconda.org/malramsay/sdrun/badges/version.svg)](https://anaconda.org/malramsay/sdrun)
