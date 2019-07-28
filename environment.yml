@@ -29,6 +29,5 @@ dependencies:
   - ipykernel
   - sphinx
   - sphinx_rtd_theme
+  - sphinx-autodoc-typehints
   - pip
-  - pip:
-    - sphinx_autodoc_typehints
