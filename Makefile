@@ -26,9 +26,9 @@ lint: build
 	docker run malramsay/sdrun mypy src/
 
 docs:
-	$(MAKE) -C sphinx html
+	$(MAKE) -C docs html
 
-.PHONY: test build
+.PHONY: test build docs
 
 # vim:ft=make
 #
