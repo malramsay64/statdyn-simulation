@@ -1,33 +1,31 @@
 name: sdrun-dev
 channels:
   - defaults
+  - anaconda
   - conda-forge
   - malramsay
 
 dependencies:
   # Python/setup dependencies
-  - python=3.6
-  - setuptools
-  - pip>=10
+  - python~=3.6.4
+  - pip=19.2.1
   # Package Dependencies
-  - numpy >1.12, <1.16
+  - numpy~=1.16.4
   - glotzer::hoomd=2.3.0
   - cudatoolkit=8
-  - rowan
-  - attrs
-  - click=7.*
-  - mpi4py
+  - rowan~=1.2.1
+  - attrs~=19.1.0
+  - click~=7.0
+  - mpi4py~=3.0.1
   # Testing and development
-  - pre_commit
-  - pylint=2.2.0
-  - black=18.9b0
-  - mypy=0.670
-  - pytest
-  - pytest-cov
-  - coverage
-  - hypothesis
-  - ipykernel
-  - sphinx
-  - sphinx_rtd_theme
-  - sphinx-autodoc-typehints
-  - pip
+  - pre_commit~=1.17.0
+  - pylint~=2.3.1
+  - black=19.3b0
+  - mypy=0.710
+  - pytest~=5.0
+  - pytest-cov~=2.7.1
+  - coverage~=4.5.3
+  - hypothesis~=4.27
+  - sphinx~=2.1.2
+  - sphinx_rtd_theme~=0.4.3
+  - sphinx-autodoc-typehints~=1.6.0
