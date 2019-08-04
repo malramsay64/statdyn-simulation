@@ -86,6 +86,8 @@ def create_params():
         "--iteration-id",
         "--space-group",
         "--moment-inertia-scale",
+        "--tau",
+        "--taup",
     ]:
         value = None
 
@@ -94,6 +96,9 @@ def create_params():
                 yield {"option": option, "value": value}
         elif "space-group" in option:
             for value in CRYSTAL_FUNCS.keys():
+                yield {"option": option, "value": value}
+        elif "tau" in option:
+            for value in [0.1, 0.5, 1.0, 5.0]:
                 yield {"option": option, "value": value}
         else:
             for value in [0, 100, 1000, 10000]:
@@ -114,4 +119,4 @@ def test_sdanalysis_options(runner, params):
     assert result.exit_code == 0, result.output
     logger.debug("Command Output: \n%s", result.output)
     option = params["option"].strip("-").replace("-", "_")
-    assert f"{option}={params['value']}" in result.output
+    assert f"{option}={params['value']}".lower() in result.output.lower()

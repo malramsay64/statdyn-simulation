@@ -47,7 +47,21 @@ def _verbosity(ctx, param, value) -> None:  # pylint: disable=unused-argument
     help="Increase debug level",
 )
 @click.option("-t", "--temperature", type=float, help="Temperature to run simulation")
+@click.option(
+    "--temperature-tau",
+    "--tau",
+    "tau",
+    type=float,
+    help="The imaginary mass for the temperature within a simulation.",
+)
 @click.option("-p", "--pressure", type=float, help="Pressure to run simulation")
+@click.option(
+    "--pressure-tau",
+    "--taup",
+    "tauP",
+    type=float,
+    help="The imaginary mass for the pressure within a simulation.",
+)
 @click.option(
     "-s", "--num-steps", type=int, help="The number of steps to run the simulation"
 )
