@@ -21,7 +21,7 @@ requirements:
 
     run:
         - {{ pin_compatible('python', max_pin='x.x') }}
-        - {{ pin_compatible('numpy', max_pin='x.x.x') }}
+        - {{ pin_compatible('numpy', max_pin='x.x') }}
         - cudatoolkit 8.*
         - hoomd 2.3.0
         - setuptools *
