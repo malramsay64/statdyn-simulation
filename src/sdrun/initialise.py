@@ -188,7 +188,8 @@ def init_from_crystal(
         snap = minimize_snapshot(snap, sim_params, ensemble="NPH")
 
     if equilibration:
-        from .simulation import equilibrate
+        # This is a circular import, so this needs to be here
+        from .simulation import equilibrate  # pylint: disable=import-outside-toplevel
 
         snap = equilibrate(snap, sim_params, equil_type="crystal")
     return snap

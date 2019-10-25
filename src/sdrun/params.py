@@ -37,7 +37,7 @@ class SimulationParams:
     _temperature: float = 0.4
     tau: float = attr.ib(default=1.0, repr=False)
     pressure: float = 13.5
-    tauP: float = attr.ib(default=1.0, repr=False)
+    tauP: float = attr.ib(default=1.0, repr=False)  # pylint: disable=invalid-name
     init_temp: Optional[float] = None
 
     # Molecule params
