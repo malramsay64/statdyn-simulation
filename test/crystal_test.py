@@ -14,10 +14,10 @@ import hoomd
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
-
 from sdrun.crystals import (
     Crystal,
     CubicSphere,
+    HexagonalCircle,
     SquareCircle,
     TrimerP2,
     TrimerP2gg,
@@ -26,7 +26,7 @@ from sdrun.crystals import (
 )
 from sdrun.params import SimulationParams
 
-TEST_CLASSES = [Crystal, TrimerP2, TrimerP2gg, TrimerPg, SquareCircle, CubicSphere]
+TEST_CLASSES = [Crystal, TrimerP2, TrimerP2gg, TrimerPg, SquareCircle, CubicSphere, HexagonalCircle]
 
 
 @pytest.fixture(params=TEST_CLASSES)

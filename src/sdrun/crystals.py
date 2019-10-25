@@ -253,10 +253,24 @@ class SquareCircle(Crystal):
         return f"{self.__class__.__name__}()"
 
 
+class HexagonalCircle(Crystal):
+    def __init__(self, length=2.0):
+        cell_matrix = np.array([[length, 0, 0], [0, np.sqrt(3) * length, 0], [0, 0, 1]])
+        position = np.array([[0, 0, 0], [length / 2, np.sqrt(3) * length / 2, 0]])
+        orientation = np.array([0, 0])
+        super().__init__(
+            cell_matrix=cell_matrix,
+            positions=position,
+            orientations=orientation,
+            molecule=Disc(),
+        )
+
+
 CRYSTAL_FUNCS = {
     "p2": TrimerP2,
     "p2gg": TrimerP2gg,
     "pg": TrimerPg,
     "SquareCircle": SquareCircle,
     "CubicSphere": CubicSphere,
+    "HexagonalCircle": HexagonalCircle,
 }
