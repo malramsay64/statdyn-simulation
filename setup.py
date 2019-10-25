@@ -19,10 +19,10 @@ def get_version():
 
 
 setup_requires = []
-install_requires = ["numpy", "rowan", "attrs", "click"]
+install_requires = ["numpy", "rowan", "attrs>=19.2", "click"]
 test_requires = [
     "pytest",
-    "pylint",
+    "pylint~=2.4.0",
     "hypothesis",
     "coverage",
     "black==19.3b0",
