@@ -275,9 +275,9 @@ def test_make_orthorhombic(cell_dimensions):
         ).take_snapshot()
         snap_ortho = make_orthorhombic(snap_crys)
         assert np.all(snap_ortho.particles.position[:, 0] < snap_ortho.box.Lx / 2.0)
-        assert np.all(snap_ortho.particles.position[:, 0] > -snap_ortho.box.Lx / 2.0)
+        assert np.all(snap_ortho.particles.position[:, 0] >= -snap_ortho.box.Lx / 2.0)
         assert np.all(snap_ortho.particles.position[:, 1] < snap_ortho.box.Ly / 2.0)
-        assert np.all(snap_ortho.particles.position[:, 1] > -snap_ortho.box.Ly / 2.0)
+        assert np.all(snap_ortho.particles.position[:, 1] >= -snap_ortho.box.Ly / 2.0)
         assert snap_ortho.box.xy == 0
         assert snap_ortho.box.xz == 0
         assert snap_ortho.box.yz == 0
@@ -290,9 +290,9 @@ def test_orthorhombic_init(crystal_params, cell_dimensions):
     snap_ortho = make_orthorhombic(snap)
     assert np.all(snap_ortho.particles.position == snap.particles.position)
     assert np.all(snap_ortho.particles.position[:, 0] < snap_ortho.box.Lx / 2.0)
-    assert np.all(snap_ortho.particles.position[:, 0] > -snap_ortho.box.Lx / 2.0)
+    assert np.all(snap_ortho.particles.position[:, 0] >= -snap_ortho.box.Lx / 2.0)
     assert np.all(snap_ortho.particles.position[:, 1] < snap_ortho.box.Ly / 2.0)
-    assert np.all(snap_ortho.particles.position[:, 1] > -snap_ortho.box.Ly / 2.0)
+    assert np.all(snap_ortho.particles.position[:, 1] >= -snap_ortho.box.Ly / 2.0)
     assert snap_ortho.box.xy == 0
     assert snap_ortho.box.xz == 0
     assert snap_ortho.box.yz == 0
