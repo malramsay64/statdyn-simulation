@@ -21,7 +21,7 @@ from hoomd.md.pair import pair as Pair
 logger = logging.getLogger(__name__)
 
 
-@attr.s(auto_attribs=True, cmp=False)
+@attr.s(auto_attribs=True, eq=True)
 class Molecule:
     """Molecule class holding information on the molecule for use in hoomd.
 
@@ -38,7 +38,7 @@ class Molecule:
     dimensions: int = 3
     moment_inertia_scale: float = 1
     positions: np.ndarray = attr.ib(
-        default=attr.Factory(lambda: np.zeros((1, 3))), repr=False, cmp=False
+        default=attr.Factory(lambda: np.zeros((1, 3))), repr=False, eq=False
     )
     potential: Pair = attr.ib(hoomd.md.pair.slj, repr=False)
     particles: List[str] = attr.ib(default=attr.Factory(lambda: ["A"]))

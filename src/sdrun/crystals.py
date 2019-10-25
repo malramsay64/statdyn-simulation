@@ -18,7 +18,7 @@ from .molecules import Disc, Molecule, Sphere, Trimer
 from .util import z2quaternion
 
 
-@attr.s(auto_attribs=True, cmp=False)
+@attr.s(auto_attribs=True, eq=False)
 class Crystal:
     """Defines the base class of a crystal lattice."""
 
