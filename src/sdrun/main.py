@@ -132,6 +132,15 @@ def sdrun(ctx, **kwargs) -> None:
         crystal = CRYSTAL_FUNCS.get(space_group)
         assert crystal is not None
         kwargs["crystal"] = crystal()
+
+    molecule = kwargs.get("molecule")
+    if molecule is not None:
+        if molecule not in MOLECULE_OPTIONS:
+            raise ValueError(f"The value of 'molecule': {molecule} is not valid.")
+        molecule = MOLECULE_OPTIONS.get(molecule)
+        assert molecule is not None
+        kwargs["molecule"] = molecule()
+
     if kwargs.get("num_steps") is None:
         logger.warning(
             "Number of steps (--num-steps) not specified, setting to default value of 100."

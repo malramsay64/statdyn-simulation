@@ -17,6 +17,7 @@ from click.testing import CliRunner
 
 from sdrun import SimulationParams
 from sdrun.main import prod, sdrun
+from sdrun.molecules import MOLECULE_DICT
 
 
 @pytest.fixture
@@ -75,6 +76,22 @@ def test_no_warnings(runner):
 
     result = runner.invoke(
         sdrun, ["--num-steps=1", "--temperature=0.80", "prod", testfile]
+    )
+    assert result.exit_code == 0, result.output
+    assert r"*Warning*:" not in result.output, result.output
+
+
+@pytest.mark.parametrize("molecule", MOLECULE_DICT.keys())
+def test_molecule(runner, molecule):
+    result = runner.invoke(
+        sdrun,
+        [
+            "--num-steps=1",
+            "--temperature=0.10",
+            f"--molecule={molecule}",
+            "create",
+            "test.gsd",
+        ],
     )
     assert result.exit_code == 0, result.output
     assert r"*Warning*:" not in result.output, result.output
