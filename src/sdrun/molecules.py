@@ -291,7 +291,7 @@ class Trimer(Molecule):
         )
 
     def __eq__(self, other) -> bool:
-        if super().__eq__(other):
+        if isinstance(other, type(self)):
             return (
                 self.radius == other.radius
                 and self.distance == other.distance
@@ -350,7 +350,7 @@ class Dimer(Molecule):
         )
 
     def __eq__(self, other) -> bool:
-        if super().__eq__(other):
+        if isinstance(other, type(self)):
             return self.radius == other.radius and self.distance == other.distance
 
         return False
