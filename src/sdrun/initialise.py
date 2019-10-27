@@ -10,6 +10,7 @@
 This module allows the initialisation from a number of different starting
 configurations, whether that is a file, a crystal lattice, or no predefined
 config.
+
 """
 import logging
 import operator
@@ -47,7 +48,24 @@ logger = logging.getLogger(__name__)
 
 
 def init_from_file(fname: Path, molecule: Molecule, hoomd_args: str = "") -> Snapshot:
-    """Initialise a hoomd simulation from an input file."""
+    """Initialise a hoomd simulation from an input file.
+
+    This reads in an gsd file, using the configuration from the first snapshot within
+    the file as the initial configuration. While the gsd file contains the positions of
+    the molecules, it doesn't contain the molecular definition which also needs to be
+    specified.
+
+    Args:
+        fname: A gsd file which contains the configuration to start the simulation as
+            it's first frame.
+        molecule: The definition of the molecule which is to be constructed at each
+            position and orientation defined in the input file.
+        hoomd_args: Additional arguments to pass to the hoomd context when running the
+            simulation.
+
+    Returns:
+        An initialised hoomd snapshot which is ready to be used within a simulation.
+    """
     logger.info(
         textwrap.dedent(
             """
@@ -83,10 +101,13 @@ def init_from_none(
     using a conjugate gradient algorithm to give a reasonable low energy configuration.
 
     Args:
-        sim_params: The parameters of the simulation
-            defined for this simulation.
-        equilibration: Flag to equilibrate simulation after
-            initialisation. Thermalising the perfect crystal lattice. (Default `False`).
+        sim_params: The parameters of the simulation defined for this simulation.
+        equilibration: Flag to equilibrate simulation after initialisation. This will
+            give the particles a Maxwell-Boltzmann distribution of translational
+            and rotational motion, ensuring the equipartition theorem holds true.
+
+    Returns:
+        An initialised hoomd snapshot which is ready to be used within a simulation.
 
     """
     logger.info(
@@ -121,13 +142,18 @@ def init_from_crystal(
 
     Args:
         sim_params: The parameters of the simulation defined for this simulation.
-        equilibration: Flag to equilibrate simulation after
-            initialisation. Thermalising the perfect crystal lattice.
-            (Default `False`).
+        equilibration: Flag to equilibrate simulation after initialisation.
+            This will give all particles a distribution of energy which
+            matches the desired temperature. This takes place after the minimisation
+            of positions if it is specified.
         minimize: Perform a FIRE energy minimisation on the crystal
             after initialising from the lattice parameters. This accounts
-            for any slight inaccuracies of the lattice parameters.
-            (Default `False`).
+            for any slight inaccuracies of the lattice parameters. The minimisation
+            occurs before the equilibration takes place.
+
+    Returns:
+        An initialised hoomd snapshot which is ready to be used within a simulation.
+
     """
     if sim_params.cell_dimensions is None:
         raise ValueError(
@@ -217,7 +243,7 @@ def initialise_snapshot(
             after initialising from the lattice parameters. This accounts
             for any slight inaccuracies of the lattice parameters. (Default `False`).
         thermalisation: Randomise the momenta of the particles in the simulation
-            according to a Maxwell-Bolzmann distribution at the desired temperature.
+            according to a Maxwell-Boltzmann distribution at the desired temperature.
             With no value passed this is performed when the thermodynamic temperature
             is well away from the desired value. This can be overridden by passing
             either `True` or `False`.
@@ -335,7 +361,7 @@ def minimize_snapshot(
             group = hoomd.group.all()
 
         logger.debug("Minimizing energy")
-        fire = hoomd.md.integrate.mode_minimize_fire(0.001)
+        fire = hoomd.md.integrate.mode_minimize_fire(dt=0.001)
 
         if ensemble == "NVE":
             ensemble_integrator = hoomd.md.integrate.nve(group=group)
