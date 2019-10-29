@@ -234,7 +234,7 @@ class CubicSphere(Crystal):
     """Create a simple cubic lattice."""
 
     def __init__(self):
-        cell_matrix = 2 * np.identity(3)
+        cell_matrix = np.identity(3)
         super().__init__(cell_matrix=cell_matrix, molecule=Sphere())
 
     def __repr__(self) -> str:
@@ -245,7 +245,7 @@ class SquareCircle(Crystal):
     """Create a square lattice."""
 
     def __init__(self):
-        cell_matrix = 2 * np.identity(3)
+        cell_matrix = np.identity(3)
         cell_matrix[2, 2] = 1
         super().__init__(cell_matrix=cell_matrix, molecule=Disc())
 
@@ -254,7 +254,7 @@ class SquareCircle(Crystal):
 
 
 class HexagonalCircle(Crystal):
-    def __init__(self, length=2.0):
+    def __init__(self, length=1.0):
         cell_matrix = np.array([[length, 0, 0], [0, np.sqrt(3) * length, 0], [0, 0, 1]])
         position = np.array([[0, 0, 0], [length / 2, np.sqrt(3) * length / 2, 0]])
         orientation = np.array([0, 0])

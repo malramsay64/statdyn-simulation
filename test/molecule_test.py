@@ -16,6 +16,7 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import floats
 from numpy.testing import assert_allclose
+
 from sdrun.molecules import Dimer, Disc, Molecule, Sphere, Trimer
 
 ABS_TOLERANCE = 1e-12
@@ -184,3 +185,13 @@ def test_equality(mol):
     subclass = mol_sub()
 
     assert molecule != subclass
+
+
+def test_sphere_radius():
+    mol = Sphere()
+    assert mol._radii["A"] == 0.5
+
+
+def test_disc_radius():
+    mol = Disc()
+    assert mol._radii["A"] == 0.5
