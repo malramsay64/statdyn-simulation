@@ -26,7 +26,15 @@ from sdrun.crystals import (
 )
 from sdrun.params import SimulationParams
 
-TEST_CLASSES = [Crystal, TrimerP2, TrimerP2gg, TrimerPg, SquareCircle, CubicSphere, HexagonalCircle]
+TEST_CLASSES = [
+    Crystal,
+    TrimerP2,
+    TrimerP2gg,
+    TrimerPg,
+    SquareCircle,
+    CubicSphere,
+    HexagonalCircle,
+]
 
 
 @pytest.fixture(params=TEST_CLASSES)
