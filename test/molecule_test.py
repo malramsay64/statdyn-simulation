@@ -75,7 +75,10 @@ def test_scale_moment_inertia(molecule):
 
 def test_get_radii(molecule):
     radii = molecule.get_radii()
-    assert radii[0] == 1.0
+    if isinstance(molecule, (Sphere, Disc)):
+        assert radii[0] == 0.5
+    else:
+        assert radii[0] == 1.0
 
 
 def test_read_only_position(molecule):
@@ -143,7 +146,7 @@ def test_moment_inertia_scaling(scaling_factor):
 
 def test_compute_size(molecule):
     size = molecule.compute_size()
-    assert size >= 2.0
+    assert size >= 1.0
 
 
 def test_dimensions(molecule):

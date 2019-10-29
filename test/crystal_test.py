@@ -14,6 +14,7 @@ import hoomd
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
+
 from sdrun.crystals import (
     Crystal,
     CubicSphere,
@@ -128,9 +129,9 @@ def test_compute_volume(crys_class):
     if type(crys_class) is Crystal:
         assert crys_class.compute_volume() == 1
     elif type(crys_class) is CubicSphere:
-        assert crys_class.compute_volume() == 8
+        assert crys_class.compute_volume() == 1
     elif type(crys_class) is CubicSphere:
-        assert crys_class.compute_volume() == 4
+        assert crys_class.compute_volume() == 1
 
 
 def test_relative_positions(crys_class):
@@ -158,8 +159,8 @@ def test_matrix_values(crys_class):
         assert np.all(matrix[2, 2] == 1)
 
     if type(crys_class) is SquareCircle:
-        assert matrix[0, 0] == 2
-        assert matrix[1, 1] == 2
+        assert matrix[0, 0] == 1
+        assert matrix[1, 1] == 1
 
 
 def test_positions(crys_class):
