@@ -21,15 +21,15 @@ def get_version():
 setup_requires = []
 install_requires = ["numpy", "rowan", "attrs>=19.2", "click"]
 test_requires = [
-    "pytest",
-    "pylint~=2.4.0",
-    "hypothesis",
-    "coverage",
+    "pytest==5.2.2",
+    "pylint==2.4.3",
+    "hypothesis==4.42.0",
+    "coverage==4.5.4",
     "black==19.3b0",
     "mypy==0.740",
-    "pytest-mypy",
-    "pytest-pylint",
-    "pytest-cov",
+    "pytest-mypy==0.4.1",
+    "pytest-pylint==0.14.1",
+    "pytest-cov==2.8.1",
 ]
 docs_requires = ["sphinx", "sphinx_rtd_theme", "sphinx_autodoc_typehints"]
 dev_requires = docs_requires + test_requires
