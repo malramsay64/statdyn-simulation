@@ -212,8 +212,8 @@ class Disc(Molecule):
 
     def __init__(self) -> None:
         """Initialise 2D disc particle."""
-        self._radii = {"A": 0.5}
         super().__init__(dimensions=2)
+        self._radii = {"A": 0.5}
 
 
 class Sphere(Molecule):
@@ -221,8 +221,8 @@ class Sphere(Molecule):
 
     def __init__(self) -> None:
         """Initialise Spherical particle."""
-        self._radii = {"A": 0.5}
         super().__init__()
+        self._radii = {"A": 0.5}
 
 
 class Trimer(Molecule):
