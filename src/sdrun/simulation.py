@@ -270,6 +270,7 @@ def production(
         set_thermo(
             sim_params.filename(prefix="thermo"),
             thermo_period=sim_params.output_interval,
+            rigid=sim_params.molecule.rigid,
         )
         set_dump(
             group,
