@@ -198,7 +198,10 @@ def set_thermo(
         ]
     outfile = Path(outfile).with_suffix(".log")
     return hoomd.analyze.log(
-        str(outfile), quantities=default + rigid_thermo, period=thermo_period
+        str(outfile),
+        quantities=default + rigid_thermo,
+        period=thermo_period,
+        overwrite=True,
     )
 
 
