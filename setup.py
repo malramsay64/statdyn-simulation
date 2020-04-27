@@ -27,7 +27,7 @@ test_requires = [
     "coverage==5.0.3",
     "black==19.10b0",
     "mypy==0.761",
-    "pytest-mypy==0.4.2",
+    "pytest-mypy==0.6.2",
     "pytest-pylint==0.14.1",
     "pytest-cov==2.8.1",
 ]
