@@ -22,7 +22,7 @@ setup_requires = []
 install_requires = ["numpy", "rowan", "attrs>=19.2", "click"]
 test_requires = [
     "pytest==5.3.2",
-    "pylint==2.4.4",
+    "pylint==2.5.0",
     "hypothesis>=4.43.1,<6.0",
     "coverage==5.0.3",
     "black==19.10b0",
