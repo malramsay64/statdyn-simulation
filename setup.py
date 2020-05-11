@@ -28,7 +28,7 @@ test_requires = [
     "black==19.10b0",
     "mypy==0.761",
     "pytest-mypy==0.4.2",
-    "pytest-pylint==0.14.1",
+    "pytest-pylint==0.17.0",
     "pytest-cov==2.8.1",
 ]
 docs_requires = ["sphinx", "sphinx_rtd_theme", "sphinx_autodoc_typehints"]
