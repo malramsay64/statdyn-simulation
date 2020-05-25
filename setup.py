@@ -29,7 +29,7 @@ test_requires = [
     "mypy==0.761",
     "pytest-mypy==0.4.2",
     "pytest-pylint==0.14.1",
-    "pytest-cov==2.8.1",
+    "pytest-cov==2.9.0",
 ]
 docs_requires = ["sphinx", "sphinx_rtd_theme", "sphinx_autodoc_typehints"]
 dev_requires = docs_requires + test_requires
