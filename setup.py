@@ -26,7 +26,7 @@ test_requires = [
     "hypothesis>=4.43.1,<6.0",
     "coverage==5.0.3",
     "black==19.10b0",
-    "mypy==0.761",
+    "mypy==0.782",
     "pytest-mypy==0.4.2",
     "pytest-pylint==0.14.1",
     "pytest-cov==2.8.1",
