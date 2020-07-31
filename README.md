@@ -1,5 +1,6 @@
 # statdyn-simulation
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3967979.svg)](https://doi.org/10.5281/zenodo.3967979)
 [![Build Status](https://travis-ci.org/malramsay64/statdyn-simulation.svg?branch=master)](https://travis-ci.org/malramsay64/statdyn-simulation)
 [![Documentation Status](https://readthedocs.org/projects/statdyn-simulation/badge/?version=latest)](https://statdyn-simulation.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/malramsay64/statdyn-simulation/branch/master/graph/badge.svg)](https://codecov.io/gh/malramsay64/statdyn-simulation)
